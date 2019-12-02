@@ -1,0 +1,5 @@
+<div class="container">
+  <h1>Hi user</h1>
+
+  <span><%= link "Back", to: Routes.user_path(@conn, :index) %></span>
+</div>

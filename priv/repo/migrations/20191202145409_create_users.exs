@@ -3,7 +3,9 @@ defmodule Croc.Repo.Migrations.CreateUsers do
 
   def change do
     create table(:users) do
-      add :email, :string
+      add :first_name, :string, null: false
+      add :last_name, :string, null: false
+      add :email, :string, unique: true, null: false
       add :password_hash, :string
       add :confirmed_at, :utc_datetime
       add :reset_sent_at, :utc_datetime

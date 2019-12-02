@@ -5,16 +5,27 @@ defmodule CrocWeb.PasswordResetController do
   alias Croc.Accounts
   alias CrocWeb.{Auth.Token, Email}
 
+  def new(conn, _params) do
+    render(conn, "new.html")
+  end
+
   def create(conn, %{"password_reset" => %{"email" => email}}) do
     if Accounts.create_password_reset(%{"email" => email}) do
       key = Token.sign(%{"email" => email})
-      Email.reset_request(email, Routes.password_reset_url(conn, :update, password_reset: %{key: key}))
+      Email.reset_request(email, Routes.password_reset_url(conn, :edit, key: key))
     end
 
     conn
-    |> put_status(:created)
-    |> put_view(CrocWeb.PasswordResetView)
-    |> render("info.json", %{info: "Check your inbox for instructions on how to reset your password"})
+    |> put_flash(:info, "Check your inbox for instructions on how to reset your password")
+    |> redirect(to: Routes.game_path(conn, :index))
+  end
+
+  def edit(conn, %{"key" => key}) do
+    render(conn, "edit.html", key: key)
+  end
+
+  def edit(conn, _params) do
+    render(conn, SodaWeb.ErrorView, "404.html")
   end
 
   def update(conn, %{"password_reset" => params}) do
@@ -26,9 +37,8 @@ defmodule CrocWeb.PasswordResetController do
 
       {:error, message} ->
         conn
-        |> put_status(:unprocessable_entity)
-        |> put_view(CrocWeb.PasswordResetView)
-        |> render("error.json", error: message)
+        |> put_flash(:error, message)
+        |> render("edit.html", key: params["key"])
     end
   end
 
@@ -36,16 +46,16 @@ defmodule CrocWeb.PasswordResetController do
     Email.reset_success(user.email)
 
     conn
-    |> put_view(CrocWeb.PasswordResetView)
-    |> render("info.json", %{info: "Your password has been reset"})
+    |> delete_session(:phauxth_session_id)
+    |> put_flash(:info, "Your password has been reset")
+    |> redirect(to: Routes.session_path(conn, :new))
   end
 
-  defp update_password({:error, %Ecto.Changeset{} = changeset}, conn, _params) do
+  defp update_password({:error, %Ecto.Changeset{} = changeset}, conn, params) do
     message = with p <- changeset.errors[:password], do: elem(p, 0)
 
     conn
-    |> put_status(:unprocessable_entity)
-    |> put_view(CrocWeb.PasswordResetView)
-    |> render("error.json", error: message)
+    |> put_flash(:error, message || "Invalid input")
+    |> render("edit.html", key: params["key"])
   end
 end

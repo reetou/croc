@@ -9,6 +9,15 @@ defmodule CrocWeb.Router do
     plug :put_secure_browser_headers
   end
 
+  pipeline :authorized do
+    plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug Phauxth.AuthenticateToken
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug Phauxth.AuthenticateToken
@@ -18,16 +27,22 @@ defmodule CrocWeb.Router do
     pipe_through :browser
 
     get "/", GameController, :index
+    resources "/users", UserController
+  end
+
+  scope "/", CrocWeb do
+    pipe_through :authorized
+
+    get "/confirms", ConfirmController, :index
+    resources "/password_resets", PasswordResetController, only: [:new, :create]
+    get "/password_resets/edit", PasswordResetController, :edit
+    put "/password_resets/update", PasswordResetController, :update
+
+    resources "/sessions", SessionController, only: [:new, :create, :delete]
   end
 
   scope "/api", CrocWeb do
     pipe_through :api
-
-    post "/sessions", SessionController, :create
-    resources "/users", UserController, except: [:new, :edit]
-    get "/confirms", ConfirmController, :index
-    post "/password_resets", PasswordResetController, :create
-    put "/password_resets/update", PasswordResetController, :update
   end
 
   if Mix.env() == :dev do

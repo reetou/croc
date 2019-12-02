@@ -3,21 +3,26 @@ defmodule Croc.Accounts.User do
 
   import Ecto.Changeset
 
+  alias Croc.Repo
   alias Croc.Sessions.Session
 
   @type t :: %__MODULE__{
-    id: integer,
-    email: String.t(),
-    password_hash: String.t(),
-    confirmed_at: DateTime.t() | nil,
-    reset_sent_at: DateTime.t() | nil,
-    sessions: [Session.t()] | %Ecto.Association.NotLoaded{},
-    inserted_at: DateTime.t(),
-    updated_at: DateTime.t()
+     id: integer,
+     first_name: String.t(),
+     last_name: String.t(),
+     email: String.t(),
+     password_hash: String.t(),
+     confirmed_at: DateTime.t() | nil,
+     reset_sent_at: DateTime.t() | nil,
+     sessions: [Session.t()] | %Ecto.Association.NotLoaded{},
+     inserted_at: DateTime.t(),
+     updated_at: DateTime.t()
   }
 
   schema "users" do
-    field :email, :string
+    field :first_name, :string, null: false
+    field :last_name, :string, null: false
+    field :email, :string, unique: true
     field :password, :string, virtual: true
     field :password_hash, :string
     field :confirmed_at, :utc_datetime
@@ -25,6 +30,11 @@ defmodule Croc.Accounts.User do
     has_many :sessions, Session, on_delete: :delete_all
 
     timestamps()
+  end
+
+  def find_user(id) do
+    __MODULE__
+    |> Repo.get(id)
   end
 
   def changeset(%__MODULE__{} = user, attrs) do
@@ -36,8 +46,8 @@ defmodule Croc.Accounts.User do
 
   def create_changeset(%__MODULE__{} = user, attrs) do
     user
-    |> cast(attrs, [:email, :password])
-    |> validate_required([:email, :password])
+    |> cast(attrs, [:email, :password, :first_name, :last_name])
+    |> validate_required([:email, :password, :first_name, :last_name])
     |> unique_email
     |> validate_password(:password)
     |> put_pass_hash

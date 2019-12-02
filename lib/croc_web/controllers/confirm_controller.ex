@@ -14,11 +14,13 @@ defmodule CrocWeb.ConfirmController do
         Email.confirm_success(user.email)
 
         conn
-        |> put_view(CrocWeb.ConfirmView)
-        |> render("info.json", %{info: "Your account has been confirmed"})
+        |> put_flash(:info, "Your account has been confirmed")
+        |> redirect(to: Routes.session_path(conn, :new))
 
-      {:error, _message} ->
-        error(conn, :unauthorized, 401)
+      {:error, message} ->
+        conn
+        |> put_flash(:error, message)
+        |> redirect(to: Routes.session_path(conn, :new))
     end
   end
 end
