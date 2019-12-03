@@ -7,16 +7,16 @@ defmodule Croc.Accounts.User do
   alias Croc.Sessions.Session
 
   @type t :: %__MODULE__{
-     id: integer,
-     username: String.t(),
-     email: String.t(),
-     password_hash: String.t(),
-     confirmed_at: DateTime.t() | nil,
-     reset_sent_at: DateTime.t() | nil,
-     sessions: [Session.t()] | %Ecto.Association.NotLoaded{},
-     inserted_at: DateTime.t(),
-     updated_at: DateTime.t()
-  }
+          id: integer,
+          username: String.t(),
+          email: String.t(),
+          password_hash: String.t(),
+          confirmed_at: DateTime.t() | nil,
+          reset_sent_at: DateTime.t() | nil,
+          sessions: [Session.t()] | %Ecto.Association.NotLoaded{},
+          inserted_at: DateTime.t(),
+          updated_at: DateTime.t()
+        }
 
   schema "users" do
     field :username, :string, null: false, unique: true
@@ -92,8 +92,7 @@ defmodule Croc.Accounts.User do
   end
 
   # If you are using Bcrypt or Pbkdf2, change Argon2 to Bcrypt or Pbkdf2
-  defp put_pass_hash(%Ecto.Changeset{valid?: true, changes:
-      %{password: password}} = changeset) do
+  defp put_pass_hash(%Ecto.Changeset{valid?: true, changes: %{password: password}} = changeset) do
     change(changeset, Argon2.add_hash(password))
   end
 

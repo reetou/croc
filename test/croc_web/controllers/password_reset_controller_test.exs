@@ -30,10 +30,12 @@ defmodule CrocWeb.PasswordResetControllerTest do
         put(conn, Routes.password_reset_path(conn, :update), password_reset: valid_attrs)
 
       assert redirected_to(reset_conn, 302) =~ Routes.session_path(reset_conn, :new)
+
       conn =
         post(conn, Routes.session_path(conn, :create),
           session: %{email: "gladys@example.com", password: "^hEsdg*F899"}
         )
+
       assert redirected_to(conn, 302) =~ Routes.game_path(conn, :index)
     end
 

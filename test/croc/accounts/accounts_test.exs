@@ -14,7 +14,6 @@ defmodule Croc.AccountsTest do
   end
 
   describe "read user data" do
-
     test "get_user! returns the user with given id" do
       user = fixture(:user)
       assert Accounts.get_user!(user.id) == user

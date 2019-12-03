@@ -26,6 +26,7 @@ defmodule CrocWeb.UserController do
 
   def create(conn, %{"user" => %{"email" => email} = user_params}) do
     key = Token.sign(%{"email" => email})
+
     case Accounts.create_user(user_params) do
       {:ok, user} ->
         Log.info(%Log{user: user.id, message: "user created"})
@@ -33,7 +34,10 @@ defmodule CrocWeb.UserController do
         Email.confirm_request(email, Routes.confirm_url(conn, :index, key: key))
 
         conn
-        |> put_flash(:info, "We have sent you a confirmation email. Please confirm your registration.")
+        |> put_flash(
+          :info,
+          "We have sent you a confirmation email. Please confirm your registration."
+        )
         |> redirect(to: Routes.session_path(conn, :new))
 
       {:error, %Ecto.Changeset{} = changeset} ->
@@ -45,6 +49,7 @@ defmodule CrocWeb.UserController do
     case Accounts.get_user(id) do
       %User{} = user ->
         render(conn, "show.html", user: user)
+
       _ ->
         conn
         |> put_view(CrocWeb.ErrorView)

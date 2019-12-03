@@ -9,12 +9,12 @@ users = [
   %{
     email: "jane.doe@example.com",
     password: "password",
-    username: "Vladimir",
+    username: "Vladimir"
   },
   %{
     email: "john.smith@example.org",
     password: "password",
-    username: "Somer",
+    username: "Somer"
   }
 ]
 

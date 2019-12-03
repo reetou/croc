@@ -33,6 +33,7 @@ defmodule CrocWeb.SessionController do
     case Sessions.get_session(session_id) do
       %Session{user_id: ^user_id} = session ->
         Sessions.delete_session(session)
+
         conn
         |> delete_session(:phauxth_session_id)
         |> Remember.delete_rem_cookie()

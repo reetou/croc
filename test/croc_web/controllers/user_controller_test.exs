@@ -21,7 +21,7 @@ defmodule CrocWeb.UserControllerTest do
       assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
 
-    test "renders /users error for nil user", %{conn: conn}  do
+    test "renders /users error for nil user", %{conn: conn} do
       conn = get(conn, Routes.user_path(conn, :index))
       assert json_response(conn, 401)
     end
@@ -36,9 +36,9 @@ defmodule CrocWeb.UserControllerTest do
     end
 
     test "returns 404 when user not found", %{conn: conn} do
-        conn = get(conn, Routes.user_path(conn, :show, -1))
+      conn = get(conn, Routes.user_path(conn, :show, -1))
 
-        assert html_response(conn, 200) =~ "<!DOCTYPE html>"
+      assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
   end
 

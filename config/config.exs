@@ -25,8 +25,8 @@ config :phauxth,
 
 # Mailer configuration
 config :croc, CrocWeb.Mailer,
- adapter: Bamboo.SendGridAdapter,
- api_key: System.get_env("SENDGRID_KEY")
+  adapter: Bamboo.SendGridAdapter,
+  api_key: System.get_env("SENDGRID_KEY")
 
 # Configures Elixir's Logger
 config :logger, :console,
@@ -34,7 +34,8 @@ config :logger, :console,
   metadata: [:request_id]
 
 config :mnesia,
-  dir: '.mnesia/#{Mix.env}/#{node()}'
+  dir: '.mnesia/#{Mix.env()}/#{node()}'
+
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
