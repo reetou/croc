@@ -10,7 +10,7 @@ defmodule CrocWeb.Router do
   end
 
   pipeline :authorized do
-    plug :accepts, ["html"]
+    plug :accepts, ["html", "json"]
     plug :fetch_session
     plug :fetch_flash
     plug :protect_from_forgery
@@ -27,7 +27,6 @@ defmodule CrocWeb.Router do
     pipe_through :browser
 
     get "/", GameController, :index
-    resources "/users", UserController
   end
 
   scope "/", CrocWeb do
@@ -39,6 +38,7 @@ defmodule CrocWeb.Router do
     put "/password_resets/update", PasswordResetController, :update
 
     resources "/sessions", SessionController, only: [:new, :create, :delete]
+    resources "/users", UserController
   end
 
   scope "/api", CrocWeb do
