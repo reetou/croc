@@ -27,6 +27,10 @@ defmodule Croc.Accounts.User do
     field :reset_sent_at, :utc_datetime
     has_many :sessions, Session, on_delete: :delete_all
 
+    has_many :user_monopoly_cards, Croc.Repo.Games.Monopoly.UserCard
+
+    has_many :monopoly_cards, through: [:user_monopoly_cards, :monopoly_card]
+
     timestamps()
   end
 
