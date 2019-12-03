@@ -41,9 +41,15 @@ defmodule CrocWeb.UserController do
     end
   end
 
-  def show(%Plug.Conn{assigns: %{current_user: user}} = conn, %{"id" => id}) do
-    user = if id == to_string(user.id), do: user, else: Accounts.get_user!(id)
-    render(conn, "show.html", user: user)
+  def show(%Plug.Conn{assigns: %{current_user: _user}} = conn, %{"id" => id}) do
+    case Accounts.get_user(id) do
+      %User{} = user ->
+        render(conn, "show.html", user: user)
+      _ ->
+        conn
+        |> put_view(CrocWeb.ErrorView)
+        |> render("404.html")
+    end
   end
 
   def edit(%Plug.Conn{assigns: %{current_user: user}} = conn, _) do
