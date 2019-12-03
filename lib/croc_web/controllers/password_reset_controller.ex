@@ -25,7 +25,7 @@ defmodule CrocWeb.PasswordResetController do
   end
 
   def edit(conn, _params) do
-    render(conn, SodaWeb.ErrorView, "404.html")
+    render(conn, CrocWeb.ErrorView, "404.html")
   end
 
   def update(conn, %{"password_reset" => params}) do
@@ -38,7 +38,7 @@ defmodule CrocWeb.PasswordResetController do
       {:error, message} ->
         conn
         |> put_flash(:error, message)
-        |> render("edit.html", key: params["key"])
+        |> redirect(to: Routes.password_reset_path(conn, :edit), key: params["key"])
     end
   end
 
