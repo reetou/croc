@@ -20,6 +20,8 @@ defmodule Croc.Accounts do
   """
   @spec get_user!(integer) :: User.t() | no_return
   def get_user!(id), do: Repo.get!(User, id)
+  @spec get_user(integer) :: User.t() | nil
+  def get_user(id), do: Repo.get(User, id)
 
   @doc """
   Gets a user based on the params.
