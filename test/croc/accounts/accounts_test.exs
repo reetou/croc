@@ -4,7 +4,7 @@ defmodule Croc.AccountsTest do
   alias Croc.Accounts
   alias Croc.Accounts.User
 
-  @create_attrs %{email: "fred@example.com", password: "reallyHard2gue$$"}
+  @create_attrs %{email: "fred@example.com", password: "reallyHard2gue$$", username: "username"}
   @update_attrs %{email: "frederick@example.com"}
   @invalid_attrs %{email: "", password: ""}
 
@@ -14,10 +14,6 @@ defmodule Croc.AccountsTest do
   end
 
   describe "read user data" do
-    test "list_users/1 returns all users" do
-      user = fixture(:user)
-      assert Accounts.list_users() == [user]
-    end
 
     test "get_user! returns the user with given id" do
       user = fixture(:user)

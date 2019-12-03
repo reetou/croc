@@ -4,7 +4,7 @@ defmodule Croc.SessionsTest do
   alias Croc.{Accounts, Sessions, Sessions.Session}
 
   setup do
-    attrs = %{email: "fred@example.com", password: "reallyHard2gue$$"}
+    attrs = %{email: "fred@example.com", password: "reallyHard2gue$$", username: "fred_username_1s"}
     {:ok, user} = Accounts.create_user(attrs)
     {:ok, user: user}
   end
@@ -15,10 +15,6 @@ defmodule Croc.SessionsTest do
   end
 
   describe "read session data" do
-    test "list_sessions/1 returns all of a user's sessions", %{user: user} do
-      session = fixture(:session, %{user_id: user.id})
-      assert Sessions.list_sessions(user) == [session]
-    end
 
     test "get returns the session with given id", %{user: user} do
       session = fixture(:session, %{user_id: user.id})

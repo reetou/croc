@@ -6,8 +6,6 @@ defmodule CrocWeb.SessionControllerTest do
   @create_attrs %{email: "robin@example.com", password: "reallyHard2gue$$"}
   @invalid_attrs %{email: "robin@example.com", password: "cannotGue$$it"}
   @unconfirmed_attrs %{email: "lancelot@example.com", password: "reallyHard2gue$$"}
-  @rem_attrs %{email: "robin@example.com", password: "reallyHard2gue$$", remember_me: "true"}
-  @no_rem_attrs Map.merge(@rem_attrs, %{remember_me: "false"})
 
   setup %{conn: conn} do
     add_user("lancelot@example.com")
@@ -18,12 +16,12 @@ defmodule CrocWeb.SessionControllerTest do
   describe "create session" do
     test "login succeeds", %{conn: conn} do
       conn = post(conn, Routes.session_path(conn, :create), session: @create_attrs)
-      assert json_response(conn, 200)["access_token"]
+      assert redirected_to(conn, 302) =~ Routes.user_path(conn, :index)
     end
 
     test "login fails for user that is not yet confirmed", %{conn: conn} do
       conn = post(conn, Routes.session_path(conn, :create), session: @unconfirmed_attrs)
-      assert json_response(conn, 401)["errors"]["detail"] =~ "need to login"
+      assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
     end
 
     test "login fails for user that is already logged in", %{conn: conn, user: user} do
@@ -34,7 +32,7 @@ defmodule CrocWeb.SessionControllerTest do
 
     test "login fails for invalid password", %{conn: conn} do
       conn = post(conn, Routes.session_path(conn, :create), session: @invalid_attrs)
-      assert json_response(conn, 401)["errors"]["detail"] =~ "need to login"
+      assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
     end
   end
 end

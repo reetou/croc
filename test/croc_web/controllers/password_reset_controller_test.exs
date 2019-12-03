@@ -12,13 +12,13 @@ defmodule CrocWeb.PasswordResetControllerTest do
     test "user can create a password reset request", %{conn: conn} do
       valid_attrs = %{email: "gladys@example.com"}
       conn = post(conn, Routes.password_reset_path(conn, :create), password_reset: valid_attrs)
-      assert json_response(conn, 201)["info"]["detail"]
+      assert redirected_to(conn, 302) =~ Routes.game_path(conn, :index)
     end
 
     test "create function fails for no user", %{conn: conn} do
       invalid_attrs = %{email: "prettylady@example.com"}
       conn = post(conn, Routes.password_reset_path(conn, :create), password_reset: invalid_attrs)
-      assert json_response(conn, 201)["info"]["detail"]
+      assert redirected_to(conn, 302) =~ Routes.game_path(conn, :index)
     end
   end
 
@@ -29,18 +29,18 @@ defmodule CrocWeb.PasswordResetControllerTest do
       reset_conn =
         put(conn, Routes.password_reset_path(conn, :update), password_reset: valid_attrs)
 
-      assert json_response(reset_conn, 200)["info"]["detail"] =~ "password has been reset"
+      assert redirected_to(reset_conn, 302) =~ Routes.session_path(reset_conn, :new)
       conn =
         post(conn, Routes.session_path(conn, :create),
           session: %{email: "gladys@example.com", password: "^hEsdg*F899"}
         )
-      assert json_response(conn, 200)["access_token"]
+      assert redirected_to(conn, 302) =~ Routes.game_path(conn, :index)
     end
 
     test "reset password fails for incorrect key", %{conn: conn} do
       invalid_attrs = %{email: "gladys@example.com", password: "^hEsdg*F899", key: "garbage"}
       conn = put(conn, Routes.password_reset_path(conn, :update), password_reset: invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      assert redirected_to(conn, 302) =~ Routes.password_reset_path(conn, :edit)
     end
   end
 end

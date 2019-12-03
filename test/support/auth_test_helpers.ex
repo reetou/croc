@@ -8,7 +8,7 @@ defmodule CrocWeb.AuthTestHelpers do
   alias CrocWeb.Auth.Token
 
   def add_user(email) do
-    user = %{email: email, password: "reallyHard2gue$$"}
+    user = %{email: email, password: "reallyHard2gue$$", username: email <> "_username"}
     {:ok, user} = Accounts.create_user(user)
     user
   end

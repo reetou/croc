@@ -10,16 +10,16 @@ defmodule CrocWeb.ConfirmControllerTest do
 
   test "confirmation succeeds for correct key", %{conn: conn} do
     conn = get(conn, Routes.confirm_path(conn, :index, key: gen_key("arthur@example.com")))
-    assert json_response(conn, 200)["info"]["detail"]
+    assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
   end
 
   test "confirmation fails for incorrect key", %{conn: conn} do
     conn = get(conn, Routes.confirm_path(conn, :index, key: "garbage"))
-    assert json_response(conn, 401)["errors"]["detail"]
+    assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
   end
 
   test "confirmation fails for incorrect email", %{conn: conn} do
     conn = get(conn, Routes.confirm_path(conn, :index, key: gen_key("gerald@example.com")))
-    assert json_response(conn, 401)["errors"]["detail"]
+    assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
   end
 end

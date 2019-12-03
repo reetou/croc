@@ -5,7 +5,7 @@ defmodule CrocWeb.UserControllerTest do
 
   alias Croc.Accounts
 
-  @create_attrs %{email: "bill@example.com", password: "hard2guess"}
+  @create_attrs %{email: "bill@example.com", password: "hard2guess", username: "zaa"}
   @update_attrs %{email: "william@example.com"}
   @invalid_attrs %{email: nil}
 
@@ -18,7 +18,7 @@ defmodule CrocWeb.UserControllerTest do
       user = add_user("reg@example.com")
       conn = conn |> add_token_conn(user)
       conn = get(conn, Routes.user_path(conn, :index))
-      assert json_response(conn, 200)
+      assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
 
     test "renders /users error for nil user", %{conn: conn}  do
@@ -32,26 +32,26 @@ defmodule CrocWeb.UserControllerTest do
 
     test "show chosen user's page", %{conn: conn, user: user} do
       conn = get(conn, Routes.user_path(conn, :show, user))
-      assert json_response(conn, 200)["data"] == %{"id" => user.id, "email" => "reg@example.com"}
+      assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
 
     test "returns 404 when user not found", %{conn: conn} do
-      assert_error_sent 404, fn ->
-        get(conn, Routes.user_path(conn, :show, -1))
-      end
+        conn = get(conn, Routes.user_path(conn, :show, -1))
+
+        assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
   end
 
   describe "create user" do
     test "creates user when data is valid", %{conn: conn} do
       conn = post(conn, Routes.user_path(conn, :create), user: @create_attrs)
-      assert json_response(conn, 201)["data"]["id"]
+      assert redirected_to(conn, 302) =~ Routes.game_path(conn, :index)
       assert Accounts.get_by(%{"email" => "bill@example.com"})
     end
 
     test "does not create user and renders errors when data is invalid", %{conn: conn} do
       conn = post(conn, Routes.user_path(conn, :create), user: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
   end
 
@@ -60,7 +60,7 @@ defmodule CrocWeb.UserControllerTest do
 
     test "updates chosen user when data is valid", %{conn: conn, user: user} do
       conn = put(conn, Routes.user_path(conn, :update, user), user: @update_attrs)
-      assert json_response(conn, 200)["data"]["id"] == user.id
+      assert redirected_to(conn, 302) =~ Routes.user_path(conn, :index) <> "/#{user.id}"
       updated_user = Accounts.get_user!(user.id)
       assert updated_user.email == "william@example.com"
     end
@@ -70,7 +70,7 @@ defmodule CrocWeb.UserControllerTest do
       user: user
     } do
       conn = put(conn, Routes.user_path(conn, :update, user), user: @invalid_attrs)
-      assert json_response(conn, 422)["errors"] != %{}
+      assert html_response(conn, 200) =~ "<!DOCTYPE html>"
     end
   end
 
@@ -79,7 +79,7 @@ defmodule CrocWeb.UserControllerTest do
 
     test "deletes chosen user", %{conn: conn, user: user} do
       conn = delete(conn, Routes.user_path(conn, :delete, user))
-      assert response(conn, 204)
+      assert redirected_to(conn, 302) =~ Routes.session_path(conn, :new)
       assert_raise Ecto.NoResultsError, fn -> Accounts.get_user!(user.id) end
     end
 
