@@ -45,7 +45,9 @@ defmodule Croc.MixProject do
       {:phauxth, "~> 2.3"},
       {:argon2_elixir, "~> 2.0"},
       {:bamboo, "~> 1.3"},
-      {:plug_cowboy, "~> 2.0"}
+      {:plug_cowboy, "~> 2.0"},
+      {:react_phoenix, "~> 1.1.0"},
+      {:memento, "~> 0.3.1"},
     ]
   end
 
