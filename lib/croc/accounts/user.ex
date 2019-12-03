@@ -8,8 +8,7 @@ defmodule Croc.Accounts.User do
 
   @type t :: %__MODULE__{
      id: integer,
-     first_name: String.t(),
-     last_name: String.t(),
+     username: String.t(),
      email: String.t(),
      password_hash: String.t(),
      confirmed_at: DateTime.t() | nil,
@@ -20,8 +19,7 @@ defmodule Croc.Accounts.User do
   }
 
   schema "users" do
-    field :first_name, :string, null: false
-    field :last_name, :string, null: false
+    field :username, :string, null: false, unique: true
     field :email, :string, unique: true
     field :password, :string, virtual: true
     field :password_hash, :string
@@ -46,8 +44,8 @@ defmodule Croc.Accounts.User do
 
   def create_changeset(%__MODULE__{} = user, attrs) do
     user
-    |> cast(attrs, [:email, :password, :first_name, :last_name])
-    |> validate_required([:email, :password, :first_name, :last_name])
+    |> cast(attrs, [:email, :password, :username])
+    |> validate_required([:email, :password, :username])
     |> unique_email
     |> validate_password(:password)
     |> put_pass_hash
