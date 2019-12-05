@@ -1,5 +1,4 @@
 defmodule Croc.Repo.Games.Monopoly.Card do
-
   use Ecto.Schema
 
   import Ecto.Changeset
@@ -28,7 +27,75 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     timestamps()
   end
 
+  def changeset(%__MODULE__{} = card, %{type: :brand} = attrs) do
+    monopoly_card =
+      card
+      |> cast_changeset(attrs)
+      |> validate_number(:payment_amount, greater_than: 0)
+      |> validate_required([
+        :image_url,
+        :position,
+        :loan_amount,
+        :buyout_cost,
+        :upgrade_cost,
+        :is_default,
+        :name,
+        :payment_amount,
+        :monopoly_type,
+        :rarity,
+        :upgrade_level_multipliers,
+        :max_upgrade_level,
+        :cost
+      ])
+  end
+
+  def changeset(%__MODULE__{} = card, %{type: :random_event} = attrs) do
+    monopoly_card =
+      card
+      |> cast_changeset(attrs)
+      |> delete_change(:payment_amount)
+      |> delete_change(:buyout_cost)
+      |> delete_change(:upgrade_cost)
+      |> delete_change(:cost)
+      |> delete_change(:upgrade_level_multipliers)
+      |> delete_change(:max_upgrade_level)
+      |> delete_change(:loan_amount)
+      |> validate_required([
+        :image_url,
+        :position,
+        :is_default,
+        :rarity,
+        :name
+      ])
+  end
+
+  def changeset(%__MODULE__{} = card, %{type: :payment} = attrs) do
+    monopoly_card =
+      card
+      |> cast_changeset(attrs)
+      |> delete_change(:buyout_cost)
+      |> delete_change(:upgrade_cost)
+      |> delete_change(:cost)
+      |> delete_change(:upgrade_level_multipliers)
+      |> delete_change(:max_upgrade_level)
+      |> delete_change(:loan_amount)
+      |> validate_number(:payment_amount, greater_than: 0)
+      |> validate_required([
+        :payment_amount,
+        :position,
+        :is_default,
+        :rarity,
+        :name
+      ])
+  end
+
   def changeset(%__MODULE__{} = card, attrs) do
+    card
+    |> cast_changeset(attrs)
+    |> validate_required([:name])
+  end
+
+  def cast_changeset(%__MODULE__{} = card, attrs) do
     card
     |> cast(attrs, [
       :name,
@@ -47,78 +114,14 @@ defmodule Croc.Repo.Games.Monopoly.Card do
       :image_url,
       :is_default
     ])
-    |> validate_required([:name])
   end
 
-  def create(%__MODULE__{} = card, %{ type: :brand } = attrs) do
-    monopoly_card = card
-    |> changeset(attrs)
-    |> validate_number(:payment_amount, greater_than: 0)
-    |> validate_required([
-      :image_url,
-      :position,
-      :loan_amount,
-      :buyout_cost,
-      :upgrade_cost,
-      :is_default,
-      :name,
-      :payment_amount,
-      :monopoly_type,
-      :rarity,
-      :upgrade_level_multipliers,
-      :max_upgrade_level,
-      :cost
-    ])
-    |> Repo.insert!()
-    {:ok, monopoly_card}
-  end
+  def create(attrs) do
+    monopoly_card =
+      %__MODULE__{}
+      |> changeset(attrs)
+      |> Repo.insert!()
 
-  def create(%__MODULE__{} = card, %{ type: :random_event } = attrs) do
-    monopoly_card = card
-    |> changeset(attrs)
-    |> delete_change(:payment_amount)
-    |> delete_change(:buyout_cost)
-    |> delete_change(:upgrade_cost)
-    |> delete_change(:cost)
-    |> delete_change(:upgrade_level_multipliers)
-    |> delete_change(:max_upgrade_level)
-    |> delete_change(:loan_amount)
-    |> validate_required([
-      :image_url,
-      :position,
-      :is_default,
-      :rarity,
-      :name,
-    ])
-    |> Repo.insert!()
-    {:ok, monopoly_card}
-  end
-
-  def create(%__MODULE__{} = card, %{ type: :payment } = attrs) do
-    monopoly_card = card
-    |> changeset(attrs)
-    |> delete_change(:buyout_cost)
-    |> delete_change(:upgrade_cost)
-    |> delete_change(:cost)
-    |> delete_change(:upgrade_level_multipliers)
-    |> delete_change(:max_upgrade_level)
-    |> delete_change(:loan_amount)
-    |> validate_number(:payment_amount, greater_than: 0)
-    |> validate_required([
-      :payment_amount,
-      :position,
-      :is_default,
-      :rarity,
-      :name,
-    ])
-    |> Repo.insert!()
-    {:ok, monopoly_card}
-  end
-
-  def create(%__MODULE__{} = card, attrs) do
-    monopoly_card = card
-                    |> changeset(attrs)
-                    |> Repo.insert!()
     {:ok, monopoly_card}
   end
 
@@ -130,8 +133,7 @@ defmodule Croc.Repo.Games.Monopoly.Card do
   def get_default_by_positions(positions) do
     __MODULE__
     |> where([c], c.position in ^positions)
-    |> Repo.all
+    |> Repo.all()
     |> Enum.uniq_by(fn c -> c.position end)
   end
-
 end
