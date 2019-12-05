@@ -8,7 +8,13 @@ defmodule Croc.GamesTest.MonopolyTest do
     Monopoly.Lobby
   }
 
-  setup do
+  setup tags do
+
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Croc.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
+    end
     players_ids = Enum.take_random(1..999_999, 5)
     {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
     Enum.slice(players_ids, 1, 100)
@@ -37,6 +43,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       p.game_id == game.game_id
       assert Enum.member?(context.players_ids, p.player_id)
     end)
+    assert length(game.cards) > 0
     {:ok, _result} =
       Memento.transaction(fn ->
         players = Memento.Query.select(Player, {:==, :game_id, game.game_id})
@@ -47,5 +54,20 @@ defmodule Croc.GamesTest.MonopolyTest do
 
         assert length(players) == length(context.players_ids)
       end)
+  end
+
+  describe "get cards" do
+    test "should get default cards" do
+      cards = Monopoly.get_default_cards
+      IO.inspect(cards, label: "Cards")
+      assert length(cards) == 40
+      unique_by_position = Enum.uniq_by(cards, fn c -> c.position end)
+      assert length(cards) == length(unique_by_position)
+
+      assert Enum.all?(Monopoly.positions, fn position ->
+        result = cards |> Enum.filter(fn c -> c.position == position end)
+        assert length(result) == 1
+      end)
+    end
   end
 end
