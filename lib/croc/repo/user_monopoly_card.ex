@@ -27,11 +27,6 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
     {:ok, monopoly_card}
   end
 
-  def get do
-    __MODULE__
-    |> Repo.get!
-  end
-
   def get_by_id(id) do
     __MODULE__
     |> Repo.get_by!(id: id)
