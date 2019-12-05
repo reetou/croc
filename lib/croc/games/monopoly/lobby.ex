@@ -29,7 +29,7 @@ defmodule Croc.Games.Monopoly.Lobby do
         end)
     else
       _ ->
-        Logger.error("Already in lobby")
+        Logger.error("Already in lobby, cannot create new lobby")
         {:error, :already_in_lobby}
     end
   end
