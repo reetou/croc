@@ -3,30 +3,33 @@ defmodule Croc.Repo.Games.Monopoly.Card do
   use Ecto.Schema
 
   import Ecto.Changeset
+  import Ecto.Query
 
   alias Croc.Repo
   alias Croc.Sessions.Session
 
   schema "monopoly_cards" do
     field :name, :string, null: false
-    field :payment_amount, :integer, null: false
-    field :type, :integer, null: false
-    field :monopoly_type, :integer
-    field :position, :integer, null: false
-    field :loan_amount, :integer, null: false
-    field :buyout_amount, :integer, null: false
-    field :cost, :integer, null: false
-    field :max_upgrade_level, :integer, null: false
-    field :upgrade_level_payment_amounts, {:array, :integer}, null: false
+    field :payment_amount, :integer
+    field :type, Ecto.Atom, null: false
+    field :monopoly_type, Ecto.Atom
+    field :position, :integer
+    field :loan_amount, :integer
+    field :buyout_cost, :integer
+    field :upgrade_cost, :integer
+    field :cost, :integer
+    field :max_upgrade_level, :integer
+    field :upgrade_level_multipliers, {:array, :float}
     field :disabled, :boolean, default: false, null: false
     field :rarity, :integer, default: 0, null: false
     field :image_url, :string
+    field :is_default, :boolean, null: false
 
     timestamps()
   end
 
-  def changeset(module, attrs) do
-    module
+  def changeset(%__MODULE__{} = card, attrs) do
+    card
     |> cast(attrs, [
       :name,
       :payment_amount,
@@ -34,32 +37,101 @@ defmodule Croc.Repo.Games.Monopoly.Card do
       :monopoly_type,
       :position,
       :loan_amount,
-      :buyout_amount,
+      :buyout_cost,
+      :upgrade_cost,
       :cost,
       :max_upgrade_level,
-      :upgrade_level_payment_amounts,
+      :upgrade_level_multipliers,
       :disabled,
       :rarity,
-      :image_url
+      :image_url,
+      :is_default
     ])
     |> validate_required([:name])
   end
 
-  def create(attrs) do
-    monopoly_card = __MODULE__
+  def create(%__MODULE__{} = card, %{ type: :brand } = attrs) do
+    monopoly_card = card
     |> changeset(attrs)
+    |> validate_number(:payment_amount, greater_than: 0)
+    |> validate_required([
+      :image_url,
+      :position,
+      :loan_amount,
+      :buyout_cost,
+      :upgrade_cost,
+      :is_default,
+      :name,
+      :payment_amount,
+      :monopoly_type,
+      :rarity,
+      :upgrade_level_multipliers,
+      :max_upgrade_level,
+      :cost
+    ])
     |> Repo.insert!()
     {:ok, monopoly_card}
   end
 
-  def get do
-    __MODULE__
-    |> Repo.get!
+  def create(%__MODULE__{} = card, %{ type: :random_event } = attrs) do
+    monopoly_card = card
+    |> changeset(attrs)
+    |> delete_change(:payment_amount)
+    |> delete_change(:buyout_cost)
+    |> delete_change(:upgrade_cost)
+    |> delete_change(:cost)
+    |> delete_change(:upgrade_level_multipliers)
+    |> delete_change(:max_upgrade_level)
+    |> delete_change(:loan_amount)
+    |> validate_required([
+      :image_url,
+      :position,
+      :is_default,
+      :rarity,
+      :name,
+    ])
+    |> Repo.insert!()
+    {:ok, monopoly_card}
+  end
+
+  def create(%__MODULE__{} = card, %{ type: :payment } = attrs) do
+    monopoly_card = card
+    |> changeset(attrs)
+    |> delete_change(:buyout_cost)
+    |> delete_change(:upgrade_cost)
+    |> delete_change(:cost)
+    |> delete_change(:upgrade_level_multipliers)
+    |> delete_change(:max_upgrade_level)
+    |> delete_change(:loan_amount)
+    |> validate_number(:payment_amount, greater_than: 0)
+    |> validate_required([
+      :payment_amount,
+      :position,
+      :is_default,
+      :rarity,
+      :name,
+    ])
+    |> Repo.insert!()
+    {:ok, monopoly_card}
+  end
+
+  def create(%__MODULE__{} = card, attrs) do
+    monopoly_card = card
+                    |> changeset(attrs)
+                    |> Repo.insert!()
+    {:ok, monopoly_card}
   end
 
   def get_by_id(id) do
     __MODULE__
-    |> Repo.get_by!(id: id)
+    |> Repo.get(id)
+  end
+
+  def get_default_by_positions(positions) do
+    __MODULE__
+    |> where([c], c.position in ^positions)
+    |> Repo.all
+    |> Enum.uniq_by(fn c -> c.position end)
   end
 
 end
