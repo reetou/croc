@@ -77,15 +77,15 @@ defmodule Croc.Games.Monopoly do
     {Enum.random(1..7), Enum.random(1..7)}
   end
 
-  def can_send_event?(game_id, player_id) when game_id == nil do
+  def can_send_action?(game_id, player_id) when game_id == nil do
     {:error, "Unknown game_id"}
   end
 
-  def can_send_event?(game_id, player_id) when player_id == nil do
+  def can_send_action?(game_id, player_id) when player_id == nil do
     {:error, "Unknown player_id"}
   end
 
-  def can_send_event?(game_id, player_id) do
+  def can_send_action?(game_id, player_id) do
     Memento.transaction(fn ->
       with %__MODULE__{} = game = Memento.Query.read(__MODULE__, game_id),
            %Player{} = player = Enum.find(game.players, fn p -> p.player_id == player_id end) do
