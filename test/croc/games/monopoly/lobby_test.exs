@@ -5,8 +5,9 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
     Monopoly,
     Monopoly.Card,
     Monopoly.Player,
-    Monopoly.Lobby,
+    Monopoly.Lobby
   }
+
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
 
   @players_ids Enum.take_random(1..999_999, 5)
@@ -19,9 +20,12 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
     test "should create lobby with 1 player in it", context do
       player_id = Enum.at(context.players_ids, 0)
       {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
-      {:ok, players} = Memento.transaction(fn ->
-        Memento.Query.select(LobbyPlayer, {:==, :lobby_id, lobby.lobby_id})
-      end)
+
+      {:ok, players} =
+        Memento.transaction(fn ->
+          Memento.Query.select(LobbyPlayer, {:==, :lobby_id, lobby.lobby_id})
+        end)
+
       assert lobby.lobby_id == List.first(players) |> Map.fetch!(:lobby_id)
       assert is_list(players)
       assert length(players) == 1
@@ -35,7 +39,6 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
   end
 
   describe "join lobby" do
-
     setup do
       players_ids = Enum.take_random(1..999_999, 5)
       {:ok, %Lobby{} = lobby} = Lobby.create(Enum.at(players_ids, 0), [])
@@ -45,9 +48,12 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
     test "should join player", context do
       player_id = Enum.at(context.players_ids, 1)
       :ok = Lobby.join(context.lobby.lobby_id, player_id)
-      {:ok, players} = Memento.transaction(fn ->
-        Memento.Query.select(LobbyPlayer, {:==, :lobby_id, context.lobby.lobby_id})
-      end)
+
+      {:ok, players} =
+        Memento.transaction(fn ->
+          Memento.Query.select(LobbyPlayer, {:==, :lobby_id, context.lobby.lobby_id})
+        end)
+
       player = Enum.at(players, 1)
       assert player != nil
       assert player.lobby_id == context.lobby.lobby_id

@@ -2,8 +2,9 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Games.Monopoly.{
     Player,
     Lobby,
-    Card,
+    Card
   }
+
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Repo.Games.Monopoly.Card, as: MonopolyCard
 
@@ -37,6 +38,7 @@ defmodule Croc.Games.Monopoly do
       Memento.transaction(fn ->
         started_at = DateTime.utc_now() |> DateTime.truncate(:second)
         {:ok, lobby_players} = Lobby.get_players(game_id)
+
         players =
           lobby_players
           |> Enum.map(fn %LobbyPlayer{} = p ->

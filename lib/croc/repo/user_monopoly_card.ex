@@ -1,5 +1,4 @@
 defmodule Croc.Repo.Games.Monopoly.UserCard do
-
   use Ecto.Schema
 
   import Ecto.Changeset
@@ -10,7 +9,7 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
   schema "user_monopoly_cards" do
     field :user_id, :id
     field :equipped_position, :integer
-    belongs_to :monopoly_card, Croc.Repo.Games.Monopoly.Card, [foreign_key: :monopoly_card_id]
+    belongs_to :monopoly_card, Croc.Repo.Games.Monopoly.Card, foreign_key: :monopoly_card_id
 
     timestamps()
   end
@@ -21,9 +20,11 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
   end
 
   def create(attrs) do
-    monopoly_card = __MODULE__
-                    |> changeset(attrs)
-                    |> Repo.insert!()
+    monopoly_card =
+      __MODULE__
+      |> changeset(attrs)
+      |> Repo.insert!()
+
     {:ok, monopoly_card}
   end
 
@@ -31,5 +32,4 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
     __MODULE__
     |> Repo.get_by!(id: id)
   end
-
 end

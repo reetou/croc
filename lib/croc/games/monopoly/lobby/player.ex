@@ -31,11 +31,15 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     {:ok} =
       Memento.transaction(fn ->
         lobby_player =
-          Memento.Query.select(%__MODULE__{
-            player_id: player_id,
-            lobby_id: lobby_id
-          }, lobby_id)
+          Memento.Query.select(
+            %__MODULE__{
+              player_id: player_id,
+              lobby_id: lobby_id
+            },
+            lobby_id
+          )
           |> Enum.find(fn p -> p.player_id == player_id end)
+
         Memento.Query.delete(__MODULE__, lobby_player.id)
       end)
   end

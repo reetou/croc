@@ -82,15 +82,18 @@ defmodule Croc.Games.Monopoly.Lobby do
   end
 
   def has_lobby?(lobby_id) when lobby_id == nil, do: false
+
   def has_lobby?(lobby_id) do
     {:ok, lobby} = get(lobby_id)
     lobby != nil
   end
 
   def has_players?(lobby_id) when lobby_id == nil, do: false
+
   def has_players?(lobby_id) do
     with {:ok, lobby} when lobby != nil <- get(lobby_id) do
       {:ok, players} = get_players(lobby_id)
+
       # Если игроков 2 и более, значит лобби может стартовать
       length(players) > 1
     else

@@ -658,22 +658,12 @@ defmodule Croc.Repo.Migrations.CreateDefaultCards do
         Enum.map(monopoly_cards(), fn c ->
           Card.create(c)
           |> case do
-               {:ok, %Card{} = card} -> card
-               _ -> Repo.rollback({:failed_to_insert, c})
-             end
+            {:ok, %Card{} = card} -> card
+            _ -> Repo.rollback({:failed_to_insert, c})
+          end
         end)
+
       IO.inspect(cards, label: "Cards")
-#      Repo.insert_all(Card, cards)
-#      |> IO.inspect(label: "Result at insert all is")
-#      case Repo.insert_all(Card, cards) do
-#        {:ok, inserted_cards} ->
-#          IO.inspect(inserted_cards, label: "Inserted successfully")
-#          {:ok, inserted_cards}
-#
-#        {r, _} ->
-#          IO.inspect(r, label: "Result at rollback")
-#          Repo.rollback({:failed_to_add_cards, cards})
-#      end
     end)
   end
 
@@ -686,9 +676,9 @@ defmodule Croc.Repo.Migrations.CreateDefaultCards do
         |> IO.inspect(label: "Card")
         |> Repo.delete_all()
         |> case do
-             {count, _} when count > 0 -> {:ok, count}
-             {_, _} -> Repo.rollback({:failed_to_remove, monopoly_cards()})
-           end
+          {count, _} when count > 0 -> {:ok, count}
+          {_, _} -> Repo.rollback({:failed_to_remove, monopoly_cards()})
+        end
     end)
   end
 end
