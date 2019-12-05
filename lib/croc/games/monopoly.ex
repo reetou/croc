@@ -5,8 +5,11 @@ defmodule Croc.Games.Monopoly do
     Card,
   }
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
+  alias Croc.Repo.Games.Monopoly.Card, as: MonopolyCard
 
   require Logger
+
+  @positions Enum.to_list(0..39)
 
   @enforce_keys [
     :game_id,
@@ -25,6 +28,8 @@ defmodule Croc.Games.Monopoly do
       :cards
     ],
     type: :ordered_set
+
+  def positions, do: @positions
 
   def start(%Lobby{lobby_id: game_id, options: options}) do
     with true <- Lobby.has_lobby?(game_id),
@@ -52,7 +57,7 @@ defmodule Croc.Games.Monopoly do
           started_at: started_at,
           winners: [],
           player_turn: first_player.player_id,
-          cards: []
+          cards: get_default_cards
         }
 
         Memento.Query.write(game)
@@ -173,6 +178,10 @@ defmodule Croc.Games.Monopoly do
     end)
     |> Enum.map(fn c -> c.cost end)
     |> Enum.sum()
+  end
+
+  def get_default_cards do
+    MonopolyCard.get_default_by_positions(@positions)
   end
 
   def buy_spot(game_id, player_id, position) do
