@@ -662,8 +662,6 @@ defmodule Croc.Repo.Migrations.CreateDefaultCards do
             _ -> Repo.rollback({:failed_to_insert, c})
           end
         end)
-
-      IO.inspect(cards, label: "Cards")
     end)
   end
 
@@ -673,7 +671,6 @@ defmodule Croc.Repo.Migrations.CreateDefaultCards do
 
       {:ok, count} =
         from(c in Card, where: c.name in ^names)
-        |> IO.inspect(label: "Card")
         |> Repo.delete_all()
         |> case do
           {count, _} when count > 0 -> {:ok, count}
