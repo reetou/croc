@@ -21,7 +21,7 @@ defmodule Croc.Games.Monopoly.Card do
     :monopoly_type,
     :on_loan,
     :loan_amount,
-    :buyout_amount,
+    :buyout_cost,
     :cost,
     :upgrade_cost,
     :upgrade_level,
@@ -188,6 +188,39 @@ defmodule Croc.Games.Monopoly.Card do
     end
   end
 
+  def can_buyout?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+    cond do
+      card.type != :brand -> {:error, :invalid_card_type}
+      card.owner == nil -> {:error, :card_has_no_owner}
+      card.owner != player.player_id -> {:error, :player_not_owner}
+      player.balance < card.buyout_cost -> {:error, :not_enough_money}
+      card.on_loan == false -> {:error, :not_on_loan}
+      true -> true
+    end
+  end
+
+  def buyout(%Monopoly{} = game, %Player{position: position} = player, %__MODULE__{} = card) do
+    with true <- can_buyout?(game, player, card) do
+      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+      updated_card = %__MODULE__{card | on_loan: false}
+      cards = List.insert_at(game.cards, card_index, updated_card)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      player = %Player{player | balance: player.balance - card.buyout_cost}
+      players = List.insert_at(game.players, player_index, player)
+      game = %Monopoly{game | players: players, cards: cards}
+      {:ok, game, player}
+    else
+      err ->
+        case err do
+          {:error, reason} = r -> r
+
+          _ ->
+            Logger.error("Unknown error at buy_building")
+            {:error, :unknown_error}
+        end
+    end
+  end
+
   def buy(%Monopoly{} = game, %Player{position: position} = player, %__MODULE__{} = card) do
     with true <- can_buy?(game, player, card) do
       card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
@@ -201,8 +234,7 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r ->
-            r
+          {:error, reason} = r -> r
 
           _ ->
             Logger.error("Unknown error at buy_building")
@@ -221,6 +253,15 @@ defmodule Croc.Games.Monopoly.Card do
       players = List.insert_at(game.players, player_index, player)
       game = %Monopoly{game | players: players, cards: cards}
       {:ok, game, player}
+    else
+      err ->
+        case err do
+          {:error, reason} = r -> r
+
+          _ ->
+            Logger.error("Unknown error at buy_building")
+            {:error, :unknown_error}
+        end
     end
   end
 end
