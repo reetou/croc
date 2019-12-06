@@ -8,8 +8,6 @@ defmodule Croc.Games.Monopoly.Card do
     :name,
     :position,
     :monopoly_type,
-    :cost,
-    :payment_amount,
     :type
   ]
 
