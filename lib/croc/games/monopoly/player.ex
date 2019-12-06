@@ -1,5 +1,7 @@
 defmodule Croc.Games.Monopoly.Player do
   require Logger
+  alias Croc.Games.Monopoly
+  alias Croc.Games.Monopoly.Card
 
   @enforce_keys [
     :player_id,
@@ -33,6 +35,15 @@ defmodule Croc.Games.Monopoly.Player do
       end)
   end
 
+  def player_cards_cost(%Monopoly{} = game, %__MODULE__{player_id: player_id} = player) do
+    game.cards
+    |> Enum.filter(fn c -> c.owner == player_id end)
+    |> Enum.reduce(0, fn c, acc ->
+      total_cost = Card.total_cost(c)
+      total_cost + acc
+    end)
+  end
+
   def surrender(game_id, id) do
     {:ok} =
       Memento.transaction(fn ->
@@ -51,5 +62,27 @@ defmodule Croc.Games.Monopoly.Player do
         #      player != nil and player.surrender != true and game.player_turn == player_id
         #      Memento.Query.delete(__MODULE__, id)
       end)
+  end
+
+  def get(game_id, player_id) do
+    Memento.transaction(fn ->
+      guards = [
+        {:==, :player_id, player_id},
+        {:==, :game_id, game_id}
+      ]
+
+      Memento.Query.select(__MODULE__, guards)
+      |> case do
+        [] ->
+          {:error, :not_in_game}
+
+        players_list when is_list(players_list) ->
+          player = List.first(players_list)
+          if player.surrender, do: {:error, :surrender}, else: {:ok, player}
+
+        _ ->
+          {:error, :unknown_error}
+      end
+    end)
   end
 end
