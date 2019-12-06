@@ -587,4 +587,138 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       assert updated_player.balance - updated_card.loan_amount == player.balance
     end
   end
+
+  describe "Buyout" do
+
+    test "should throw if card type is invalid", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type != :brand end)
+        |> Enum.random()
+
+      player = %Player{player | position: card.position}
+
+      result = Card.buyout(context.game, player, card)
+      assert result == {:error, :invalid_card_type}
+    end
+
+    test "should throw if card has no owner", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = %Player{player | position: card.position}
+      card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
+      cards = List.insert_at(context.game.cards, card_index, card)
+      game = Map.put(context.game, :cards, cards)
+
+      result = Card.buyout(game, player, card)
+      assert result == {:error, :card_has_no_owner}
+    end
+
+    test "should throw if player is not an owner", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      another_player = context.game.players |> Enum.at(1)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      card = %Card{card | owner: another_player.player_id}
+      player = %Player{player | position: card.position}
+      card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
+      cards = List.insert_at(context.game.cards, card_index, card)
+      game = Map.put(context.game, :cards, cards)
+
+      result = Card.buyout(game, player, card)
+      assert result == {:error, :player_not_owner}
+    end
+
+    test "should throw if player does not have enough money", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+        |> Map.put(:owner, player.player_id)
+
+      card = %Card{card | owner: player.player_id}
+      player = %Player{player | position: card.position}
+      card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
+      cards = List.insert_at(context.game.cards, card_index, card)
+      game = Map.put(context.game, :cards, cards)
+
+      result = Card.buyout(game, player, card)
+      assert result == {:error, :not_enough_money}
+    end
+
+    test "should throw if card is not on loan", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+        |> Map.put(:owner, player.player_id)
+        |> Map.put(:on_loan, false)
+
+      player = %Player{player | position: card.position, balance: card.buyout_cost}
+      card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
+      cards = List.insert_at(context.game.cards, card_index, card)
+      game = Map.put(context.game, :cards, cards)
+
+      result = Card.buyout(game, player, card)
+      assert result == {:error, :not_on_loan}
+    end
+
+    test "should return updated game and player on success", context do
+      player = context.game.players |> Enum.at(0)
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+        |> Map.put(:owner, player.player_id)
+        |> Map.put(:on_loan, true)
+
+      card = %Card{card | owner: player.player_id}
+      player = %Player{player | position: card.position, balance: card.cost}
+      card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
+      cards = List.insert_at(context.game.cards, card_index, card)
+      game = Map.put(context.game, :cards, cards)
+
+      {:ok, %Monopoly{} = game, %Player{} = updated_player} = Card.buyout(game, player, card)
+      updated_card = Enum.find(game.cards, fn c -> c.id == card.id end)
+      assert Enum.all?(game.cards, fn %Card{} = c -> c end)
+      assert updated_player.balance + updated_card.buyout_cost == player.balance
+      assert updated_card.owner == player.player_id
+      assert updated_card != nil
+    end
+  end
 end
