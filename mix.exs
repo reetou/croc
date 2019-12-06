@@ -48,7 +48,8 @@ defmodule Croc.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:react_phoenix, "~> 1.1.0"},
       {:memento, "~> 0.3.1"},
-      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false}
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:decimal, "~> 1.0"}
     ]
   end
 
