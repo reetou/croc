@@ -42,4 +42,12 @@ defmodule CrocWeb.AuthTestHelpers do
   defp now do
     DateTime.utc_now() |> DateTime.truncate(:second)
   end
+
+  def add_session(conn, user) do
+    {:ok, %{id: session_id}} = Sessions.create_session(%{user_id: user.id})
+
+    conn
+    |> put_session(:phauxth_session_id, session_id)
+    |> configure_session(renew: true)
+  end
 end
