@@ -9,16 +9,7 @@ defmodule CrocWeb.Router do
     plug :put_secure_browser_headers
     plug Phauxth.Authenticate
     plug Phauxth.Remember, create_session_func: &CrocWeb.Auth.Utils.create_session/1
-  end
-
-  pipeline :authorized do
-    plug :accepts, ["html", "json"]
-    plug :fetch_session
-    plug :fetch_flash
-    plug :protect_from_forgery
-    plug :put_secure_browser_headers
-    plug Phauxth.Authenticate
-    plug Phauxth.Remember, create_session_func: &CrocWeb.Auth.Utils.create_session/1
+    plug :put_user_token
   end
 
   pipeline :api do
@@ -50,5 +41,14 @@ defmodule CrocWeb.Router do
 
   if Mix.env() == :dev do
     forward "/sent_emails", Bamboo.SentEmailViewerPlug
+  end
+
+  defp put_user_token(conn, _) do
+    if current_user = conn.assigns[:current_user] do
+      token = Phoenix.Token.sign(conn, "user socket", current_user.id)
+      assign(conn, :user_token, token)
+    else
+      conn
+    end
   end
 end
