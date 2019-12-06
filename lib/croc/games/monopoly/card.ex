@@ -111,7 +111,7 @@ defmodule Croc.Games.Monopoly.Card do
         {:error, :card_has_no_owner}
 
       card.type != :brand ->
-        {:error, :card_not_brand}
+        {:error, :invalid_card_type}
 
       card.owner != player_id ->
         {:error, :player_not_owner}
@@ -124,6 +124,9 @@ defmodule Croc.Games.Monopoly.Card do
 
       card.on_loan ->
         {:error, :card_on_loan}
+
+      in_monopoly?(game, player, card) != true ->
+        {:error, :no_such_monopoly}
 
       true ->
         new_upgrade_level = card.upgrade_level + 1
@@ -151,6 +154,73 @@ defmodule Croc.Games.Monopoly.Card do
         }
 
         {:ok, updated_game, updated_player}
+    end
+  end
+
+  def in_monopoly?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+    game.cards
+    |> Enum.filter(fn %__MODULE__{} = c ->
+      c.monopoly_type != nil and c.monopoly_type == card.monopoly_type
+    end)
+    |> Enum.all?(fn %__MODULE__{} = c ->
+      c.owner == player.player_id
+    end)
+  end
+
+  def can_buy?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+    cond do
+      card.type != :brand -> {:error, :invalid_card_type}
+      card.owner == nil -> {:error, :card_has_no_owner}
+      card.owner != player.player_id -> {:error, :player_not_owner}
+      player.balance < card.cost -> {:error, :not_enough_money}
+      card.on_loan == true -> {:error, :on_loan}
+      true -> true
+    end
+  end
+
+  def can_put_on_loan?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+    cond do
+      card.type != :brand -> {:error, :invalid_card_type}
+      card.owner == nil -> {:error, :card_has_no_owner}
+      card.owner != player.player_id -> {:error, :player_not_owner}
+      card.on_loan == true -> {:error, :already_on_loan}
+      true -> true
+    end
+  end
+
+  def buy(%Monopoly{} = game, %Player{position: position} = player, %__MODULE__{} = card) do
+    with true <- can_buy?(game, player, card) do
+      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+      updated_card = %__MODULE__{card | owner: player.player_id}
+      cards = List.insert_at(game.cards, card_index, updated_card)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      player = %Player{player | balance: player.balance - card.cost}
+      players = List.insert_at(game.players, player_index, player)
+      game = %Monopoly{game | players: players, cards: cards}
+      {:ok, game, player}
+    else
+      err ->
+        case err do
+          {:error, reason} = r ->
+            r
+
+          _ ->
+            Logger.error("Unknown error at buy_building")
+            {:error, :unknown_error}
+        end
+    end
+  end
+
+  def put_on_loan(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+    with true <- can_put_on_loan?(game, player, card) do
+      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+      updated_card = %__MODULE__{card | on_loan: true}
+      cards = List.insert_at(game.cards, card_index, updated_card)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      player = %Player{player | balance: player.balance + card.loan_amount}
+      players = List.insert_at(game.players, player_index, player)
+      game = %Monopoly{game | players: players, cards: cards}
+      {:ok, game, player}
     end
   end
 end

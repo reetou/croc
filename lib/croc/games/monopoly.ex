@@ -107,85 +107,80 @@ defmodule Croc.Games.Monopoly do
       %__MODULE__{} = game = Memento.Query.read(__MODULE__, game_id)
       player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
       player = Enum.at(game.players, player_index)
+      old_position = player.position
       max_position = Enum.max_by(game.cards, fn c -> c.position end)
 
-      new_position = fn ->
+      new_position =
         case player.position + move_value do
           x when x > max_position -> x - max_position
           x -> x
         end
-      end
+
+      player =
+        player
+        |> Map.put(:position, new_position)
+
+      players = List.insert_at(game.players, player_index, player)
+      game = Map.put(game, :players, players)
+      Memento.Query.write(game)
+      Memento.Query.write(player)
 
       unless player == nil do
-        process_move(game, player, new_position)
+        {:ok, {game, player, old_position, new_position}}
       else
         {:error, "Player not found in game"}
       end
     end)
-  end
-
-  def process_move(%__MODULE__{} = game, %Player{} = player, new_position) do
-    %Card{} = card = Card.get_by_position(game, player.player_id, new_position)
-
-    cond do
-      card.type == :brand and card.owner == nil and
-          can_afford_card_cost?(game, card, player) == false ->
-        # У игрока нет денег на балансе, потому выставляем на аукцион
+    |> case do
+      {:ok, {game, player, old_position, new_position}} ->
         true
+        process_move(game, player, old_position, new_position)
 
-      card.type == :brand and card.owner == nil and
-          can_afford_card_cost?(game, card, player) == true ->
-        # У игрока есть деньги на балансе, предлагаем купить
-        # confirm_event(game, player, :buy_brand, card.price)
-        true
-
-      card.type == :brand and card.owner != nil and card.owner.player_id == player.player_id ->
-        # Игрок попал на свое поле, ничего не платит
-        true
-
-      card.type == :brand and card.owner != nil ->
-        # Предлагаем оплатить аренду
-        # confirm_event(game, player, :pay_cost, card.payment_amount)
-        # Если у игрока не хватает денег, то предлагаем ему заложить все что есть, если этого хватит,
-        # Чтобы оплатить аренду
-        # Если и этого не хватит, то предлагаем сдаться
-        {:ok, game}
-
-      card.type == :random_event ->
-        # Выбираем рандом ивент (пока только отнимаем деньги) и ждем подтверждения
-        # Игрок должен заложить свои постройки, если хватает денег, и заплатить
-        # Или сдаться
-        # Если игрок не ответит за положенное время, то сдача засчитается автоматически
-        # При следующем пинге
-        # Апи будет примерно таким:
-        # confirm_event(game, player, :pay, 400)
-        # При event_type == :receive дожидаться ответа игрока не нужно, просто накидываем ему баланс
-        # process_event(game, player, :receive, 700)
-        true
+      {:error, message} ->
+        Logger.error(message)
     end
   end
 
-  def can_afford_card_payment_amount?(%__MODULE__{} = game, %Card{} = card, %Player{} = player) do
+  def process_move(%__MODULE__{} = game, %Player{} = player, old_position, new_position) do
+    send_event({:position_data, game, player, old_position, new_position})
+  end
+
+  def send_event({:position_data = event, game, player, old_position, new_position}) do
+    %Card{} = card = Card.get_by_position(game, new_position)
+    foreign_owner = card.owner != nil and card.owner != player.player_id and card.type == :brand
+    passed_start = new_position < old_position and card.type != :prison
+    start_position_bonus = if card.type == :start, do: 1000, else: 0
+    passed_start_bonus = if passed_start, do: 2000, else: 0
+    must_pay = foreign_owner or card.type == :payment
+    payment_amount = if must_pay, do: Card.get_payment_amount_for_event(card), else: 0
+
+    data = %{
+      event: event,
+      player_id: player.player_id,
+      card: card,
+      passed_start: passed_start,
+      receive_money_bonus_amount: start_position_bonus,
+      receive_money_amount: passed_start_bonus,
+      can_afford_card_payment_amount: can_afford_card_payment_amount?(card, player),
+      must_pay: must_pay,
+      payment_amount: payment_amount,
+      can_buy: card.owner == nil and card.type == :brand,
+      can_afford_buy: player.balance >= card.cost,
+      old_position: old_position,
+      new_position: new_position,
+      game: game
+    }
+  end
+
+  def can_afford_card_payment_amount?(%Card{} = card, %Player{} = player) do
     player.balance >= card.payment_amount
   end
 
-  def can_afford_card_cost?(%__MODULE__{} = game, %Card{} = card, %Player{} = player) do
+  def can_afford_card_cost?(%Card{} = card, %Player{} = player) do
     player.balance >= card.cost
-  end
-
-  def player_cards_price(game, player) do
-    game.cards
-    |> Enum.filter(fn c ->
-      c.owner == player.player_id and c.on_bail == false and c.type == :brand
-    end)
-    |> Enum.map(fn c -> c.cost end)
-    |> Enum.sum()
   end
 
   def get_default_cards do
     MonopolyCard.get_default_by_positions(@positions)
-  end
-
-  def buy_spot(game_id, player_id, position) do
   end
 end
