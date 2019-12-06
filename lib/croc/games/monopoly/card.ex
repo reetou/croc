@@ -26,7 +26,7 @@ defmodule Croc.Games.Monopoly.Card do
     :upgrade_cost,
     :upgrade_level,
     :max_upgrade_level,
-    :upgrade_level_payment_amounts,
+    :upgrade_level_multipliers,
     upgrade_level: 0
   ]
 
@@ -34,7 +34,7 @@ defmodule Croc.Games.Monopoly.Card do
     game.cards
   end
 
-  def get_by_position(game, player_id, position) do
+  def get_by_position(game, position) do
     game.cards
     |> Enum.find(fn c -> c.position == position end)
   end
@@ -48,6 +48,48 @@ defmodule Croc.Games.Monopoly.Card do
     game.cards
     |> Enum.filter(fn c -> c.monopoly_type == monopoly_type end)
   end
+
+  def total_cost(%__MODULE__{type: :brand} = card) do
+    card.loan_amount + card.upgrade_cost * card.upgrade_level
+  end
+
+  def total_cost(%__MODULE__{type: :payment} = card), do: card.payment_amount
+
+  def total_cost(%__MODULE__{} = card), do: 0
+
+  def get_payment_amount_for_event(%__MODULE__{} = card) do
+    case card.type do
+      :payment ->
+        card.payment_amount
+
+      :brand ->
+        multiplier =
+          if card.upgrade_level == 0,
+            do: 1,
+            else: get_upgrade_level_multiplier(card)
+
+        (card.payment_amount * multiplier)
+        |> Decimal.new()
+        |> Decimal.to_integer()
+
+      _ ->
+        0
+    end
+  end
+
+  def get_upgrade_level_multiplier(%__MODULE__{type: :brand} = card) do
+    Enum.at(card.upgrade_level_multipliers, card.upgrade_level - 1)
+    |> Decimal.new()
+    |> IO.inspect(label: "Decimal is")
+    |> Decimal.round(2)
+    |> Decimal.to_float()
+    |> case do
+      x when x < 1 -> 1
+      x -> x
+    end
+  end
+
+  def get_upgrade_level_multiplier(%__MODULE__{} = card), do: 1
 
   def upgrade(game, player_id, card_id) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card_id end)
