@@ -46,8 +46,8 @@ defmodule Croc.GamesTest.MonopolyTest do
     assert length(context.players_ids) == length(game.players)
 
     assert Enum.all?(game.players, fn p ->
-             p.game_id == game.game_id
              assert Enum.member?(context.players_ids, p.player_id)
+             p.game_id == game.game_id
            end)
 
     assert length(game.cards) > 0
