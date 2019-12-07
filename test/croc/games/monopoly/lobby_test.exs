@@ -61,4 +61,32 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       assert {:error, :already_in_lobby} == join_result
     end
   end
+
+  describe "leave lobby" do
+    setup do
+      players_ids = Enum.take_random(1..999_999, 5)
+      {:ok, %Lobby{} = lobby} = Lobby.create(Enum.at(players_ids, 0), [])
+      %{lobby: lobby, players_ids: players_ids}
+    end
+
+    test "should leave lobby for player", context do
+      player_id = Enum.at(context.players_ids, 1)
+      other_player_id = Enum.at(context.players_ids, 2)
+      :ok = Lobby.join(context.lobby.lobby_id, player_id)
+      :ok = Lobby.leave(context.lobby.lobby_id, player_id)
+
+      {:ok, players} =
+        Memento.transaction(fn ->
+          Memento.Query.select(LobbyPlayer, {:==, :lobby_id, context.lobby.lobby_id})
+        end)
+
+      player = Enum.at(players, 1)
+      assert player == nil
+
+      {:ok, %Lobby{}} = Lobby.create(player_id, [])
+
+      result = Lobby.leave(123, other_player_id)
+      assert {:error, :not_in_lobby} == result
+    end
+  end
 end

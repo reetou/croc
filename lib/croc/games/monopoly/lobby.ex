@@ -54,17 +54,9 @@ defmodule Croc.Games.Monopoly.Lobby do
 
   def leave(lobby_id, player_id) do
     with true <- LobbyPlayer.already_in_lobby?(player_id),
-         true <- LobbyPlayer.in_lobby?(player_id, lobby_id) do
+         {:ok, %LobbyPlayer{} = lobby_player} <- LobbyPlayer.get(player_id, lobby_id) do
       Memento.transaction(fn ->
-        lobby = Memento.Query.read(__MODULE__, lobby_id)
-
-        unless lobby == nil do
-          players =
-            lobby.players
-            |> Enum.filter(fn p -> p.player_id != player_id end)
-
-          Memento.Query.write(Map.put(lobby, :players, players))
-        end
+        Memento.Query.delete(LobbyPlayer, lobby_player.id)
       end)
 
       :ok
