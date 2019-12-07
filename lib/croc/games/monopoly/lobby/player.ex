@@ -65,5 +65,6 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
         players = Memento.Query.select(__MODULE__, guards)
         length(players) > 0
       end)
+      result
   end
 end
