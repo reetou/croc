@@ -67,4 +67,21 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
       end)
       result
   end
+
+  def get(player_id, lobby_id) do
+    {:ok, result} =
+      Memento.transaction(fn ->
+        guards = [
+          {:==, :player_id, player_id},
+          {:==, :lobby_id, lobby_id}
+        ]
+
+        players = Memento.Query.select(__MODULE__, guards)
+        unless length(players) == 0 do
+          List.first(players)
+        else
+          nil
+        end
+      end)
+  end
 end
