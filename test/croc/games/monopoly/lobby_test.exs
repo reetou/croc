@@ -2,15 +2,10 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
   use ExUnit.Case
 
   alias Croc.Games.{
-    Monopoly,
-    Monopoly.Card,
-    Monopoly.Player,
     Monopoly.Lobby
   }
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
-
-  @players_ids Enum.take_random(1..999_999, 5)
 
   describe "create lobby" do
     setup do

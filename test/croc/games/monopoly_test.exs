@@ -3,7 +3,6 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   alias Croc.Games.{
     Monopoly,
-    Monopoly.Card,
     Monopoly.Player,
     Monopoly.Lobby
   }

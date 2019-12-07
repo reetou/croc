@@ -30,15 +30,15 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
   describe "Get upgrade level multiplier" do
     test "should return multiplier 1 if card type is invalid", context do
-      card =
-        context.game.cards
-        |> Stream.filter(fn c -> c.type != :brand end)
-        |> Enum.map(fn c ->
-          expected = 1
-          result = Card.get_upgrade_level_multiplier(c)
-          assert is_integer(result)
-          assert expected == result
-        end)
+      assert length(context.game.cards) > 0
+      context.game.cards
+      |> Stream.filter(fn c -> c.type != :brand end)
+      |> Enum.map(fn c ->
+        expected = 1
+        result = Card.get_upgrade_level_multiplier(c)
+        assert is_integer(result)
+        assert expected == result
+      end)
     end
 
     test "should return multiplier for upgrade_level == 1", context do
@@ -316,8 +316,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       game = Map.put(context.game, :cards, cards)
       assert card.on_loan == false
 
-      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} =
-        result = Card.upgrade(game, player, card)
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.upgrade(game, player, card)
 
       updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
 
@@ -342,9 +341,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should throw if card type is invalid", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
-
       card =
         context.game.cards
         |> Stream.filter(fn c -> c.type != :brand end)
@@ -358,9 +354,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if card has no owner", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -378,9 +371,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if player is not an owner", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       another_player = context.game.players |> Enum.at(1)
 
@@ -402,9 +392,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should throw if player does not have enough money", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
-
       card =
         context.game.cards
         |> Stream.filter(fn c -> c.type == :brand end)
@@ -422,9 +409,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if card is already on loan", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -444,9 +428,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should return updated game and player on success", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -472,9 +453,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should throw if card has invalid card type", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
-
       card =
         context.game.cards
         |> Stream.filter(fn c -> c.type != :brand end)
@@ -486,9 +464,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if card has no owner", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -593,9 +568,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should throw if card type is invalid", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
-
       card =
         context.game.cards
         |> Stream.filter(fn c -> c.type != :brand end)
@@ -609,9 +581,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if card has no owner", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -629,9 +598,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if player is not an owner", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       another_player = context.game.players |> Enum.at(1)
 
@@ -653,9 +619,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should throw if player does not have enough money", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
-
       card =
         context.game.cards
         |> Stream.filter(fn c -> c.type == :brand end)
@@ -674,9 +637,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should throw if card is not on loan", context do
       player = context.game.players |> Enum.at(0)
-
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards
@@ -697,8 +657,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     test "should return updated game and player on success", context do
       player = context.game.players |> Enum.at(0)
 
-      player_index =
-        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       card =
         context.game.cards

@@ -3,10 +3,7 @@ defmodule CrocWeb.UserControllerTest do
 
   import CrocWeb.AuthTestHelpers
 
-  alias Croc.Accounts
-
   @create_attrs %{email: "bill@example.com", password: "hard2guess", username: "bill_sadsad"}
-  @update_attrs %{email: "william@example.com"}
   @invalid_attrs %{email: nil}
 
   setup %{conn: conn} do
