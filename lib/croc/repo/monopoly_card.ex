@@ -135,6 +135,7 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     |> where([c], c.position in ^positions)
     |> Repo.all()
     |> Enum.uniq_by(fn c -> c.position end)
+    |> Enum.map(fn c -> Map.put(c, :raw_payment_amount, c.payment_amount) end)
     |> Enum.map(fn c -> Map.from_struct(c) end)
     |> Enum.map(fn c -> struct(Croc.Games.Monopoly.Card, c) end)
   end

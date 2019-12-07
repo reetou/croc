@@ -15,6 +15,7 @@ defmodule Croc.Games.Monopoly.Card do
     :id,
     :name,
     :payment_amount,
+    :raw_payment_amount,
     :type,
     :position,
     :owner,
@@ -68,7 +69,7 @@ defmodule Croc.Games.Monopoly.Card do
             do: 1,
             else: get_upgrade_level_multiplier(card)
 
-        (card.payment_amount * multiplier)
+        (card.raw_payment_amount * multiplier)
         |> case do
           x when is_float(x) -> Decimal.from_float(x)
           x -> Decimal.new(x)
