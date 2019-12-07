@@ -88,5 +88,13 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       result = Lobby.leave(123, other_player_id)
       assert {:error, :not_in_lobby} == result
     end
+
+    test "should remove lobby if last player left", context do
+      player_id = Enum.at(context.players_ids, 0)
+      :ok = Lobby.leave(context.lobby.lobby_id, player_id)
+
+      {:ok, nil} = LobbyPlayer.get(player_id, context.lobby.lobby_id)
+      {:ok, nil} = Lobby.get(context.lobby.lobby_id)
+    end
   end
 end

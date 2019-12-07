@@ -55,8 +55,13 @@ defmodule Croc.Games.Monopoly.Lobby do
   def leave(lobby_id, player_id) do
     with true <- LobbyPlayer.already_in_lobby?(player_id),
          {:ok, %LobbyPlayer{} = lobby_player} <- LobbyPlayer.get(player_id, lobby_id) do
-      Memento.transaction(fn ->
+      {:ok, true} = Memento.transaction(fn ->
         Memento.Query.delete(LobbyPlayer, lobby_player.id)
+        players_left = Memento.Query.select(LobbyPlayer, {:==, :lobby_id, lobby_id})
+        unless length(players_left) > 0 do
+          Memento.Query.delete(__MODULE__, lobby_id)
+        end
+        true
       end)
 
       :ok
