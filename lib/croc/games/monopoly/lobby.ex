@@ -36,7 +36,7 @@ defmodule Croc.Games.Monopoly.Lobby do
 
   def join(lobby_id, player_id) do
     with false <- LobbyPlayer.already_in_lobby?(player_id) do
-      Memento.transaction(fn ->
+      {:ok, lobby} = Memento.transaction(fn ->
         lobby = Memento.Query.read(__MODULE__, lobby_id)
 
         unless lobby == nil do
