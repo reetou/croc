@@ -173,6 +173,213 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
     end
   end
 
+  describe "Downgrade card" do
+
+    test "should throw when card not found in game by internal primary id", context do
+      card =
+        context.game.cards
+        |> Enum.random()
+
+      card = %Card{card | id: card.id + 10000}
+      player = context.game.players |> Enum.at(0)
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :unknown_game_card}
+    end
+
+    test "should throw when player not found in game by player_id", context do
+      card =
+        context.game.cards
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      player = %Player{player | player_id: player.player_id + 10000}
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :unknown_game_player}
+    end
+
+    test "should throw when card has no owner", context do
+      card =
+        context.game.cards
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :card_has_no_owner}
+    end
+
+    test "should throw when card type is invalid", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type != :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      card = %Card{card | owner: player.player_id}
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :invalid_card_type}
+    end
+
+    test "should throw when player is not an owner for this card", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      another_player = context.game.players |> Enum.at(1)
+      card = %Card{card | owner: another_player.player_id}
+      player = context.game.players |> Enum.at(0)
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :player_not_owner}
+    end
+
+    test "should throw when maximum upgrade level reached", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      player = %Player{player | balance: card.cost}
+      card = %Card{card | owner: player.player_id, upgrade_level: 0}
+      assert player.balance >= card.upgrade_cost
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :upgrade_level_already_at_minimum}
+    end
+
+    test "should throw when card is on loan", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      player = %Player{player | balance: card.cost}
+      card = %Card{card | owner: player.player_id, on_loan: true, upgrade_level: 1}
+      assert card.on_loan == true
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :card_on_loan}
+    end
+
+    test "should throw when user has no monopoly for this monopoly type", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+      player = %Player{player | balance: card.cost}
+      card = %Card{card | owner: player.player_id, upgrade_level: 2}
+      result = Card.downgrade(context.game, player, card)
+      assert result == {:error, :no_such_monopoly}
+    end
+
+    test "should return updated game and player on success with upgrade level 2", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+
+      cards =
+        context.game.cards
+        |> Enum.split_with(fn c -> c.type == :brand and c.monopoly_type == card.monopoly_type end)
+        |> case do
+             {same_monopoly_cards, other_cards} ->
+               Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
+               other_cards
+
+             _ ->
+               :error
+           end
+
+      assert length(context.game.cards) == length(cards)
+      assert Enum.all?(cards, fn c -> c.owner == player.player_id end) == false
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      player = %Player{player | balance: card.cost}
+      card = %Card{card | owner: player.player_id, on_loan: false, upgrade_level: 2}
+      game = Map.put(context.game, :cards, cards)
+      assert card.on_loan == false
+
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.downgrade(game, player, card)
+
+      updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
+
+      updated_player_index =
+        Enum.find_index(updated_game.players, fn p -> p.player_id == updated_player.player_id end)
+
+      expected_payment_amount =
+        Card.get_payment_amount_for_event(%Card{card | upgrade_level: updated_card.upgrade_level})
+
+      assert player_index == updated_player_index
+      assert updated_player.player_id == player.player_id
+      assert updated_card != nil
+      assert updated_card.upgrade_level == card.upgrade_level - 1
+      assert updated_player.balance == player.balance + card.upgrade_cost
+      assert updated_player.balance == player.balance + updated_card.upgrade_cost
+      assert card.payment_amount != updated_card.payment_amount
+      assert expected_payment_amount == updated_card.payment_amount
+    end
+
+    test "should return updated game and player on success with upgrade level 1", context do
+      card =
+        context.game.cards
+        |> Stream.filter(fn c -> c.type == :brand end)
+        |> Enum.random()
+
+      player = context.game.players |> Enum.at(0)
+
+      cards =
+        context.game.cards
+        |> Enum.split_with(fn c -> c.type == :brand and c.monopoly_type == card.monopoly_type end)
+        |> case do
+             {same_monopoly_cards, other_cards} ->
+               Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
+               other_cards
+
+             _ ->
+               :error
+           end
+
+      assert length(context.game.cards) == length(cards)
+      assert Enum.all?(cards, fn c -> c.owner == player.player_id end) == false
+
+      player_index =
+        Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
+
+      player = %Player{player | balance: card.cost}
+      card = card
+             |> Map.put(:owner, player.player_id)
+             |> Map.put(:on_loan, false)
+             |> Map.put(:upgrade_level, 1)
+             |> Map.put(:payment_amount, Card.get_payment_amount_for_event(%Card{card | upgrade_level: 1}))
+      game = Map.put(context.game, :cards, cards)
+      assert card.on_loan == false
+
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.downgrade(game, player, card)
+
+      updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
+
+      updated_player_index =
+        Enum.find_index(updated_game.players, fn p -> p.player_id == updated_player.player_id end)
+
+      expected_payment_amount =
+        Card.get_payment_amount_for_event(%Card{card | upgrade_level: updated_card.upgrade_level})
+
+      assert player_index == updated_player_index
+      assert updated_player.player_id == player.player_id
+      assert updated_card != nil
+      assert updated_card.upgrade_level == card.upgrade_level - 1
+      assert updated_player.balance == player.balance + card.upgrade_cost
+      assert updated_player.balance == player.balance + updated_card.upgrade_cost
+      assert card.payment_amount != updated_card.payment_amount
+      assert expected_payment_amount == updated_card.payment_amount
+    end
+  end
+
   describe "Upgrade card" do
     test "should throw when card not found in game by internal primary id", context do
       card =
@@ -332,6 +539,8 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       assert updated_card.upgrade_level == card.upgrade_level + 1
       assert updated_player.balance == player.balance - card.upgrade_cost
       assert updated_player.balance == player.balance - updated_card.upgrade_cost
+      assert updated_card.payment_amount > card.raw_payment_amount
+      assert updated_card.payment_amount > updated_card.raw_payment_amount
       assert card.payment_amount != updated_card.payment_amount
       assert expected_payment_amount == updated_card.payment_amount
     end
