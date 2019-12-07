@@ -64,25 +64,17 @@ defmodule Croc.Games.Monopoly.Player do
       end)
   end
 
-  def get(game_id, player_id) do
-    Memento.transaction(fn ->
-      guards = [
-        {:==, :player_id, player_id},
-        {:==, :game_id, game_id}
-      ]
+  def get(%Monopoly{} = game, player_id) do
+    Enum.find(game.players, fn p -> p.player_id == player_id end)
+  end
 
-      Memento.Query.select(__MODULE__, guards)
-      |> case do
-        [] ->
-          {:error, :not_in_game}
+  def update(%Monopoly{} = game, player_id, %__MODULE__{} = player) do
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    players = List.insert_at(game.players, player_index, player)
+    Map.put(game, :players, players)
+  end
 
-        players_list when is_list(players_list) ->
-          player = List.first(players_list)
-          if player.surrender, do: {:error, :surrender}, else: {:ok, player}
+  def pay(%Monopoly{} = game, %__MODULE__{} = player) do
 
-        _ ->
-          {:error, :unknown_error}
-      end
-    end)
   end
 end
