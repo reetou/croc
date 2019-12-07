@@ -97,7 +97,7 @@ defmodule Croc.Games.Monopoly.Card do
 
   def get_upgrade_level_multiplier(%__MODULE__{} = card), do: 1
 
-  def upgrade(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+  def can_upgrade?(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
 
@@ -129,32 +129,124 @@ defmodule Croc.Games.Monopoly.Card do
       in_monopoly?(game, player, card) != true ->
         {:error, :no_such_monopoly}
 
-      true ->
-        new_upgrade_level = card.upgrade_level + 1
+      true -> true
+    end
+  end
 
-        updated_payment_amount =
-          get_payment_amount_for_event(%__MODULE__{
-            card
-            | upgrade_level: new_upgrade_level
-          })
+  def can_downgrade?(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
 
-        updated_card = %__MODULE__{
+    cond do
+      card_index == nil ->
+        {:error, :unknown_game_card}
+
+      player_index == nil ->
+        {:error, :unknown_game_player}
+
+      card.owner == nil ->
+        {:error, :card_has_no_owner}
+
+      card.type != :brand ->
+        {:error, :invalid_card_type}
+
+      card.owner != player_id ->
+        {:error, :player_not_owner}
+
+      card.upgrade_level < 1 ->
+        {:error, :upgrade_level_already_at_minimum}
+
+      card.on_loan ->
+        {:error, :card_on_loan}
+
+      in_monopoly?(game, player, card) != true ->
+        {:error, :no_such_monopoly}
+
+      true -> true
+    end
+  end
+
+  def downgrade(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+    with true <- can_downgrade?(game, player, card) do
+      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+      new_upgrade_level = card.upgrade_level - 1
+
+      updated_payment_amount =
+        get_payment_amount_for_event(%__MODULE__{
           card
-          | upgrade_level: new_upgrade_level,
-            payment_amount: updated_payment_amount
-        }
+        | upgrade_level: new_upgrade_level
+        })
 
-        updated_player = %Player{player | balance: player.balance - card.upgrade_cost}
+        IO.inspect(updated_payment_amount, label: "New payment amount for upgrade level #{new_upgrade_level}")
 
-        updated_game = %Monopoly{
-          game
-          | players:
-              game.players
-              |> List.insert_at(player_index, updated_player),
-            cards: game.cards |> List.insert_at(card_index, updated_card)
-        }
+      updated_card = %__MODULE__{
+        card
+      | upgrade_level: new_upgrade_level,
+        payment_amount: updated_payment_amount
+      }
 
-        {:ok, updated_game, updated_player}
+      updated_player = %Player{player | balance: player.balance + card.upgrade_cost}
+
+      updated_game = %Monopoly{
+        game
+      | players:
+          game.players
+          |> List.insert_at(player_index, updated_player),
+        cards: game.cards |> List.insert_at(card_index, updated_card)
+      }
+
+      {:ok, updated_game, updated_player}
+    else
+      err ->
+        case err do
+          {:error, reason} = r -> r
+
+          _ ->
+            Logger.error("Unknown error at downgrade")
+            {:error, :unknown_error}
+        end
+    end
+  end
+
+  def upgrade(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+    with true <- can_upgrade?(game, player, card) do
+      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+      new_upgrade_level = card.upgrade_level + 1
+
+      updated_payment_amount =
+        get_payment_amount_for_event(%__MODULE__{
+          card
+        | upgrade_level: new_upgrade_level
+        })
+
+      updated_card = %__MODULE__{
+        card
+      | upgrade_level: new_upgrade_level,
+        payment_amount: updated_payment_amount
+      }
+
+      updated_player = %Player{player | balance: player.balance - card.upgrade_cost}
+
+      updated_game = %Monopoly{
+        game
+      | players:
+          game.players
+          |> List.insert_at(player_index, updated_player),
+        cards: game.cards |> List.insert_at(card_index, updated_card)
+      }
+
+      {:ok, updated_game, updated_player}
+    else
+      err ->
+        case err do
+          {:error, reason} = r -> r
+
+          _ ->
+            Logger.error("Unknown error at upgrade")
+            {:error, :unknown_error}
+        end
     end
   end
 
