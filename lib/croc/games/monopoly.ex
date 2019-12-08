@@ -34,14 +34,14 @@ defmodule Croc.Games.Monopoly do
   ]
 
   @impl true
-  def init(%{ game: game } = state) do
+  def init(%{game: game} = state) do
     name = game.game_id
     {:ok, _pid} = Registry.register(@registry, name, state)
     {:ok, state}
   end
 
   @impl true
-  def handle_call({:move, player_id}, _from, %{ game: game } = state) do
+  def handle_call({:move, player_id}, _from, %{game: game} = state) do
     with true <- can_send_action?(game.game_id, player_id) do
       {x, y} = roll_dice
       move_value = x + y
@@ -71,7 +71,7 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:put_on_loan, %{player: player, card: card}}, _from, %{ game: game } = state) do
+  def handle_call({:put_on_loan, %{player: player, card: card}}, _from, %{game: game} = state) do
     with true <- can_send_action?(game.game_id, player.player_id) do
       {:ok, updated_game, _updated_player} = Card.put_on_loan(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
@@ -81,7 +81,7 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:upgrade, %{player: player, card: card}}, _from, %{ game: game } = state) do
+  def handle_call({:upgrade, %{player: player, card: card}}, _from, %{game: game} = state) do
     with true <- can_send_action?(game.game_id, player.player_id) do
       {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
@@ -91,7 +91,7 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:downgrade, %{player: player, card: card}}, from, %{ game: game } = state) do
+  def handle_call({:downgrade, %{player: player, card: card}}, from, %{game: game} = state) do
     with true <- can_send_action?(game.game_id, player.player_id) do
       {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
@@ -101,7 +101,7 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:get}, from, %{ game: game } = state) do
+  def handle_call({:get}, from, %{game: game} = state) do
     {:reply, {:ok, game}, state}
   end
 
@@ -109,46 +109,51 @@ defmodule Croc.Games.Monopoly do
 
   def start(%Lobby{lobby_id: lobby_id, options: options}) do
     with {:ok, lobby_players} when length(lobby_players) > 0 <- Lobby.get_players(lobby_id) do
-      {:ok, game} = Memento.transaction(fn ->
-        started_at = DateTime.utc_now() |> DateTime.truncate(:second)
-        game_id = Ecto.UUID.generate
-        players =
-          lobby_players
-          |> Enum.map(fn %LobbyPlayer{} = p ->
-            %Player{
-              player_id: p.player_id,
-              game_id: game_id,
-              balance: 0,
-              position: 0,
-              surrender: false
-            }
-          end)
-        Enum.each(players, fn p -> Memento.Query.write(p) end)
+      {:ok, game} =
+        Memento.transaction(fn ->
+          started_at = DateTime.utc_now() |> DateTime.truncate(:second)
+          game_id = Ecto.UUID.generate()
 
-        game = %__MODULE__{
-          game_id: game_id,
-          players: players,
-          started_at: started_at,
-          winners: [],
-          player_turn: List.first(players) |> Map.fetch!(:player_id),
-          cards: get_default_cards
-        }
+          players =
+            lobby_players
+            |> Enum.map(fn %LobbyPlayer{} = p ->
+              %Player{
+                player_id: p.player_id,
+                game_id: game_id,
+                balance: 0,
+                position: 0,
+                surrender: false
+              }
+            end)
 
-        {:ok, game} = MonopolySupervisor.create_game_process(game.game_id, %{ game: game })
-        LobbySupervisor.stop_lobby_process(lobby_id)
+          Enum.each(players, fn p -> Memento.Query.write(p) end)
 
-        game
-      end)
+          game = %__MODULE__{
+            game_id: game_id,
+            players: players,
+            started_at: started_at,
+            winners: [],
+            player_turn: List.first(players) |> Map.fetch!(:player_id),
+            cards: get_default_cards
+          }
+
+          {:ok, game} = MonopolySupervisor.create_game_process(game.game_id, %{game: game})
+          LobbySupervisor.stop_lobby_process(lobby_id)
+
+          game
+        end)
     else
-      e -> e
-           |> case do
-                {:ok, []} ->
-                  Logger.error("No lobby or no players")
-                  {:error, :no_players_in_lobby}
-                _ ->
-                  Logger.error("Unknown error")
-                  {:error, :unknown_error}
-              end
+      e ->
+        e
+        |> case do
+          {:ok, []} ->
+            Logger.error("No lobby or no players")
+            {:error, :no_players_in_lobby}
+
+          _ ->
+            Logger.error("Unknown error")
+            {:error, :unknown_error}
+        end
     end
   end
 
@@ -230,15 +235,19 @@ defmodule Croc.Games.Monopoly do
   def get(game_id) when game_id != nil do
     Registry.lookup(@registry, game_id)
     |> case do
-         [] -> {:error, :no_game}
-         processes ->
-           {pid, _init_game} = List.first(processes)
-           with {:ok, %__MODULE__{} = game} <- GenServer.call(pid, {:get}, 5000) do
-             {:ok, game, pid}
-           else
-             e -> e
-                  |> IO.inspect(label: "Probably a error at get by game id")
-           end
-       end
+      [] ->
+        {:error, :no_game}
+
+      processes ->
+        {pid, _init_game} = List.first(processes)
+
+        with {:ok, %__MODULE__{} = game} <- GenServer.call(pid, {:get}, 5000) do
+          {:ok, game, pid}
+        else
+          e ->
+            e
+            |> IO.inspect(label: "Probably a error at get by game id")
+        end
+    end
   end
 end

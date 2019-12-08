@@ -97,7 +97,11 @@ defmodule Croc.Games.Monopoly.Card do
 
   def get_upgrade_level_multiplier(%__MODULE__{} = card), do: 1
 
-  def can_upgrade?(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+  def can_upgrade?(
+        %Monopoly{} = game,
+        %Player{player_id: player_id} = player,
+        %__MODULE__{} = card
+      ) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
 
@@ -129,11 +133,16 @@ defmodule Croc.Games.Monopoly.Card do
       in_monopoly?(game, player, card) != true ->
         {:error, :no_such_monopoly}
 
-      true -> true
+      true ->
+        true
     end
   end
 
-  def can_downgrade?(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
+  def can_downgrade?(
+        %Monopoly{} = game,
+        %Player{player_id: player_id} = player,
+        %__MODULE__{} = card
+      ) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
 
@@ -162,7 +171,8 @@ defmodule Croc.Games.Monopoly.Card do
       in_monopoly?(game, player, card) != true ->
         {:error, :no_such_monopoly}
 
-      true -> true
+      true ->
+        true
     end
   end
 
@@ -175,30 +185,31 @@ defmodule Croc.Games.Monopoly.Card do
       updated_payment_amount =
         get_payment_amount_for_event(%__MODULE__{
           card
-        | upgrade_level: new_upgrade_level
+          | upgrade_level: new_upgrade_level
         })
 
       updated_card = %__MODULE__{
         card
-      | upgrade_level: new_upgrade_level,
-        payment_amount: updated_payment_amount
+        | upgrade_level: new_upgrade_level,
+          payment_amount: updated_payment_amount
       }
 
       updated_player = %Player{player | balance: player.balance + card.upgrade_cost}
 
       updated_game = %Monopoly{
         game
-      | players:
-          game.players
-          |> List.insert_at(player_index, updated_player),
-        cards: game.cards |> List.insert_at(card_index, updated_card)
+        | players:
+            game.players
+            |> List.insert_at(player_index, updated_player),
+          cards: game.cards |> List.insert_at(card_index, updated_card)
       }
 
       {:ok, updated_game, updated_player}
     else
       err ->
         case err do
-          {:error, reason} = r -> r
+          {:error, reason} = r ->
+            r
 
           _ ->
             Logger.error("Unknown error at downgrade")
@@ -216,30 +227,31 @@ defmodule Croc.Games.Monopoly.Card do
       updated_payment_amount =
         get_payment_amount_for_event(%__MODULE__{
           card
-        | upgrade_level: new_upgrade_level
+          | upgrade_level: new_upgrade_level
         })
 
       updated_card = %__MODULE__{
         card
-      | upgrade_level: new_upgrade_level,
-        payment_amount: updated_payment_amount
+        | upgrade_level: new_upgrade_level,
+          payment_amount: updated_payment_amount
       }
 
       updated_player = %Player{player | balance: player.balance - card.upgrade_cost}
 
       updated_game = %Monopoly{
         game
-      | players:
-          game.players
-          |> List.insert_at(player_index, updated_player),
-        cards: game.cards |> List.insert_at(card_index, updated_card)
+        | players:
+            game.players
+            |> List.insert_at(player_index, updated_player),
+          cards: game.cards |> List.insert_at(card_index, updated_card)
       }
 
       {:ok, updated_game, updated_player}
     else
       err ->
         case err do
-          {:error, reason} = r -> r
+          {:error, reason} = r ->
+            r
 
           _ ->
             Logger.error("Unknown error at upgrade")
@@ -303,7 +315,8 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r -> r
+          {:error, reason} = r ->
+            r
 
           _ ->
             Logger.error("Unknown error at buy_building")
@@ -325,7 +338,8 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r -> r
+          {:error, reason} = r ->
+            r
 
           _ ->
             Logger.error("Unknown error at buy_building")
@@ -347,7 +361,8 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r -> r
+          {:error, reason} = r ->
+            r
 
           _ ->
             Logger.error("Unknown error at buy_building")

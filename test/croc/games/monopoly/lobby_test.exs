@@ -10,6 +10,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
   describe "create lobby" do
     setup do
       players_ids = Enum.take_random(1..999_999, 5)
+
       %{
         players_ids: players_ids
       }
@@ -41,20 +42,21 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       players_ids = Enum.take_random(1..999_999, 5)
       player_id = Enum.at(players_ids, 0)
       {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
+
       %{
         players_ids: players_ids,
         lobby: lobby
       }
     end
 
-    test "should successfully join lobby", %{ lobby: lobby, players_ids: players_ids } do
+    test "should successfully join lobby", %{lobby: lobby, players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
       {:ok, %Lobby{} = updated_lobby} = Lobby.join(lobby.lobby_id, player_id)
       assert length(updated_lobby.players) == 2
       assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) != nil
     end
 
-    test "should throw if already in this lobby", %{ lobby: lobby, players_ids: players_ids } do
+    test "should throw if already in this lobby", %{lobby: lobby, players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
       {:ok, %Lobby{} = updated_lobby} = Lobby.join(lobby.lobby_id, player_id)
       assert length(updated_lobby.players) == 2
@@ -63,9 +65,9 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       assert result == {:error, :already_in_lobby}
     end
 
-    test "should throw if this lobby not exists", %{ players_ids: players_ids } do
+    test "should throw if this lobby not exists", %{players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
-      result = Lobby.join(Ecto.UUID.generate, player_id)
+      result = Lobby.join(Ecto.UUID.generate(), player_id)
       assert result == {:error, :no_lobby}
     end
   end
@@ -75,13 +77,14 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       players_ids = Enum.take_random(1..999_999, 5)
       player_id = Enum.at(players_ids, 0)
       {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
+
       %{
         players_ids: players_ids,
         lobby: lobby
       }
     end
 
-    test "should successfully leave lobby", %{ lobby: lobby, players_ids: players_ids } do
+    test "should successfully leave lobby", %{lobby: lobby, players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
       {:ok, %Lobby{} = joined_lobby} = Lobby.join(lobby.lobby_id, player_id)
       assert length(joined_lobby.players) == 2
@@ -92,15 +95,15 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) == nil
     end
 
-    test "should throw if not in this lobby", %{ lobby: lobby, players_ids: players_ids } do
+    test "should throw if not in this lobby", %{lobby: lobby, players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
       result = Lobby.leave(lobby.lobby_id, player_id)
       assert result == {:error, :not_in_lobby}
     end
 
-    test "should throw if this lobby not exists", %{ players_ids: players_ids } do
+    test "should throw if this lobby not exists", %{players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
-      result = Lobby.leave(Ecto.UUID.generate, player_id)
+      result = Lobby.leave(Ecto.UUID.generate(), player_id)
       assert result == {:error, :no_lobby}
     end
   end

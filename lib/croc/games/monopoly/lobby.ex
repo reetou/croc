@@ -14,19 +14,21 @@ defmodule Croc.Games.Monopoly.Lobby do
   @registry Croc.Games.Registry.Lobby
 
   @impl true
-  def init(%{ lobby: lobby } = state) do
+  def init(%{lobby: lobby} = state) do
     name = lobby.lobby_id
     {:ok, _pid} = Registry.register(@registry, name, state)
-    {:ok, %{ lobby: lobby }}
+    {:ok, %{lobby: lobby}}
   end
 
   @impl true
-  def handle_call({:join, player_id}, from, %{ lobby: lobby } = state) do
+  def handle_call({:join, player_id}, from, %{lobby: lobby} = state) do
     with false <- LobbyPlayer.already_in_lobby?(player_id) do
-      {:ok, player} = Memento.transaction(fn ->
-        player = %LobbyPlayer{player_id: player_id, lobby_id: lobby.lobby_id}
-        Memento.Query.write(player)
-      end)
+      {:ok, player} =
+        Memento.transaction(fn ->
+          player = %LobbyPlayer{player_id: player_id, lobby_id: lobby.lobby_id}
+          Memento.Query.write(player)
+        end)
+
       updated_lobby = Map.put(lobby, :players, lobby.players ++ [player])
       updated_state = Map.put(state, :lobby, updated_lobby)
       {:reply, {:ok, updated_lobby}, updated_state}
@@ -36,9 +38,11 @@ defmodule Croc.Games.Monopoly.Lobby do
   end
 
   @impl true
-  def handle_call({:leave, player_id}, from, %{ lobby: lobby } = state) do
+  def handle_call({:leave, player_id}, from, %{lobby: lobby} = state) do
     with true <- LobbyPlayer.in_lobby?(player_id, lobby) do
-      updated_lobby = Map.put(lobby, :players, Enum.filter(lobby.players, fn p -> p.player_id != player_id end))
+      updated_lobby =
+        Map.put(lobby, :players, Enum.filter(lobby.players, fn p -> p.player_id != player_id end))
+
       updated_state = Map.put(state, :lobby, updated_lobby)
       {:reply, {:ok, updated_lobby}, updated_state}
     else
@@ -47,18 +51,19 @@ defmodule Croc.Games.Monopoly.Lobby do
   end
 
   @impl true
-  def handle_call({:get}, from, %{ lobby: lobby } = state) do
+  def handle_call({:get}, from, %{lobby: lobby} = state) do
     {:reply, {:ok, lobby}, state}
   end
 
   def create(player_id, options) do
     with false <- LobbyPlayer.already_in_lobby?(player_id) do
       lobby = %__MODULE__{
-        lobby_id: Ecto.UUID.generate,
+        lobby_id: Ecto.UUID.generate(),
         players: [],
         options: options
       }
-      {:ok, lobby} = Supervisor.create_lobby_process(lobby.lobby_id, %{ lobby: lobby })
+
+      {:ok, lobby} = Supervisor.create_lobby_process(lobby.lobby_id, %{lobby: lobby})
       {:ok, %__MODULE__{}} = join(lobby.lobby_id, player_id)
     else
       _ -> {:error, :already_in_lobby}
@@ -84,16 +89,20 @@ defmodule Croc.Games.Monopoly.Lobby do
   def get(lobby_id) when lobby_id != nil do
     Registry.lookup(@registry, lobby_id)
     |> case do
-        [] -> {:error, :no_lobby}
-        processes ->
-          {pid, init_lobby} = List.first(processes)
-          with {:ok, %__MODULE__{} = lobby} <- GenServer.call(pid, {:get}, 5000) do
-            {:ok, lobby, pid}
-          else
-            e -> e
+      [] ->
+        {:error, :no_lobby}
+
+      processes ->
+        {pid, init_lobby} = List.first(processes)
+
+        with {:ok, %__MODULE__{} = lobby} <- GenServer.call(pid, {:get}, 5000) do
+          {:ok, lobby, pid}
+        else
+          e ->
+            e
             |> IO.inspect(label: "Probably a error at get by lobby id")
-          end
-       end
+        end
+    end
   end
 
   def has_lobby?(lobby_id) when lobby_id == nil, do: false

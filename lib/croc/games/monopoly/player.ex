@@ -75,6 +75,5 @@ defmodule Croc.Games.Monopoly.Player do
   end
 
   def pay(%Monopoly{} = game, %__MODULE__{} = player) do
-
   end
 end

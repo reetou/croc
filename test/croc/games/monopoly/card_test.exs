@@ -31,6 +31,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
   describe "Get upgrade level multiplier" do
     test "should return multiplier 1 if card type is invalid", context do
       assert length(context.game.cards) > 0
+
       context.game.cards
       |> Stream.filter(fn c -> c.type != :brand end)
       |> Enum.map(fn c ->
@@ -174,7 +175,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
   end
 
   describe "Downgrade card" do
-
     test "should throw when card not found in game by internal primary id", context do
       card =
         context.game.cards
@@ -285,13 +285,13 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         context.game.cards
         |> Enum.split_with(fn c -> c.type == :brand and c.monopoly_type == card.monopoly_type end)
         |> case do
-             {same_monopoly_cards, other_cards} ->
-               Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
-               other_cards
+          {same_monopoly_cards, other_cards} ->
+            Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
+              other_cards
 
-             _ ->
-               :error
-           end
+          _ ->
+            :error
+        end
 
       assert length(context.game.cards) == length(cards)
       assert Enum.all?(cards, fn c -> c.owner == player.player_id end) == false
@@ -304,7 +304,8 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       game = Map.put(context.game, :cards, cards)
       assert card.on_loan == false
 
-      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.downgrade(game, player, card)
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} =
+        Card.downgrade(game, player, card)
 
       updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
 
@@ -336,13 +337,13 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         context.game.cards
         |> Enum.split_with(fn c -> c.type == :brand and c.monopoly_type == card.monopoly_type end)
         |> case do
-             {same_monopoly_cards, other_cards} ->
-               Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
-               other_cards
+          {same_monopoly_cards, other_cards} ->
+            Enum.map(same_monopoly_cards, fn smc -> Map.put(smc, :owner, player.player_id) end) ++
+              other_cards
 
-             _ ->
-               :error
-           end
+          _ ->
+            :error
+        end
 
       assert length(context.game.cards) == length(cards)
       assert Enum.all?(cards, fn c -> c.owner == player.player_id end) == false
@@ -351,15 +352,22 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Enum.find_index(context.game.players, fn p -> p.player_id == player.player_id end)
 
       player = %Player{player | balance: card.cost}
-      card = card
-             |> Map.put(:owner, player.player_id)
-             |> Map.put(:on_loan, false)
-             |> Map.put(:upgrade_level, 1)
-             |> Map.put(:payment_amount, Card.get_payment_amount_for_event(%Card{card | upgrade_level: 1}))
+
+      card =
+        card
+        |> Map.put(:owner, player.player_id)
+        |> Map.put(:on_loan, false)
+        |> Map.put(:upgrade_level, 1)
+        |> Map.put(
+          :payment_amount,
+          Card.get_payment_amount_for_event(%Card{card | upgrade_level: 1})
+        )
+
       game = Map.put(context.game, :cards, cards)
       assert card.on_loan == false
 
-      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.downgrade(game, player, card)
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} =
+        Card.downgrade(game, player, card)
 
       updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
 
@@ -523,7 +531,8 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       game = Map.put(context.game, :cards, cards)
       assert card.on_loan == false
 
-      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} = Card.upgrade(game, player, card)
+      {:ok, %Monopoly{} = updated_game, %Player{} = updated_player} =
+        Card.upgrade(game, player, card)
 
       updated_card = Enum.find(updated_game.cards, fn c -> c.id == card.id end)
 
@@ -773,7 +782,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
   end
 
   describe "Buyout" do
-
     test "should throw if card type is invalid", context do
       player = context.game.players |> Enum.at(0)
 
@@ -865,7 +873,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
     test "should return updated game and player on success", context do
       player = context.game.players |> Enum.at(0)
-
 
       card =
         context.game.cards

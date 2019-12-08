@@ -71,6 +71,7 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
         ]
 
         players = Memento.Query.select(__MODULE__, guards)
+
         unless length(players) == 0 do
           List.first(players)
         else
