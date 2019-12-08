@@ -2,13 +2,15 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Games.Monopoly.{
     Player,
     Lobby,
-    Card
+    Card,
+    Event
   }
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Repo.Games.Monopoly.Card, as: MonopolyCard
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
+  import CrocWeb.Gettext
   use GenServer
   require Logger
 
@@ -41,68 +43,102 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:move, player_id}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game.game_id, player_id) do
-      {x, y} = roll_dice
-      move_value = x + y
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-      player = Enum.at(game.players, player_index)
-      old_position = player.position
-      max_position = Enum.max_by(game.cards, fn c -> c.position end)
-
-      new_position =
-        case player.position + move_value do
-          x when x > max_position -> x - max_position
-          x -> x
-        end
-
-      player =
-        player
-        |> Map.put(:position, new_position)
-
-      players = List.insert_at(game.players, player_index, player)
-      updated_game = Map.put(game, :players, players)
-
-      process_move(updated_game, player, old_position, new_position)
-      {:reply, {:ok, updated_game}, Map.put(state, :game, updated_game)}
+  def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id) do
+      {g, event} = roll(game, player_id, event_id)
+      {:reply, {:ok, %{game: g, event: event}}, Map.put(state, :game, g)}
     else
-      _ -> {:reply, %{error: :not_your_turn}, state}
+      _ -> {:reply, {:error, :not_your_turn}, state}
     end
   end
 
   @impl true
-  def handle_call({:put_on_loan, %{player: player, card: card}}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game.game_id, player.player_id) do
+  def handle_call({:put_on_loan, player_id, card}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.put_on_loan(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
     else
-      _ -> {:reply, %{error: :not_your_turn}, state}
+      _ -> {:reply, {:error, :not_your_turn}, state}
     end
   end
 
   @impl true
-  def handle_call({:upgrade, %{player: player, card: card}}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game.game_id, player.player_id) do
+  def handle_call({:upgrade, player_id, card}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
     else
-      _ -> {:reply, %{error: :not_your_turn}, state}
+      _ -> {:reply, {:error, :not_your_turn}, state}
     end
   end
 
   @impl true
-  def handle_call({:downgrade, %{player: player, card: card}}, from, %{game: game} = state) do
-    with true <- can_send_action?(game.game_id, player.player_id) do
-      {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
+  def handle_call({:downgrade, player_id, card}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id) do
+      {:ok, updated_game, _updated_player} = Card.downgrade(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
     else
-      _ -> {:reply, %{error: :not_your_turn}, state}
+      _ -> {:reply, {:error, :not_your_turn}, state}
     end
   end
 
   @impl true
-  def handle_call({:get}, from, %{game: game} = state) do
+  def handle_call({:buyout, player_id, card}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id) do
+      {:ok, updated_game, _updated_player} = Card.buyout(game, player, card)
+      {:reply, {:ok, updated_game}, updated_game}
+    else
+      _ -> {:reply, {:error, :not_your_turn}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:buy, player_id, card}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id) do
+      {:ok, updated_game, _updated_player} = Card.buy(game, player, card)
+      {:reply, {:ok, updated_game}, updated_game}
+    else
+      _ -> {:reply, {:error, :not_your_turn}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:get}, _from, %{game: game} = state) do
     {:reply, {:ok, game}, state}
+  end
+
+  def roll(game, player_id, event_id) do
+    {x, y} = roll_dice
+    move_value = x + y
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(game.players, player_index)
+    old_position = player.position
+    max_position = Enum.max_by(game.cards, fn c -> c.position end)
+
+    new_position =
+      case player.position + move_value do
+        x when x > max_position -> x - max_position
+        x -> x
+      end
+
+    event_index =
+      Enum.find_index(player.events, fn e -> e.type == :roll and e.event_id == event_id end)
+
+    updated_events = List.delete_at(player.events, event_index)
+
+    player =
+      player
+      |> Map.put(:position, new_position)
+      |> Map.put(:events, updated_events)
+
+    players = List.insert_at(game.players, player_index, player)
+    updated_game = Map.put(game, :players, players)
+    process_position_change(updated_game, player, new_position)
   end
 
   def positions, do: @positions
@@ -113,16 +149,21 @@ defmodule Croc.Games.Monopoly do
         Memento.transaction(fn ->
           started_at = DateTime.utc_now() |> DateTime.truncate(:second)
           game_id = Ecto.UUID.generate()
+          first_player_id = List.first(lobby_players) |> Map.fetch!(:player_id)
 
           players =
             lobby_players
             |> Enum.map(fn %LobbyPlayer{} = p ->
+              events =
+                if p.player_id == first_player_id, do: [Event.roll(first_player_id)], else: []
+
               %Player{
                 player_id: p.player_id,
                 game_id: game_id,
                 balance: 0,
                 position: 0,
-                surrender: false
+                surrender: false,
+                events: events
               }
             end)
 
@@ -133,7 +174,7 @@ defmodule Croc.Games.Monopoly do
             players: players,
             started_at: started_at,
             winners: [],
-            player_turn: List.first(players) |> Map.fetch!(:player_id),
+            player_turn: first_player_id,
             cards: get_default_cards
           }
 
@@ -161,49 +202,71 @@ defmodule Croc.Games.Monopoly do
     {Enum.random(1..6), Enum.random(1..6)}
   end
 
-  def can_send_action?(game_id, player_id) when game_id == nil do
-    {:error, :unknown_game_id}
-  end
-
-  def can_send_action?(game_id, player_id) when player_id == nil do
-    {:error, :unknown_player_id}
-  end
-
-  def can_send_action?(game_id, player_id) do
-    with {:ok, %__MODULE__{} = game, pid} = get(game_id),
-         %Player{} = player = Enum.find(game.players, fn p -> p.player_id == player_id end) do
+  def can_send_action?(game, player_id) do
+    with %Player{} = player = Enum.find(game.players, fn p -> p.player_id == player_id end) do
       # Проверяем что игрок присутствует в игре, не сдался и сейчас его очередь ходить
       player != nil and player.surrender != true and game.player_turn == player_id
     else
       _err ->
-        Logger.error("Game or player not found in Game #{game_id} and Player #{player_id}")
+        Logger.error("Player #{player_id} not found in game #{inspect(game)}")
         false
     end
   end
 
-  def move(game_id, player_id) do
-    with {:ok, game, pid} <- get(game_id) do
-      GenServer.call(pid, {:move, player_id})
+  def roll(game_id, player_id) do
+    with {:ok, game, pid} <- get(game_id),
+         %Event{} = event <- Event.get_by_type(game, player_id, :roll) do
+      GenServer.call(pid, {:roll, player_id, event.event_id})
     else
       e -> e
     end
   end
 
-  def process_move(%__MODULE__{} = game, %Player{} = player, old_position, new_position) do
-    send_event({:position_data, game, player, old_position, new_position})
+  def process_position_change(game, %{player_id: player_id} = player, position) do
+    %Card{} = card = Card.get_by_position(game, position)
+
+    cond do
+      card.type == :random_event ->
+        Event.generate_random(game, player_id)
+
+      card.type == :brand and Card.is_owner?(card, player_id) ->
+        {game, Event.ignored("Попадает на свое поле и ничего не платит")}
+
+      card.type == :brand and Card.has_to_pay?(card, player_id) ->
+        event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить")
+        game = Event.add_player_event(game, player_id, event)
+        {game, event}
+
+      card.type == :payment ->
+        event = Event.pay(card.payment_amount, "Должен выплатить")
+        game = Event.add_player_event(game, player_id, event)
+        {game, event}
+
+      card.type == :jail_cell ->
+        {game, Event.ignored("Попал в клеточку")}
+
+      card.type == :prison ->
+        {game, Event.ignored("Попадает в тюрьмочку")}
+
+      card.type == :start ->
+        {Player.give_money(game, player_id, 1000),
+         Event.ignored("Попадает на старт и получает на тыщу больше")}
+
+      true ->
+        {game, Event.ignored("Ничего не произошло, type: #{Atom.to_string(card.type)}")}
+    end
   end
 
-  def send_event({:position_data = event, game, player, old_position, new_position}) do
+  def format_payload({:position_data, game, player, old_position, new_position}) do
     %Card{} = card = Card.get_by_position(game, new_position)
     foreign_owner = card.owner != nil and card.owner != player.player_id and card.type == :brand
     passed_start = new_position < old_position and card.type != :prison
     start_position_bonus = if card.type == :start, do: 1000, else: 0
     passed_start_bonus = if passed_start, do: 2000, else: 0
     must_pay = foreign_owner or card.type == :payment
-    payment_amount = if must_pay, do: Card.get_payment_amount_for_event(card), else: 0
+    payment_amount = if must_pay, do: Card.get_payment_amount(card), else: 0
 
     data = %{
-      event: event,
       player_id: player.player_id,
       card: card,
       passed_start: passed_start,

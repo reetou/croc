@@ -91,7 +91,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
                 %Card{struct | upgrade_level: 1, upgrade_level_multipliers: [actual]}
               end).()
 
-        amount = Card.get_payment_amount_for_event(card)
+        amount = Card.get_payment_amount(card)
         multiplier = Card.get_upgrade_level_multiplier(card)
         assert multiplier == expected
         assert is_integer(amount)
@@ -110,7 +110,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Stream.filter(fn c -> c.upgrade_level == 0 end)
         |> Enum.random()
 
-      amount = Card.get_payment_amount_for_event(card)
+      amount = Card.get_payment_amount(card)
       assert is_integer(amount)
       assert card.payment_amount == amount
     end
@@ -123,7 +123,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Enum.random()
         |> (fn struct -> %Card{struct | upgrade_level: 1} end).()
 
-      amount = Card.get_payment_amount_for_event(card)
+      amount = Card.get_payment_amount(card)
       multiplier = Card.get_upgrade_level_multiplier(card)
       assert is_integer(amount)
       assert card.payment_amount * multiplier == amount
@@ -137,7 +137,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Enum.random()
         |> (fn struct -> %Card{struct | upgrade_level: 2} end).()
 
-      amount = Card.get_payment_amount_for_event(card)
+      amount = Card.get_payment_amount(card)
       multiplier = Card.get_upgrade_level_multiplier(card)
       assert is_integer(amount)
       assert card.payment_amount * multiplier == amount
@@ -152,7 +152,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Enum.random()
         |> (fn struct -> %Card{struct | upgrade_level: 1} end).()
 
-      amount = Card.get_payment_amount_for_event(card)
+      amount = Card.get_payment_amount(card)
       multiplier = Card.get_upgrade_level_multiplier(card)
       assert is_integer(amount)
       assert card.payment_amount * multiplier == amount
@@ -167,7 +167,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Enum.random()
         |> (fn struct -> %Card{struct | upgrade_level: 2} end).()
 
-      amount = Card.get_payment_amount_for_event(card)
+      amount = Card.get_payment_amount(card)
       multiplier = Card.get_upgrade_level_multiplier(card)
       assert is_integer(amount)
       assert card.payment_amount * multiplier == amount
@@ -313,7 +313,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Enum.find_index(updated_game.players, fn p -> p.player_id == updated_player.player_id end)
 
       expected_payment_amount =
-        Card.get_payment_amount_for_event(%Card{card | upgrade_level: updated_card.upgrade_level})
+        Card.get_payment_amount(%Card{card | upgrade_level: updated_card.upgrade_level})
 
       assert player_index == updated_player_index
       assert updated_player.player_id == player.player_id
@@ -360,7 +360,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Map.put(:upgrade_level, 1)
         |> Map.put(
           :payment_amount,
-          Card.get_payment_amount_for_event(%Card{card | upgrade_level: 1})
+          Card.get_payment_amount(%Card{card | upgrade_level: 1})
         )
 
       game = Map.put(context.game, :cards, cards)
@@ -375,7 +375,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Enum.find_index(updated_game.players, fn p -> p.player_id == updated_player.player_id end)
 
       expected_payment_amount =
-        Card.get_payment_amount_for_event(%Card{card | upgrade_level: updated_card.upgrade_level})
+        Card.get_payment_amount(%Card{card | upgrade_level: updated_card.upgrade_level})
 
       assert player_index == updated_player_index
       assert updated_player.player_id == player.player_id
@@ -540,7 +540,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Enum.find_index(updated_game.players, fn p -> p.player_id == updated_player.player_id end)
 
       expected_payment_amount =
-        Card.get_payment_amount_for_event(%Card{card | upgrade_level: updated_card.upgrade_level})
+        Card.get_payment_amount(%Card{card | upgrade_level: updated_card.upgrade_level})
 
       assert player_index == updated_player_index
       assert updated_player.player_id == player.player_id

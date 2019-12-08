@@ -54,11 +54,29 @@ defmodule Croc.Games.Monopoly.Card do
     card.loan_amount + card.upgrade_cost * card.upgrade_level
   end
 
+  def is_owner?(card, player_id) do
+    card.owner == player_id
+  end
+
+  def has_owner?(card, player_id) do
+    card.owner != nil
+  end
+
+  def has_to_pay?(card, player_id) do
+    cond do
+      card.type != :brand -> false
+      card.owner == nil -> false
+      card.on_loan == true -> false
+      card.owner != player_id -> true
+      true -> true
+    end
+  end
+
   def total_cost(%__MODULE__{type: :payment} = card), do: card.payment_amount
 
   def total_cost(%__MODULE__{} = card), do: 0
 
-  def get_payment_amount_for_event(%__MODULE__{} = card) do
+  def get_payment_amount(%__MODULE__{} = card) do
     case card.type do
       :payment ->
         card.payment_amount
@@ -183,7 +201,7 @@ defmodule Croc.Games.Monopoly.Card do
       new_upgrade_level = card.upgrade_level - 1
 
       updated_payment_amount =
-        get_payment_amount_for_event(%__MODULE__{
+        get_payment_amount(%__MODULE__{
           card
           | upgrade_level: new_upgrade_level
         })
@@ -225,7 +243,7 @@ defmodule Croc.Games.Monopoly.Card do
       new_upgrade_level = card.upgrade_level + 1
 
       updated_payment_amount =
-        get_payment_amount_for_event(%__MODULE__{
+        get_payment_amount(%__MODULE__{
           card
           | upgrade_level: new_upgrade_level
         })

@@ -16,7 +16,8 @@ defmodule Croc.Games.Monopoly.Player do
       :balance,
       :position,
       :surrender,
-      :player_cards
+      :player_cards,
+      :events
     ],
     index: [:player_id, :game_id],
     autoincrement: true,
@@ -74,6 +75,57 @@ defmodule Croc.Games.Monopoly.Player do
     Map.put(game, :players, players)
   end
 
-  def pay(%Monopoly{} = game, %__MODULE__{} = player) do
+  def take_money(%Monopoly{} = game, player_id, amount) do
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(game.players, player_index)
+
+    with true <- player.balance > amount do
+      players =
+        List.insert_at(
+          game.players,
+          player_index,
+          Map.put(player, :balance, player.balance - amount)
+        )
+
+      Map.put(game, :players, players)
+    else
+      _ -> {:error, :not_enough_money}
+    end
+  end
+
+  def give_money(%Monopoly{} = game, player_id, amount) do
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(game.players, player_index)
+
+    with true <- amount > 0 do
+      players =
+        List.insert_at(
+          game.players,
+          player_index,
+          Map.put(player, :balance, player.balance + amount)
+        )
+
+      Map.put(game, :players, players)
+    else
+      _ -> {:error, :negative_amount}
+    end
+  end
+
+  def transfer(%Monopoly{} = game, sender_id, receiver_id, amount) do
+    sender_index = Enum.find_index(game.players, fn p -> p.player_id == sender_id end)
+    sender = Enum.at(game.players, sender_index)
+    receiver_index = Enum.find_index(game.players, fn p -> p.player_id == receiver_id end)
+    receiver = Enum.at(game.players, receiver_index)
+
+    with true <- amount > 0 do
+      players =
+        game.players
+        |> List.insert_at(sender_index, Map.put(sender, :balance, sender.balance - amount))
+        |> List.insert_at(receiver_index, Map.put(receiver, :balance, receiver.balance + amount))
+
+      Map.put(game, :players, players)
+    else
+      _ -> {:error, :negative_amount}
+    end
   end
 end
