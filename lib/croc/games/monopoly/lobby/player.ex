@@ -58,7 +58,6 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
   def in_lobby?(player_id, %Lobby{} = lobby) do
     player = Enum.find(lobby.players, fn p -> p.player_id == player_id end)
     result = player != nil
-    IO.inspect(result, label: "Result for player_id #{player_id} in lobby #{lobby.lobby_id}")
 
     result
   end
