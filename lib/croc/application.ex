@@ -11,16 +11,16 @@ defmodule Croc.Application do
       # Start the Ecto repository
       Croc.Repo,
       # Start the endpoint when the application starts
-      CrocWeb.Endpoint
+      CrocWeb.Endpoint,
       # Starts a worker by calling: Croc.Worker.start_link(arg)
       # {Croc.Worker, arg},
+      {Registry, [keys: :unique, name: Croc.Games.Registry.Monopoly]},
+      {Registry, [keys: :unique, name: Croc.Games.Registry.Lobby]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Croc.Supervisor]
-    Memento.Table.create!(Croc.Games.Monopoly)
-    Memento.Table.create!(Croc.Games.Monopoly.Lobby)
     Memento.Table.create!(Croc.Games.Monopoly.Lobby.Player)
     Memento.Table.create!(Croc.Games.Monopoly.Player)
     Supervisor.start_link(children, opts)
