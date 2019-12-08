@@ -1,4 +1,5 @@
 defmodule Croc.Games.Monopoly.Lobby.Player do
+  alias Croc.Games.Monopoly.Lobby
   require Logger
 
   @enforce_keys [
@@ -54,18 +55,12 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     result
   end
 
-  def in_lobby?(player_id, lobby_id) do
-    {:ok, result} =
-      Memento.transaction(fn ->
-        guards = [
-          {:==, :player_id, player_id},
-          {:==, :lobby_id, lobby_id}
-        ]
+  def in_lobby?(player_id, %Lobby{} = lobby) do
+    player = Enum.find(lobby.players, fn p -> p.player_id == player_id end)
+    result = player != nil
+    IO.inspect(result, label: "Result for player_id #{player_id} in lobby #{lobby.lobby_id}")
 
-        players = Memento.Query.select(__MODULE__, guards)
-        length(players) > 0
-      end)
-      result
+    result
   end
 
   def get(player_id, lobby_id) do
