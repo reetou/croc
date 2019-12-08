@@ -19,11 +19,10 @@ defmodule Croc.GamesTest.MonopolyTest do
 
     Enum.slice(players_ids, 1, 100)
     |> Enum.each(fn player_id ->
-      :ok = Lobby.join(lobby.lobby_id, player_id)
+      {:ok, lobby} = Lobby.join(lobby.lobby_id, player_id)
     end)
 
     {:ok, lobby_players} = Lobby.get_players(lobby.lobby_id)
-    IO.inspect(lobby, label: "Created lobby")
 
     %{
       lobby: lobby,
@@ -33,15 +32,9 @@ defmodule Croc.GamesTest.MonopolyTest do
   end
 
   test "should start game for lobby and write game data to mnesia", context do
-    {:ok, %Monopoly{} = started_game} = Monopoly.start(context.lobby)
+    {:ok, %Monopoly{} = game} = Monopoly.start(context.lobby)
 
-    {:ok, %Monopoly{} = game} =
-      Memento.transaction(fn ->
-        Memento.Query.read(Monopoly, context.lobby.lobby_id)
-      end)
-
-    assert game == started_game
-    assert context.lobby.lobby_id == game.game_id
+    assert context.lobby.lobby_id != game.game_id
     assert length(context.players_ids) == length(game.players)
 
     assert Enum.all?(game.players, fn p ->

@@ -17,11 +17,11 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
     end
 
-    {:ok, lobby} = Lobby.create(Enum.at(@players_ids, 0), [])
+    {:ok, %Lobby{} = lobby} = Lobby.create(Enum.at(@players_ids, 0), [])
 
     Enum.slice(@players_ids, 1, 100)
     |> Enum.each(fn player_id ->
-      :ok = Lobby.join(lobby.lobby_id, player_id)
+      {:ok, lobby} = Lobby.join(lobby.lobby_id, player_id)
     end)
 
     {:ok, %Monopoly{} = game} = Monopoly.start(lobby)

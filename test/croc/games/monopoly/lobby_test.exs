@@ -9,7 +9,10 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   describe "create lobby" do
     setup do
-      %{players_ids: Enum.take_random(1..999_999, 5)}
+      players_ids = Enum.take_random(1..999_999, 5)
+      %{
+        players_ids: players_ids
+      }
     end
 
     test "should create lobby with 1 player in it", context do
@@ -28,7 +31,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       result = Lobby.create(player_id, [])
       assert {:error, :already_in_lobby} == result
 
-      join_result = Lobby.join(123, player_id)
+      join_result = Lobby.join(lobby.lobby_id, player_id)
       assert {:error, :already_in_lobby} == join_result
     end
   end
@@ -36,65 +39,69 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
   describe "join lobby" do
     setup do
       players_ids = Enum.take_random(1..999_999, 5)
-      {:ok, %Lobby{} = lobby} = Lobby.create(Enum.at(players_ids, 0), [])
-      %{lobby: lobby, players_ids: players_ids}
+      player_id = Enum.at(players_ids, 0)
+      {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
+      %{
+        players_ids: players_ids,
+        lobby: lobby
+      }
     end
 
-    test "should join player", context do
-      player_id = Enum.at(context.players_ids, 1)
-      :ok = Lobby.join(context.lobby.lobby_id, player_id)
+    test "should successfully join lobby", %{ lobby: lobby, players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      {:ok, %Lobby{} = updated_lobby} = Lobby.join(lobby.lobby_id, player_id)
+      assert length(updated_lobby.players) == 2
+      assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) != nil
+    end
 
-      {:ok, players} =
-        Memento.transaction(fn ->
-          Memento.Query.select(LobbyPlayer, {:==, :lobby_id, context.lobby.lobby_id})
-        end)
+    test "should throw if already in this lobby", %{ lobby: lobby, players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      {:ok, %Lobby{} = updated_lobby} = Lobby.join(lobby.lobby_id, player_id)
+      assert length(updated_lobby.players) == 2
+      assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) != nil
+      result = Lobby.join(lobby.lobby_id, player_id)
+      assert result == {:error, :already_in_lobby}
+    end
 
-      player = Enum.at(players, 1)
-      assert player != nil
-      assert player.lobby_id == context.lobby.lobby_id
-      assert player.player_id == player_id
-
-      result = Lobby.create(player_id, [])
-      assert {:error, :already_in_lobby} == result
-
-      join_result = Lobby.join(123, player_id)
-      assert {:error, :already_in_lobby} == join_result
+    test "should throw if this lobby not exists", %{ players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      result = Lobby.join(Ecto.UUID.generate, player_id)
+      assert result == {:error, :no_lobby}
     end
   end
 
   describe "leave lobby" do
     setup do
       players_ids = Enum.take_random(1..999_999, 5)
-      {:ok, %Lobby{} = lobby} = Lobby.create(Enum.at(players_ids, 0), [])
-      %{lobby: lobby, players_ids: players_ids}
+      player_id = Enum.at(players_ids, 0)
+      {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
+      %{
+        players_ids: players_ids,
+        lobby: lobby
+      }
     end
 
-    test "should leave lobby for player", context do
-      player_id = Enum.at(context.players_ids, 1)
-      other_player_id = Enum.at(context.players_ids, 2)
-      :ok = Lobby.join(context.lobby.lobby_id, player_id)
-      :ok = Lobby.leave(context.lobby.lobby_id, player_id)
+    test "should successfully leave lobby", %{ lobby: lobby, players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      {:ok, %Lobby{} = joined_lobby} = Lobby.join(lobby.lobby_id, player_id)
+      assert length(joined_lobby.players) == 2
+      assert Enum.find(joined_lobby.players, fn p -> p.player_id == player_id end) != nil
+      {:ok, %Lobby{} = updated_lobby} = Lobby.leave(lobby.lobby_id, player_id)
 
-      {:ok, players} =
-        Memento.transaction(fn ->
-          Memento.Query.select(LobbyPlayer, {:==, :lobby_id, context.lobby.lobby_id})
-        end)
-
-      player = Enum.at(players, 1)
-      assert player == nil
-
-      {:ok, %Lobby{}} = Lobby.create(player_id, [])
-
-      result = Lobby.leave(123, other_player_id)
-      assert {:error, :not_in_lobby} == result
+      assert length(updated_lobby.players) == 1
+      assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) == nil
     end
 
-    test "should remove lobby if last player left", context do
-      player_id = Enum.at(context.players_ids, 0)
-      :ok = Lobby.leave(context.lobby.lobby_id, player_id)
+    test "should throw if not in this lobby", %{ lobby: lobby, players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      result = Lobby.leave(lobby.lobby_id, player_id)
+      assert result == {:error, :not_in_lobby}
+    end
 
-      {:ok, nil} = LobbyPlayer.get(player_id, context.lobby.lobby_id)
-      {:ok, nil} = Lobby.get(context.lobby.lobby_id)
+    test "should throw if this lobby not exists", %{ players_ids: players_ids } do
+      player_id = Enum.at(players_ids, 1)
+      result = Lobby.leave(Ecto.UUID.generate, player_id)
+      assert result == {:error, :no_lobby}
     end
   end
 end
