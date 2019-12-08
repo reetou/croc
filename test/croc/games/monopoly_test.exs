@@ -81,7 +81,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     test "should successfully send roll event", %{game: game} do
       %Player{player_id: player_id} = player = Enum.at(game.players, 0)
       assert game.player_turn == player_id
-      {:ok, %{game: updated_game, event: received_event}} = Monopoly.roll(game.game_id, player_id)
+      {:ok, %{game: updated_game, event: received_event}} = Monopoly.send_roll(game.game_id, player_id)
       updated_player = Enum.at(updated_game.players, 0)
       assert is_list(updated_player.events)
 
@@ -95,10 +95,41 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert updated_player.position != player.position
     end
 
+    test "should successfully pay", %{ game: game } do
+      first_player = Enum.at(game.players, 0)
+      index = 2
+      third_player = Enum.at(game.players, index)
+
+      cards =
+        Enum.map(game.cards, fn c ->
+          unless c.type != :brand or c.owner != nil do
+            Map.put(c, :owner, first_player.player_id)
+          else
+            c
+          end
+        end)
+
+      card = Enum.find(cards, fn c -> c.owner == first_player.player_id end)
+      players = Enum.map(game.players, fn p ->
+        unless p.player_id != third_player.player_id do
+          Map.put(p, :balance, 5000)
+        else
+          p
+        end
+      end)
+      game = game
+             |> Map.put(:cards, cards)
+             |> Map.put(:players, players)
+      {g, event} = Monopoly.process_position_change(game, third_player, card.position)
+      updated_player = Enum.at(g.players, index)
+      player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
+      {:ok, updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
+    end
+
     test "should throw error if player has no such event", %{game: game} do
       %Player{player_id: player_id} = player = Enum.at(game.players, 2)
       assert game.player_turn != player_id
-      {:error, :no_event} = Monopoly.roll(game.game_id, player_id)
+      {:error, :no_event} = Monopoly.send_roll(game.game_id, player_id)
     end
   end
 
@@ -175,9 +206,9 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert updated_player.player_id == third_player.player_id
       assert updated_player.balance == third_player.balance
       assert updated_player.balance == first_player.balance
-      assert updated_player.balance == first_player.balance
       assert length(updated_player.events) == 1
-      event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
+      player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
+      assert event == player_event
       assert event != nil
       assert event.type == :pay
       assert event.amount == card.payment_amount
@@ -215,10 +246,10 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert event.type == :pay or event.type == :receive
       updated_player = Enum.at(updated_game.players, index)
       player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
-      assert player_event == event
 
       case event.type do
         :pay ->
+          assert player_event == event
           assert length(updated_player.events) == 1
           assert event != nil
           assert event.type == :pay
@@ -229,7 +260,7 @@ defmodule Croc.GamesTest.MonopolyTest do
           assert length(updated_player.events) == 0
           event = Enum.find(updated_player.events, fn e -> e.type == :receive end)
           assert event == nil
-          assert updated_player.balance == player.balance + event.amount
+          assert updated_player.balance != player.balance
 
         _ ->
           assert false == true

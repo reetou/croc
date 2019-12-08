@@ -112,20 +112,18 @@ defmodule Croc.Games.Monopoly.Player do
   end
 
   def transfer(%Monopoly{} = game, sender_id, receiver_id, amount) do
-    sender_index = Enum.find_index(game.players, fn p -> p.player_id == sender_id end)
-    sender = Enum.at(game.players, sender_index)
-    receiver_index = Enum.find_index(game.players, fn p -> p.player_id == receiver_id end)
-    receiver = Enum.at(game.players, receiver_index)
-
-    with true <- amount > 0 do
-      players =
-        game.players
-        |> List.insert_at(sender_index, Map.put(sender, :balance, sender.balance - amount))
-        |> List.insert_at(receiver_index, Map.put(receiver, :balance, receiver.balance + amount))
-
-      Map.put(game, :players, players)
+    with true <- amount > 0,
+         %Monopoly{} = g <- take_money(game, sender_id, amount),
+         %Monopoly{} = updated_game <- give_money(g, receiver_id, amount) do
+      updated_game
     else
-      _ -> {:error, :negative_amount}
+      e ->
+        e
+        |> IO.inspect(label: "Error at transfer")
+        |> case do
+             {:error, reason} -> {:error, reason}
+             _ -> {:error, :unknown_error}
+           end
     end
   end
 end

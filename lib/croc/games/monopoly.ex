@@ -46,6 +46,14 @@ defmodule Croc.Games.Monopoly do
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
     with true <- can_send_action?(game, player_id) do
       {g, event} = roll(game, player_id, event_id)
+      case roll(game, player_id, event_id) do
+        {:ok, updated_game} ->
+          {:reply, {:ok, updated_game}, Map.put(state, :game, updated_game)}
+        {:error, reason} ->
+          {:reply, {:error, reason}, state}
+        _ ->
+          {:reply, {:error, :unknown_error}, state}
+      end
       {:reply, {:ok, %{game: g, event: event}}, Map.put(state, :game, g)}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
@@ -102,6 +110,24 @@ defmodule Croc.Games.Monopoly do
          %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.buy(game, player, card)
       {:reply, {:ok, updated_game}, updated_game}
+    else
+      _ -> {:reply, {:error, :not_your_turn}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:pay, player_id, event_id}, _from, %{game: game} = state) do
+    with true <- can_send_action?(game, player_id),
+         %Player{} = player <- Player.get(game, player_id),
+         %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
+      case pay(game, player_id, event_id) do
+        {:ok, updated_game} ->
+          {:reply, {:ok, updated_game}, Map.put(state, :game, updated_game)}
+        {:error, reason} ->
+          {:reply, {:error, reason}, state}
+        _ ->
+          {:reply, {:error, :unknown_error}, state}
+      end
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -213,12 +239,43 @@ defmodule Croc.Games.Monopoly do
     end
   end
 
-  def roll(game_id, player_id) do
+  def send_roll(game_id, player_id) do
     with {:ok, game, pid} <- get(game_id),
          %Event{} = event <- Event.get_by_type(game, player_id, :roll) do
       GenServer.call(pid, {:roll, player_id, event.event_id})
     else
       e -> e
+    end
+  end
+
+  def send_pay(game_id, player_id) do
+    with {:ok, game, pid} <- get(game_id),
+         %Event{} = event <- Event.get_by_type(game, player_id, :roll) do
+      GenServer.call(pid, {:pay, player_id, event.event_id})
+    else
+      e -> e
+    end
+  end
+
+  def pay(game, player_id, event_id) do
+    player = game.players
+      |> Enum.find(fn p -> p.player_id == player_id end)
+    event = Enum.find(player.events, fn e -> e.event_id == event_id end)
+    cond do
+      event == nil -> {:error, :no_event}
+      event.type != :pay -> {:error, :invalid_event_type}
+      event.receiver != nil ->
+        Player.transfer(game, player_id, event.receiver, event.amount)
+        |> case do
+             %__MODULE__{} = g -> {:ok, g}
+             e -> e
+           end
+      true ->
+        Player.take_money(game, player_id, event.amount)
+        |> case do
+             %__MODULE__{} = g -> {:ok, g}
+             e -> e
+           end
     end
   end
 
@@ -233,7 +290,7 @@ defmodule Croc.Games.Monopoly do
         {game, Event.ignored("Попадает на свое поле и ничего не платит")}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
-        event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить")
+        event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить", card.owner)
         game = Event.add_player_event(game, player_id, event)
         {game, event}
 

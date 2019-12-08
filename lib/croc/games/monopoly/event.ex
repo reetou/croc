@@ -5,7 +5,8 @@ defmodule Croc.Games.Monopoly.Event do
     :event_id,
     :type,
     :amount,
-    :text
+    :text,
+    :receiver
   ]
 
   def new(type) do
@@ -15,10 +16,11 @@ defmodule Croc.Games.Monopoly.Event do
     }
   end
 
-  def pay(amount, text) do
+  def pay(amount, text, receiver \\ nil) do
     new(:pay)
     |> Map.put(:amount, amount)
     |> Map.put(:text, text)
+    |> Map.put(:receiver, receiver)
   end
 
   def ignored(text) do
@@ -73,13 +75,13 @@ defmodule Croc.Games.Monopoly.Event do
 
   def generate_random(game, player_id) do
     random_event_type = Enum.random([:pay, :receive, :pay_for_stars])
-    amount = amount(random_event_type, game, player_id)
+    event_amount = amount(random_event_type, game, player_id)
     type = get_type(random_event_type)
 
     event =
       new(type)
-      |> Map.put(:amount, amount)
-      |> Map.put(:text, text_for_random_event(random_event_type, amount))
+      |> Map.put(:amount, event_amount)
+      |> Map.put(:text, text_for_random_event(random_event_type, event_amount))
 
     process(game, player_id, event)
   end
@@ -95,6 +97,15 @@ defmodule Croc.Games.Monopoly.Event do
   def get_by_type(game, player_id, type) do
     with %Player{} = player <- Enum.find(game.players, fn p -> p.player_id == player_id end),
          %__MODULE__{} = event <- Enum.find(player.events, fn e -> e.type == type end) do
+      event
+    else
+      _ -> {:error, :no_event}
+    end
+  end
+
+  def get_by_id(game, player_id, event_id) do
+    with %Player{} = player <- Enum.find(game.players, fn p -> p.player_id == player_id end),
+         %__MODULE__{} = event <- Enum.find(player.events, fn e -> e.event_id == event_id end) do
       event
     else
       _ -> {:error, :no_event}
