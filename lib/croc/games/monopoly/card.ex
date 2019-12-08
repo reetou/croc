@@ -178,8 +178,6 @@ defmodule Croc.Games.Monopoly.Card do
         | upgrade_level: new_upgrade_level
         })
 
-        IO.inspect(updated_payment_amount, label: "New payment amount for upgrade level #{new_upgrade_level}")
-
       updated_card = %__MODULE__{
         card
       | upgrade_level: new_upgrade_level,
