@@ -37,7 +37,6 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
 
   def delete(player_id, lobby_id) do
     Memento.transaction(fn ->
-      Logger.error("Select here")
       lobby_player =
         Memento.Query.select(__MODULE__, {:==, :lobby_id, lobby_id})
         |> Enum.find(fn p -> p.player_id == player_id end)
@@ -58,6 +57,14 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
       end)
 
     result
+  end
+
+  def get_current_lobby_data(player_id) do
+    {:ok, result} =
+      Memento.transaction(fn ->
+        players = Memento.Query.select(__MODULE__, {:==, :player_id, player_id})
+        List.first(players)
+      end)
   end
 
   def in_lobby?(player_id, %Lobby{} = lobby) do
