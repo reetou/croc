@@ -8,6 +8,7 @@ defmodule Croc.Games.Monopoly.Player do
     :game_id
   ]
 
+  @derive Jason.Encoder
   use Memento.Table,
     attributes: [
       :id,
@@ -79,7 +80,7 @@ defmodule Croc.Games.Monopoly.Player do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
 
-    with true <- player.balance > amount do
+    with true <- player.balance >= amount do
       players =
         List.insert_at(
           game.players,
