@@ -1,23 +1,32 @@
 defmodule Croc.Games.Monopoly.Supervisor do
-  use Supervisor
+  use DynamicSupervisor
   alias Croc.Games.Monopoly
   require Logger
 
-  def start_link do
-    Logger.debug("Started supervisor for lobby")
-    children = []
+  def start_link(init_arg) do
+    Logger.debug("Started supervisor for monopoly game")
 
-    options = [
-      strategy: :one_for_one,
-      name: __MODULE__
-    ]
-
-    Supervisor.start_link(children, options)
+    DynamicSupervisor.start_link(__MODULE__, init_arg, name: __MODULE__)
+  end
+  @impl true
+  def init(_init_arg) do
+    Logger.debug("Init was ok")
+    DynamicSupervisor.init(strategy: :one_for_one)
   end
 
   def create_game_process(game_id, %{game: game} = state) do
-    {:ok, pid} = GenServer.start_link(Monopoly, state)
-    Logger.debug("Created game process under name #{game_id}")
+    name = game_id
+    {:ok, pid} = DynamicSupervisor.start_child(__MODULE__, {Monopoly, state})
+    Logger.debug("Supervisor start child result at create monopoly game process #{inspect(pid)}")
+    Logger.debug("Created monopoly game process under name #{name}")
     {:ok, game}
   end
+
+  def stop_game_process(game_id) do
+    {:ok, game, pid} = Monopoly.get(game_id)
+    :ok = DynamicSupervisor.terminate_child(__MODULE__, pid)
+    :ok = CrocWeb.Endpoint.broadcast("game:" <> game_id, "game_end", %{ game: game })
+  end
 end
+
+
