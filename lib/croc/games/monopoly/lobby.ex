@@ -5,13 +5,19 @@ defmodule Croc.Games.Monopoly.Lobby do
   require Logger
   use GenServer
 
+  @derive Jason.Encoder
   defstruct [
     :lobby_id,
     :players,
     :options
   ]
 
-  @registry Croc.Games.Registry.Lobby
+  @registry :lobby_registry
+
+  def start_link(state) do
+    name = state.lobby.lobby_id
+    GenServer.start_link(__MODULE__, state, id: name)
+  end
 
   @impl true
   def init(%{lobby: lobby} = state) do
@@ -20,17 +26,19 @@ defmodule Croc.Games.Monopoly.Lobby do
     {:ok, %{lobby: lobby}}
   end
 
+  def update_lobby_state(%__MODULE__{ lobby_id: lobby_id } = lobby, state) do
+    {%{ lobby: _ }, %{ lobby: _ }} = Registry.update_value(:lobby_registry, lobby_id, fn _ -> state end)
+    :ok = CrocWeb.Endpoint.broadcast("lobby:all", "lobby_update", lobby)
+  end
+
   @impl true
   def handle_call({:join, player_id}, from, %{lobby: lobby} = state) do
     with false <- LobbyPlayer.already_in_lobby?(player_id) do
-      {:ok, player} =
-        Memento.transaction(fn ->
-          player = %LobbyPlayer{player_id: player_id, lobby_id: lobby.lobby_id}
-          Memento.Query.write(player)
-        end)
+      {:ok, player} = LobbyPlayer.create(player_id, lobby.lobby_id)
 
       updated_lobby = Map.put(lobby, :players, lobby.players ++ [player])
       updated_state = Map.put(state, :lobby, updated_lobby)
+      update_lobby_state(lobby, updated_state)
       {:reply, {:ok, updated_lobby}, updated_state}
     else
       e -> {:reply, {:error, :already_in_lobby}, state}
@@ -44,6 +52,9 @@ defmodule Croc.Games.Monopoly.Lobby do
         Map.put(lobby, :players, Enum.filter(lobby.players, fn p -> p.player_id != player_id end))
 
       updated_state = Map.put(state, :lobby, updated_lobby)
+      update_lobby_state(lobby, updated_state)
+      player = Enum.find(lobby.players, fn p -> p.player_id == player_id end)
+      :ok = LobbyPlayer.delete_by_id(player.id)
       {:reply, {:ok, updated_lobby}, updated_state}
     else
       _ -> {:reply, {:error, :not_in_lobby}, state}
@@ -103,6 +114,11 @@ defmodule Croc.Games.Monopoly.Lobby do
             |> IO.inspect(label: "Probably a error at get by lobby id")
         end
     end
+  end
+
+  def get_all() do
+    Registry.select(:lobby_registry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
+    |> Enum.map(fn {key, pid, %{ lobby: lobby }} -> lobby end)
   end
 
   def has_lobby?(lobby_id) when lobby_id == nil, do: false
