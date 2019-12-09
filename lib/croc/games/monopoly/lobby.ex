@@ -38,7 +38,7 @@ defmodule Croc.Games.Monopoly.Lobby do
 
       updated_lobby = Map.put(lobby, :players, lobby.players ++ [player])
       updated_state = Map.put(state, :lobby, updated_lobby)
-      update_lobby_state(lobby, updated_state)
+      update_lobby_state(updated_lobby, updated_state)
       {:reply, {:ok, updated_lobby}, updated_state}
     else
       e -> {:reply, {:error, :already_in_lobby}, state}
@@ -52,7 +52,7 @@ defmodule Croc.Games.Monopoly.Lobby do
         Map.put(lobby, :players, Enum.filter(lobby.players, fn p -> p.player_id != player_id end))
 
       updated_state = Map.put(state, :lobby, updated_lobby)
-      update_lobby_state(lobby, updated_state)
+      update_lobby_state(updated_lobby, updated_state)
       player = Enum.find(lobby.players, fn p -> p.player_id == player_id end)
       :ok = LobbyPlayer.delete_by_id(player.id)
       {:reply, {:ok, updated_lobby}, updated_state}
