@@ -14,7 +14,7 @@ defmodule Croc.Games.Monopoly do
   use GenServer
   require Logger
 
-  @registry Croc.Games.Registry.Monopoly
+  @registry :monopoly_registry
 
   @positions Enum.to_list(0..39)
 
@@ -26,6 +26,7 @@ defmodule Croc.Games.Monopoly do
     :player_turn
   ]
 
+  @derive Jason.Encoder
   defstruct [
     :game_id,
     :players,
