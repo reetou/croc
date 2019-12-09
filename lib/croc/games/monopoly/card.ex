@@ -11,6 +11,7 @@ defmodule Croc.Games.Monopoly.Card do
     :type
   ]
 
+  @derive Jason.Encoder
   defstruct [
     :id,
     :name,

@@ -1,6 +1,7 @@
 defmodule Croc.Games.Monopoly.Event do
   alias Croc.Games.Monopoly.Player
 
+  @derive Jason.Encoder
   defstruct [
     :event_id,
     :type,
