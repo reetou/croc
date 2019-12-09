@@ -15,6 +15,7 @@ defmodule Croc.Application do
       # Starts a worker by calling: Croc.Worker.start_link(arg)
       # {Croc.Worker, arg},
       Croc.Games.Lobby.Supervisor,
+      Croc.Games.Monopoly.Supervisor,
       {Registry, [keys: :unique, name: :monopoly_registry]},
       {Registry, [keys: :unique, name: :lobby_registry]}
     ]
