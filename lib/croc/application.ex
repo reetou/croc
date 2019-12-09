@@ -14,8 +14,9 @@ defmodule Croc.Application do
       CrocWeb.Endpoint,
       # Starts a worker by calling: Croc.Worker.start_link(arg)
       # {Croc.Worker, arg},
-      {Registry, [keys: :unique, name: Croc.Games.Registry.Monopoly]},
-      {Registry, [keys: :unique, name: Croc.Games.Registry.Lobby]}
+      Croc.Games.Lobby.Supervisor,
+      {Registry, [keys: :unique, name: :monopoly_registry]},
+      {Registry, [keys: :unique, name: :lobby_registry]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
