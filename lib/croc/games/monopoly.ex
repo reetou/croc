@@ -36,6 +36,11 @@ defmodule Croc.Games.Monopoly do
     :cards
   ]
 
+  def start_link(state) do
+    name = state.game.game_id
+    GenServer.start_link(__MODULE__, state, id: name)
+  end
+
   @impl true
   def init(%{game: game} = state) do
     name = game.game_id
@@ -190,7 +195,8 @@ defmodule Croc.Games.Monopoly do
                 balance: 0,
                 position: 0,
                 surrender: false,
-                events: events
+                events: events,
+                player_cards: []
               }
             end)
 
@@ -205,11 +211,18 @@ defmodule Croc.Games.Monopoly do
             cards: get_default_cards
           }
 
-          {:ok, game} = MonopolySupervisor.create_game_process(game.game_id, %{game: game})
-          LobbySupervisor.stop_lobby_process(lobby_id)
-
+          {:ok, %__MODULE__{} = game} = MonopolySupervisor.create_game_process(game.game_id, %{game: game})
+          :ok = CrocWeb.Endpoint.broadcast("lobby:" <> lobby_id, "left", %{ lobby_id: lobby_id })
+          :ok = CrocWeb.Endpoint.broadcast("lobby:" <> lobby_id, "game_start", %{ game: game })
+          :ok = LobbySupervisor.stop_lobby_process(lobby_id)
           game
         end)
+
+      Enum.each(game.players, fn p ->
+        :ok = LobbyPlayer.delete(p.player_id, lobby_id)
+      end)
+
+      {:ok, game}
     else
       e ->
         e
@@ -370,5 +383,10 @@ defmodule Croc.Games.Monopoly do
             |> IO.inspect(label: "Probably a error at get by game id")
         end
     end
+  end
+
+  def get_all() do
+    Registry.select(:monopoly_registry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
+    |> Enum.map(fn {key, pid, %{ game: game }} -> game end)
   end
 end
