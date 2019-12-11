@@ -50,9 +50,11 @@ defmodule Croc.Games.Monopoly do
 
   @impl true
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         {%__MODULE__{} = g, event} = roll(game, player_id, event_id) do
-      {:reply, {:ok, %{game: g, event: event}}, Map.put(state, :game, g)}
+    with true <- can_send_action?(game, player_id) do
+      {%__MODULE__{} = updated_game, event} = roll(game, player_id, event_id)
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, %{game: updated_game, event: event}}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -61,9 +63,11 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:put_on_loan, player_id, card}, _from, %{game: game} = state) do
     with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id) do
-      {:ok, updated_game, _updated_player} = Card.put_on_loan(game, player, card)
-      {:reply, {:ok, updated_game}, updated_game}
+         %Player{} = player <- Player.get(game, player_id),
+      {:ok, updated_game, _updated_player} <- Card.put_on_loan(game, player, card) do
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, updated_game}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -74,7 +78,9 @@ defmodule Croc.Games.Monopoly do
     with true <- can_send_action?(game, player_id),
          %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
-      {:reply, {:ok, updated_game}, updated_game}
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, updated_game}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -85,7 +91,9 @@ defmodule Croc.Games.Monopoly do
     with true <- can_send_action?(game, player_id),
          %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.downgrade(game, player, card)
-      {:reply, {:ok, updated_game}, updated_game}
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, updated_game}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -96,7 +104,9 @@ defmodule Croc.Games.Monopoly do
     with true <- can_send_action?(game, player_id),
          %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.buyout(game, player, card)
-      {:reply, {:ok, updated_game}, updated_game}
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, updated_game}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -107,7 +117,9 @@ defmodule Croc.Games.Monopoly do
     with true <- can_send_action?(game, player_id),
          %Player{} = player <- Player.get(game, player_id) do
       {:ok, updated_game, _updated_player} = Card.buy(game, player, card)
-      {:reply, {:ok, updated_game}, updated_game}
+      new_state = Map.put(state, :game, updated_game)
+      update_game_state(updated_game, new_state)
+      {:reply, {:ok, updated_game}, new_state}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -120,7 +132,9 @@ defmodule Croc.Games.Monopoly do
          %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
       case pay(game, player_id, event_id) do
         {:ok, game} ->
-          {:reply, {:ok, game}, Map.put(state, :game, game)}
+          new_state = Map.put(state, :game, game)
+          update_game_state(game, new_state)
+          {:reply, {:ok, game}, new_state}
         {:error, reason} ->
           {:reply, {:error, reason}, state}
       end
@@ -134,19 +148,23 @@ defmodule Croc.Games.Monopoly do
     {:reply, {:ok, game}, state}
   end
 
+  def get_new_position(%__MODULE__{} = game, position, move_value) do
+      max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
+      case position + move_value do
+        x when x > max_position -> x - max_position - 1
+        x -> x
+      end
+  end
+
   def roll(game, player_id, event_id) do
     {x, y} = roll_dice
     move_value = x + y
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
     old_position = player.position
-    max_position = Enum.max_by(game.cards, fn c -> c.position end)
+    new_position = get_new_position(game, player.position, move_value)
 
-    new_position =
-      case player.position + move_value do
-        x when x > max_position -> x - max_position
-        x -> x
-      end
+    Logger.debug("New position gonna be #{new_position} while max_position")
 
     event_index =
       Enum.find_index(player.events, fn e -> e.type == :roll and e.event_id == event_id end)
@@ -285,6 +303,7 @@ defmodule Croc.Games.Monopoly do
   end
 
   def process_position_change(game, %{player_id: player_id} = player, position) do
+    Logger.debug("Looking for card by position #{position}")
     %Card{} = card = Card.get_by_position(game, position)
 
     cond do
@@ -293,6 +312,9 @@ defmodule Croc.Games.Monopoly do
 
       card.type == :brand and Card.is_owner?(card, player_id) ->
         {game, Event.ignored("Попадает на свое поле и ничего не платит")}
+
+      card.type == :brand and Card.has_owner?(card, player_id) == false ->
+        {game, Event.free_card("Попадает на свободное поле #{card.name}")}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
         event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить", card.owner)
@@ -395,7 +417,7 @@ defmodule Croc.Games.Monopoly do
         {:error, :no_such_player_in_game}
       end
     else
-      _ -> {:error, :has_events_or_surrendered}
+      _ -> game
     end
   end
 
@@ -403,6 +425,10 @@ defmodule Croc.Games.Monopoly do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     Event.add_player_event(game, player_id, Event.roll(player_id))
     |> Map.put(:player_turn, player_id)
+  end
+
+  def update_game_state(%__MODULE__{ game_id: game_id } = game, state) do
+    {%{ game: _ }, %{ game: _ }} = Registry.update_value(@registry, game_id, fn _ -> state end)
   end
 
 end

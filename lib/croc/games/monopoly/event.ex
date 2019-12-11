@@ -35,6 +35,12 @@ defmodule Croc.Games.Monopoly.Event do
     |> Map.put(:text, text)
   end
 
+  def free_card(text) do
+    new(:free_card)
+    |> Map.put(:amount, 0)
+    |> Map.put(:text, text)
+  end
+
   def roll(player_id) do
     new(:roll)
     |> Map.put(:text, "Ходит")
@@ -61,7 +67,7 @@ defmodule Croc.Games.Monopoly.Event do
     |> Map.put(:players, players)
   end
 
-  def process(game, player_id, %__MODULE__{type: type, amount: amount} = event) do
+  defp process(game, player_id, %__MODULE__{type: type, amount: amount} = event) do
     case type do
       :pay ->
         {add_player_event(game, player_id, event), event}
@@ -87,11 +93,11 @@ defmodule Croc.Games.Monopoly.Event do
     process(game, player_id, event)
   end
 
-  def amount(:pay, game, player_id) do
+  defp amount(:pay, game, player_id) do
     Enum.random([500, 1000])
   end
 
-  def amount(:receive, game, player_id) do
+  defp amount(:receive, game, player_id) do
     Enum.random([250, 750])
   end
 
@@ -113,7 +119,7 @@ defmodule Croc.Games.Monopoly.Event do
     end
   end
 
-  def amount(:pay_for_stars, game, player_id) do
+  defp amount(:pay_for_stars, game, player_id) do
     cards =
       game.cards
       |> Enum.filter(fn c -> c.owner == player_id end)

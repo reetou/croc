@@ -126,6 +126,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       {g, _event} = Monopoly.process_position_change(game, third_player, card.position)
       updated_player = Enum.at(g.players, index)
       player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
+      assert player_event != nil
       {:ok, _updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
     end
 
@@ -186,6 +187,19 @@ defmodule Croc.GamesTest.MonopolyTest do
       event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
       assert event != nil
       assert event.amount == card.payment_amount
+    end
+
+    test "should process stepping on free card and receive free_card event", %{game: game} do
+      index = 2
+      player = Enum.at(game.players, index)
+      card = Enum.find(game.cards, fn c -> c.type == :brand end)
+      position = card |> Map.fetch!(:position)
+      {updated_game, game_event} = Monopoly.process_position_change(game, player, position)
+      assert game_event.type == :free_card
+      updated_player = Enum.at(updated_game.players, index)
+      assert updated_player.player_id == player.player_id
+      assert updated_player.balance == player.balance
+      assert length(updated_player.events) == 0
     end
 
     test "should process stepping on other player's card", %{game: game} do
@@ -289,9 +303,8 @@ defmodule Croc.GamesTest.MonopolyTest do
       %Player{player_id: player_id} = Enum.at(game.players, 0)
       %Player{} = next_player = Enum.at(game.players, 1)
       assert game.player_turn == player_id
-      {:error, :has_events_or_surrendered}= Monopoly.process_player_turn(game, player_id)
-      assert game.player_turn != next_player.player_id
-      assert game.player_turn == player_id
+      %Monopoly{} = not_updated_game = Monopoly.process_player_turn(game, player_id)
+      assert not_updated_game == game
     end
 
     test "should change player turn because player has no events", %{ game: game } do
@@ -356,5 +369,79 @@ defmodule Croc.GamesTest.MonopolyTest do
       event = List.first(player.events)
       assert event.type == :roll
     end
+  end
+
+  describe "get new position" do
+    setup do
+      players_ids = Enum.take_random(1..999_999, 5)
+      {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
+
+      Enum.slice(players_ids, 1, 100)
+      |> Enum.each(fn player_id ->
+        {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
+      end)
+
+      {:ok, %Monopoly{} = game} = Monopoly.start(lobby)
+      %{game: game}
+    end
+
+    test "should return new position successfully via roll_dice", %{ game: game } do
+      {x, y} = Monopoly.roll_dice()
+      move_value = x + y
+      player = List.first(game.players)
+      new_position = Monopoly.get_new_position(game, player.position, move_value)
+    end
+
+    test "should return new position successfully ", %{ game: game } do
+      expected_position = 15
+      move_value = 10
+      player = List.first(game.players)
+               |> Map.put(:position, expected_position)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      game = Map.put(game, :players, List.replace_at(game.players, player_index, player))
+      assert player.position == expected_position
+      new_position = Monopoly.get_new_position(game, player.position, move_value)
+      assert new_position == move_value + expected_position
+    end
+
+    test "should return position < than maximum position", %{ game: game } do
+      expected_position = 38
+      move_value = 5
+      max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
+      player = List.first(game.players)
+               |> Map.put(:position, expected_position)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      game = Map.put(game, :players, List.replace_at(game.players, player_index, player))
+      assert player.position == expected_position
+      new_position = Monopoly.get_new_position(game, player.position, move_value)
+      assert new_position == (move_value + expected_position) - max_position - 1
+    end
+
+    test "should return position == maximum position", %{ game: game } do
+      expected_position = 37
+      move_value = 2
+      max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
+      player = List.first(game.players)
+               |> Map.put(:position, expected_position)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      game = Map.put(game, :players, List.replace_at(game.players, player_index, player))
+      assert player.position == expected_position
+      new_position = Monopoly.get_new_position(game, player.position, move_value)
+      assert new_position == move_value + expected_position
+    end
+
+    test "should return position == start position", %{ game: game } do
+      expected_position = 38
+      move_value = 2
+      max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
+      player = List.first(game.players)
+               |> Map.put(:position, expected_position)
+      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
+      game = Map.put(game, :players, List.replace_at(game.players, player_index, player))
+      assert player.position == expected_position
+      new_position = Monopoly.get_new_position(game, player.position, move_value)
+      assert new_position == (move_value + expected_position) - max_position - 1
+    end
+
   end
 end
