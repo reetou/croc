@@ -21,7 +21,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyPlayerTest do
 
     test "should successfully create lobbyplayer in mnesia", %{lobby: lobby, players_ids: players_ids} do
       player_id = Enum.at(players_ids, 1)
-      {:ok, %LobbyPlayer{} = player} = LobbyPlayer.create(player_id, lobby.lobby_id)
+      {:ok, %LobbyPlayer{} = _player} = LobbyPlayer.create(player_id, lobby.lobby_id)
     end
 
     test "should successfully delete lobbyplayer from mnesia", %{lobby: lobby, players_ids: players_ids} do

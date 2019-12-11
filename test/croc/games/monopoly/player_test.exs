@@ -21,7 +21,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
 
     Enum.slice(@players_ids, 1, 100)
     |> Enum.each(fn player_id ->
-      {:ok, lobby} = Lobby.join(lobby.lobby_id, player_id)
+      {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
     end)
 
     {:ok, %Monopoly{} = game} = Monopoly.start(lobby)
