@@ -38,7 +38,7 @@ defmodule Croc.Games.Monopoly do
 
   def start_link(state) do
     name = state.game.game_id
-    GenServer.start_link(__MODULE__, state, id: name)
+    {:ok, _pid} = GenServer.start_link(__MODULE__, state, id: name)
   end
 
   @impl true
@@ -123,8 +123,6 @@ defmodule Croc.Games.Monopoly do
           {:reply, {:ok, game}, Map.put(state, :game, game)}
         {:error, reason} ->
           {:reply, {:error, reason}, state}
-        _ ->
-          {:reply, {:error, :unknown_error}, state}
       end
     else
       _ -> {:reply, {:error, :not_your_turn}, state}

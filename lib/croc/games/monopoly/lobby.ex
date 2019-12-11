@@ -16,7 +16,7 @@ defmodule Croc.Games.Monopoly.Lobby do
 
   def start_link(state) do
     name = state.lobby.lobby_id
-    GenServer.start_link(__MODULE__, state, id: name)
+    {:ok, pid} = GenServer.start_link(__MODULE__, state, id: name)
   end
 
   @impl true

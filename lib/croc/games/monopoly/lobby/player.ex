@@ -42,7 +42,7 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
         |> Enum.find(fn p -> p.player_id == player_id end)
 
       unless lobby_player == nil do
-        Memento.Query.delete(__MODULE__, lobby_player.id)
+        :ok = Memento.Query.delete(__MODULE__, lobby_player.id)
       else
         :not_found
       end

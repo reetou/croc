@@ -229,10 +229,6 @@ defmodule Croc.Games.Monopoly.Card do
         case err do
           {:error, reason} = r ->
             r
-
-          _ ->
-            Logger.error("Unknown error at downgrade")
-            {:error, :unknown_error}
         end
     end
   end
@@ -271,10 +267,6 @@ defmodule Croc.Games.Monopoly.Card do
         case err do
           {:error, reason} = r ->
             r
-
-          _ ->
-            Logger.error("Unknown error at upgrade")
-            {:error, :unknown_error}
         end
     end
   end
@@ -334,12 +326,7 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r ->
-            r
-
-          _ ->
-            Logger.error("Unknown error at buy_building")
-            {:error, :unknown_error}
+          {:error, reason} = r -> r
         end
     end
   end
@@ -357,12 +344,7 @@ defmodule Croc.Games.Monopoly.Card do
     else
       err ->
         case err do
-          {:error, reason} = r ->
-            r
-
-          _ ->
-            Logger.error("Unknown error at buy_building")
-            {:error, :unknown_error}
+          {:error, reason} = r -> r
         end
     end
   end
@@ -382,10 +364,6 @@ defmodule Croc.Games.Monopoly.Card do
         case err do
           {:error, reason} = r ->
             r
-
-          _ ->
-            Logger.error("Unknown error at buy_building")
-            {:error, :unknown_error}
         end
     end
   end
