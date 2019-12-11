@@ -20,7 +20,7 @@ defmodule CrocWeb.UserController do
   end
 
   def new(conn, _) do
-    changeset = Accounts.change_user(%User{})
+    %{email: nil, username: nil} = changeset = Accounts.change_user(%User{})
     render(conn, "new.html", changeset: changeset)
   end
 
