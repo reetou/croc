@@ -163,8 +163,8 @@ defmodule Croc.Games.Monopoly do
 
     updated_events = List.delete_at(player.events, event_index)
 
-    player =
-      player
+    players = List.update_at(game.players, player_index, fn p ->
+      p
       |> Map.put(:position, new_position)
       |> Map.put(:events, updated_events)
 

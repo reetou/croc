@@ -219,8 +219,8 @@ defmodule Croc.Games.Monopoly.Card do
         game
         | players:
             game.players
-            |> List.insert_at(player_index, updated_player),
-          cards: game.cards |> List.insert_at(card_index, updated_card)
+            |> List.replace_at(player_index, updated_player),
+          cards: game.cards |> List.replace_at(card_index, updated_card)
       }
 
       {:ok, updated_game, updated_player}
@@ -261,8 +261,8 @@ defmodule Croc.Games.Monopoly.Card do
         game
         | players:
             game.players
-            |> List.insert_at(player_index, updated_player),
-          cards: game.cards |> List.insert_at(card_index, updated_card)
+            |> List.replace_at(player_index, updated_player),
+          cards: game.cards |> List.replace_at(card_index, updated_card)
       }
 
       {:ok, updated_game, updated_player}
@@ -325,10 +325,10 @@ defmodule Croc.Games.Monopoly.Card do
     with true <- can_buyout?(game, player, card) do
       card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
       updated_card = %__MODULE__{card | on_loan: false}
-      cards = List.insert_at(game.cards, card_index, updated_card)
+      cards = List.replace_at(game.cards, card_index, updated_card)
       player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
       player = %Player{player | balance: player.balance - card.buyout_cost}
-      players = List.insert_at(game.players, player_index, player)
+      players = List.replace_at(game.players, player_index, player)
       game = %Monopoly{game | players: players, cards: cards}
       {:ok, game, player}
     else
@@ -348,10 +348,10 @@ defmodule Croc.Games.Monopoly.Card do
     with true <- can_buy?(game, player, card) do
       card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
       updated_card = %__MODULE__{card | owner: player.player_id}
-      cards = List.insert_at(game.cards, card_index, updated_card)
+      cards = List.replace_at(game.cards, card_index, updated_card)
       player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
       player = %Player{player | balance: player.balance - card.cost}
-      players = List.insert_at(game.players, player_index, player)
+      players = List.replace_at(game.players, player_index, player)
       game = %Monopoly{game | players: players, cards: cards}
       {:ok, game, player}
     else
@@ -371,10 +371,10 @@ defmodule Croc.Games.Monopoly.Card do
     with true <- can_put_on_loan?(game, player, card) do
       card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
       updated_card = %__MODULE__{card | on_loan: true}
-      cards = List.insert_at(game.cards, card_index, updated_card)
+      cards = List.replace_at(game.cards, card_index, updated_card)
       player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
       player = %Player{player | balance: player.balance + card.loan_amount}
-      players = List.insert_at(game.players, player_index, player)
+      players = List.replace_at(game.players, player_index, player)
       game = %Monopoly{game | players: players, cards: cards}
       {:ok, game, player}
     else

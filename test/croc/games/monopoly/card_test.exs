@@ -580,8 +580,9 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
+      assert length(game.cards) == length(context.game.cards)
 
       result = Card.buy(game, player, card)
       assert result == {:error, :card_has_no_owner}
@@ -600,7 +601,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: another_player.player_id}
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buy(game, player, card)
@@ -618,7 +619,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buy(game, player, card)
@@ -637,7 +638,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
       player = %Player{player | position: card.position, balance: card.cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buy(game, player, card)
@@ -655,7 +656,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position, balance: card.cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       {:ok, %Monopoly{} = game, %Player{} = updated_player} = Card.buy(game, player, card)
@@ -708,7 +709,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Map.put(
           context.game,
           :cards,
-          List.insert_at(context.game.cards, card_index, card)
+          List.replace_at(context.game.cards, card_index, card)
         )
 
       result = Card.put_on_loan(game, player, card)
@@ -733,7 +734,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Map.put(
           context.game,
           :cards,
-          List.insert_at(context.game.cards, card_index, card)
+          List.replace_at(context.game.cards, card_index, card)
         )
 
       result = Card.put_on_loan(game, player, card)
@@ -757,7 +758,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         Map.put(
           context.game,
           :cards,
-          List.insert_at(context.game.cards, card_index, %Card{
+          List.replace_at(context.game.cards, card_index, %Card{
             card
             | owner: player.player_id,
               on_loan: true
@@ -806,7 +807,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buyout(game, player, card)
@@ -826,7 +827,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: another_player.player_id}
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buyout(game, player, card)
@@ -845,7 +846,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buyout(game, player, card)
@@ -864,7 +865,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
 
       player = %Player{player | position: card.position, balance: card.buyout_cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buyout(game, player, card)
@@ -884,7 +885,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position, balance: card.cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
-      cards = List.insert_at(context.game.cards, card_index, card)
+      cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
 
       {:ok, %Monopoly{} = game, %Player{} = updated_player} = Card.buyout(game, player, card)
