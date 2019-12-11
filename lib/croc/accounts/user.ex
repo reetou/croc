@@ -110,7 +110,6 @@ defmodule Croc.Accounts.User do
 
   def get_public_fields(%__MODULE__{} = user) do
     assoc = Repo.all(Ecto.assoc(user, :monopoly_cards))
-    |> IO.inspect(label: "Assoc")
     user = Map.put(user, :user_monopoly_cards, assoc)
     %{}
     |> Map.put(:email, user.email)
