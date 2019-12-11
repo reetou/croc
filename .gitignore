@@ -34,3 +34,6 @@ npm-debug.log
 /priv/static/
 .idea/**/*
 .env
+
+/priv/plts/*.plt
+/priv/plts/*.plt.hash
