@@ -570,7 +570,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       assert result == {:error, :invalid_card_type}
     end
 
-    test "should throw if card has no owner", context do
+    test "should NOT throw if card has no owner", context do
       player = context.game.players |> Enum.at(0)
 
       card =
@@ -578,17 +578,21 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Stream.filter(fn c -> c.type == :brand end)
         |> Enum.random()
 
-      player = %Player{player | position: card.position}
+      player = %Player{player | position: card.position, balance: card.cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
       cards = List.replace_at(context.game.cards, card_index, card)
       game = Map.put(context.game, :cards, cards)
       assert length(game.cards) == length(context.game.cards)
 
-      result = Card.buy(game, player, card)
-      assert result == {:error, :card_has_no_owner}
+      {:ok, %Monopoly{} = game, %Player{} = updated_player} = Card.buy(game, player, card)
+      updated_card = Enum.find(game.cards, fn c -> c.id == card.id end)
+      assert Enum.all?(game.cards, fn %Card{} = c -> c end)
+      assert updated_player.balance + updated_card.cost == player.balance
+      assert updated_card.owner == player.player_id
+      assert updated_card != nil
     end
 
-    test "should throw if player is not an owner", context do
+    test "should throw if someone owns this card", context do
       player = context.game.players |> Enum.at(0)
 
       another_player = context.game.players |> Enum.at(1)
@@ -605,7 +609,7 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       game = Map.put(context.game, :cards, cards)
 
       result = Card.buy(game, player, card)
-      assert result == {:error, :player_not_owner}
+      assert result == {:error, :card_already_has_owner}
     end
 
     test "should throw if player does not have enough money", context do
@@ -616,7 +620,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Stream.filter(fn c -> c.type == :brand end)
         |> Enum.random()
 
-      card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
       cards = List.replace_at(context.game.cards, card_index, card)
@@ -633,7 +636,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         context.game.cards
         |> Stream.filter(fn c -> c.type == :brand end)
         |> Enum.random()
-        |> Map.put(:owner, player.player_id)
         |> Map.put(:on_loan, true)
 
       player = %Player{player | position: card.position, balance: card.cost}
@@ -653,7 +655,6 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         |> Stream.filter(fn c -> c.type == :brand end)
         |> Enum.random()
 
-      card = %Card{card | owner: player.player_id}
       player = %Player{player | position: card.position, balance: card.cost}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
       cards = List.replace_at(context.game.cards, card_index, card)

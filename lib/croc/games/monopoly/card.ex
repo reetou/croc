@@ -284,8 +284,7 @@ defmodule Croc.Games.Monopoly.Card do
   def can_buy?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
     cond do
       card.type != :brand -> {:error, :invalid_card_type}
-      card.owner == nil -> {:error, :card_has_no_owner}
-      card.owner != player.player_id -> {:error, :player_not_owner}
+      card.owner != nil -> {:error, :card_already_has_owner}
       player.balance < card.cost -> {:error, :not_enough_money}
       card.on_loan == true -> {:error, :on_loan}
       true -> true
