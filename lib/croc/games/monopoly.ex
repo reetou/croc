@@ -50,16 +50,8 @@ defmodule Croc.Games.Monopoly do
 
   @impl true
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id) do
-      {g, event} = roll(game, player_id, event_id)
-      case roll(game, player_id, event_id) do
-        {:ok, updated_game} ->
-          {:reply, {:ok, updated_game}, Map.put(state, :game, updated_game)}
-        {:error, reason} ->
-          {:reply, {:error, reason}, state}
-        _ ->
-          {:reply, {:error, :unknown_error}, state}
-      end
+    with true <- can_send_action?(game, player_id),
+         {%__MODULE__{} = g, event} = roll(game, player_id, event_id) do
       {:reply, {:ok, %{game: g, event: event}}, Map.put(state, :game, g)}
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
@@ -127,8 +119,8 @@ defmodule Croc.Games.Monopoly do
          %Player{} = player <- Player.get(game, player_id),
          %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
       case pay(game, player_id, event_id) do
-        {:ok, updated_game} ->
-          {:reply, {:ok, updated_game}, Map.put(state, :game, updated_game)}
+        {:ok, game} ->
+          {:reply, {:ok, game}, Map.put(state, :game, game)}
         {:error, reason} ->
           {:reply, {:error, reason}, state}
         _ ->
@@ -160,16 +152,17 @@ defmodule Croc.Games.Monopoly do
 
     event_index =
       Enum.find_index(player.events, fn e -> e.type == :roll and e.event_id == event_id end)
-
     updated_events = List.delete_at(player.events, event_index)
 
     players = List.update_at(game.players, player_index, fn p ->
       p
       |> Map.put(:position, new_position)
       |> Map.put(:events, updated_events)
-
-    players = List.insert_at(game.players, player_index, player)
-    updated_game = Map.put(game, :players, players)
+    end)
+    updated_game =
+      game
+      |> Map.put(:players, players)
+      |> process_player_turn(player_id)
     process_position_change(updated_game, player, new_position)
   end
 
@@ -264,7 +257,7 @@ defmodule Croc.Games.Monopoly do
 
   def send_pay(game_id, player_id) do
     with {:ok, game, pid} <- get(game_id),
-         %Event{} = event <- Event.get_by_type(game, player_id, :roll) do
+         %Event{} = event <- Event.get_by_type(game, player_id, :pay) do
       GenServer.call(pid, {:pay, player_id, event.event_id})
     else
       e -> e
@@ -281,13 +274,13 @@ defmodule Croc.Games.Monopoly do
       event.receiver != nil ->
         Player.transfer(game, player_id, event.receiver, event.amount)
         |> case do
-             %__MODULE__{} = g -> {:ok, g}
+             %__MODULE__{} = g -> {:ok, process_player_turn(g, player_id)}
              e -> e
            end
       true ->
         Player.take_money(game, player_id, event.amount)
         |> case do
-             %__MODULE__{} = g -> {:ok, g}
+             %__MODULE__{} = g -> {:ok, process_player_turn(g, player_id)}
              e -> e
            end
     end
@@ -389,4 +382,29 @@ defmodule Croc.Games.Monopoly do
     Registry.select(:monopoly_registry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
     |> Enum.map(fn {key, pid, %{ game: game }} -> game end)
   end
+
+  def process_player_turn(%__MODULE__{} = game, player_id) do
+    player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    with true <- player.surrender != true and length(player.events) == 0 do
+      actual_players = Enum.filter(game.players, fn p -> p.surrender != true end)
+      current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
+      max_index = length(actual_players) - 1
+      unless current_player_index == nil do
+        next_player_index = if current_player_index + 1 > max_index, do: 0, else: current_player_index + 1
+        next_player = Enum.at(actual_players, next_player_index)
+        set_player_turn(game, next_player.player_id)
+      else
+        {:error, :no_such_player_in_game}
+      end
+    else
+      _ -> {:error, :has_events_or_surrendered}
+    end
+  end
+
+  def set_player_turn(%__MODULE__{} = game, player_id) do
+    player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    Event.add_player_event(game, player_id, Event.roll(player_id))
+    |> Map.put(:player_turn, player_id)
+  end
+
 end
