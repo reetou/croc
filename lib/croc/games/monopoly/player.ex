@@ -127,4 +127,9 @@ defmodule Croc.Games.Monopoly.Player do
            end
     end
   end
+
+  def is_playing?(%Monopoly{} = game, player_id) do
+    player = Enum.find(game.players, fn p -> p.player_id == player_id and p.surrender != true end)
+    player != nil
+  end
 end
