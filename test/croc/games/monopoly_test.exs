@@ -4,7 +4,8 @@ defmodule Croc.GamesTest.MonopolyTest do
   alias Croc.Games.{
     Monopoly,
     Monopoly.Player,
-    Monopoly.Lobby
+    Monopoly.Lobby,
+    Monopoly.Event
   }
 
   setup tags do
@@ -80,16 +81,18 @@ defmodule Croc.GamesTest.MonopolyTest do
 
     test "should successfully send roll event", %{game: game} do
       %Player{player_id: player_id} = player = Enum.at(game.players, 0)
+      %Player{} = next_player = Enum.at(game.players, 1)
       assert game.player_turn == player_id
+      player_roll_event = Event.get_by_type(game, player_id, :roll)
+      assert player_roll_event != nil
       {:ok, %{game: updated_game, event: received_event}} = Monopoly.send_roll(game.game_id, player_id)
       updated_player = Enum.at(updated_game.players, 0)
       assert is_list(updated_player.events)
-
-      if length(updated_player.events) > 0 do
-        event = Enum.find(updated_player.events, fn e -> e.type == :roll end)
-        assert event == nil
+      event = Event.get_by_type(updated_game, player_id, :roll)
+      assert event == {:error, :no_event}
+      if length(updated_player.events) == 0 do
+        assert updated_game.player_turn == next_player.player_id
       end
-
       assert received_event != nil
       assert updated_player.player_id == player.player_id
       assert updated_player.position != player.position
@@ -265,6 +268,93 @@ defmodule Croc.GamesTest.MonopolyTest do
         _ ->
           assert false == true
       end
+    end
+  end
+
+  describe "process player turn" do
+    setup do
+      players_ids = Enum.take_random(1..999_999, 5)
+      {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
+
+      Enum.slice(players_ids, 1, 100)
+      |> Enum.each(fn player_id ->
+        {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
+      end)
+
+      {:ok, %Monopoly{} = game} = Monopoly.start(lobby)
+      %{game: game}
+    end
+
+    test "should not change player turn because player has events", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, 0)
+      %Player{} = next_player = Enum.at(game.players, 1)
+      assert game.player_turn == player_id
+      {:error, :has_events_or_surrendered}= Monopoly.process_player_turn(game, player_id)
+      assert game.player_turn != next_player.player_id
+      assert game.player_turn == player_id
+    end
+
+    test "should change player turn because player has no events", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, 0)
+      %Player{} = next_player = Enum.at(game.players, 1)
+      assert game.player_turn == player_id
+      %Monopoly{} = game = Map.put(game, :players, Enum.map(game.players, fn p ->
+        case p.player_id do
+          x when x == player_id -> Map.put(p, :events, [])
+          _ -> p
+        end
+      end))
+      updated_game = Monopoly.process_player_turn(game, player_id)
+      assert updated_game.player_turn == next_player.player_id
+      player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
+      assert player != nil
+      assert player.surrender == false
+      assert length(player.events) == 1
+      event = List.first(player.events)
+      assert event.type == :roll
+    end
+
+    test "should ignore surrendered players", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, 0)
+      %Player{player_id: next_player_id} = Enum.at(game.players, 1)
+      %Player{} = next_actual_player = Enum.at(game.players, 2)
+      assert game.player_turn == player_id
+      %Monopoly{} = game = Map.put(game, :players, Enum.map(game.players, fn p ->
+        case p.player_id do
+          x when x == next_player_id -> Map.put(p, :surrender, true)
+          x when x == player_id -> Map.put(p, :events, [])
+          _ -> p
+        end
+      end))
+      %Monopoly{} = updated_game = Monopoly.process_player_turn(game, player_id)
+      assert updated_game.player_turn == next_actual_player.player_id
+      player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
+      assert player != nil
+      assert player.surrender == false
+      assert length(player.events) == 1
+      event = List.first(player.events)
+      assert event.type == :roll
+    end
+
+    test "if player is last in array, should set first player as player_turn", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, length(game.players) - 1)
+      game = Map.put(game, :player_turn, player_id)
+      %Player{player_id: next_player_id} = Enum.at(game.players, 0)
+      assert game.player_turn == player_id
+      %Monopoly{} = game = Map.put(game, :players, Enum.map(game.players, fn p ->
+        case p.player_id do
+          x when x == player_id -> Map.put(p, :events, [])
+          _ -> Map.put(p, :events, [])
+        end
+      end))
+      %Monopoly{} = updated_game = Monopoly.process_player_turn(game, player_id)
+      assert updated_game.player_turn == next_player_id
+      player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
+      assert player != nil
+      assert player.surrender == false
+      assert length(player.events) == 1
+      event = List.first(player.events)
+      assert event.type == :roll
     end
   end
 end
