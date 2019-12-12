@@ -85,7 +85,8 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert game.player_turn == player_id
       player_roll_event = Event.get_by_type(game, player_id, :roll)
       assert player_roll_event != nil
-      {:ok, %{game: updated_game, event: received_event}} = Monopoly.send_roll(game.game_id, player_id)
+      {:ok, game, pid} = Monopoly.get(game.game_id)
+      {:ok, %{game: updated_game, event: received_event}} = GenServer.call(pid, {:roll, player_id})
       updated_player = Enum.at(updated_game.players, 0)
       assert is_list(updated_player.events)
       event = Event.get_by_type(updated_game, player_id, :roll)
@@ -130,10 +131,17 @@ defmodule Croc.GamesTest.MonopolyTest do
       {:ok, _updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
     end
 
-    test "should throw error if player has no such event", %{game: game} do
+    test "should throw error if player has no roll event", %{game: game} do
       %Player{player_id: player_id} = Enum.at(game.players, 2)
       assert game.player_turn != player_id
-      {:error, :no_event} = Monopoly.send_roll(game.game_id, player_id)
+      {:ok, game, pid} = Monopoly.get(game.game_id)
+      {:error, :cannot_roll} = GenServer.call(pid, {:roll, player_id})
+    end
+
+    test "should throw error if player is not in game", %{game: game} do
+      player_id = Enum.random(999999..1300000)
+      {:ok, game, pid} = Monopoly.get(game.game_id)
+      {:error, :no_player} = GenServer.call(pid, {:roll, player_id})
     end
   end
 

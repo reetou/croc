@@ -49,14 +49,22 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id) do
+  def handle_call({:roll, player_id}, _from, %{game: game} = state) do
+    with true <- Player.can_roll?(game, player_id),
+         true <- can_send_action?(game, player_id),
+         %Event{event_id: event_id} = event <- Event.get_by_type(game, player_id, :roll) do
       {%__MODULE__{} = updated_game, event} = roll(game, player_id, event_id)
       new_state = Map.put(state, :game, updated_game)
       update_game_state(updated_game, new_state)
       {:reply, {:ok, %{game: updated_game, event: event}}, new_state}
     else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+      e ->
+        reply = e
+        |> case do
+             {:error, _reason} = r -> r
+             false -> {:error, :cannot_roll}
+           end
+        {:reply, reply, state}
     end
   end
 
@@ -129,6 +137,7 @@ defmodule Croc.Games.Monopoly do
   def handle_call({:pay, player_id, event_id}, _from, %{game: game} = state) do
     with true <- can_send_action?(game, player_id),
          %Player{} = player <- Player.get(game, player_id),
+         %Event{} <- Event.get_by_type(game, player_id, :pay),
          %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
       case pay(game, player_id, event_id) do
         {:ok, game} ->
@@ -252,31 +261,13 @@ defmodule Croc.Games.Monopoly do
   end
 
   def can_send_action?(game, player_id) do
-    with %Player{} = player = Enum.find(game.players, fn p -> p.player_id == player_id end) do
+    with %Player{} = player <- Enum.find(game.players, fn p -> p.player_id == player_id end) do
       # Проверяем что игрок присутствует в игре, не сдался и сейчас его очередь ходить
       player != nil and player.surrender != true and game.player_turn == player_id
     else
       _err ->
-        Logger.error("Player #{player_id} not found in game #{inspect(game)}")
+        Logger.error("Player #{player_id} not found in game #{game.game_id}")
         false
-    end
-  end
-
-  def send_roll(game_id, player_id) do
-    with {:ok, game, pid} <- get(game_id),
-         %Event{} = event <- Event.get_by_type(game, player_id, :roll) do
-      GenServer.call(pid, {:roll, player_id, event.event_id})
-    else
-      e -> e
-    end
-  end
-
-  def send_pay(game_id, player_id) do
-    with {:ok, game, pid} <- get(game_id),
-         %Event{} = event <- Event.get_by_type(game, player_id, :pay) do
-      GenServer.call(pid, {:pay, player_id, event.event_id})
-    else
-      e -> e
     end
   end
 
