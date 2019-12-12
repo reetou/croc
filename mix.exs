@@ -51,6 +51,8 @@ defmodule Croc.MixProject do
       {:elixir_uuid, "~> 1.2"},
       {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:opus, "~> 0.6"},
+      {:sentry, "~> 7.0"},
       {:decimal, "~> 1.0"}
     ]
   end
