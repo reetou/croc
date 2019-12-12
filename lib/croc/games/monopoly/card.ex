@@ -116,162 +116,7 @@ defmodule Croc.Games.Monopoly.Card do
 
   def get_upgrade_level_multiplier(%__MODULE__{} = card), do: 1
 
-  def can_upgrade?(
-        %Monopoly{} = game,
-        %Player{player_id: player_id} = player,
-        %__MODULE__{} = card
-      ) do
-    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-
-    cond do
-      card_index == nil ->
-        {:error, :unknown_game_card}
-
-      player_index == nil ->
-        {:error, :unknown_game_player}
-
-      card.owner == nil ->
-        {:error, :card_has_no_owner}
-
-      card.type != :brand ->
-        {:error, :invalid_card_type}
-
-      card.owner != player_id ->
-        {:error, :player_not_owner}
-
-      player.balance < card.upgrade_cost ->
-        {:error, :not_enough_money}
-
-      card.max_upgrade_level <= card.upgrade_level ->
-        {:error, :max_upgrade_level_reached}
-
-      card.on_loan ->
-        {:error, :card_on_loan}
-
-      in_monopoly?(game, player, card) != true ->
-        {:error, :no_such_monopoly}
-
-      true ->
-        true
-    end
-  end
-
-  def can_downgrade?(
-        %Monopoly{} = game,
-        %Player{player_id: player_id} = player,
-        %__MODULE__{} = card
-      ) do
-    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-
-    cond do
-      card_index == nil ->
-        {:error, :unknown_game_card}
-
-      player_index == nil ->
-        {:error, :unknown_game_player}
-
-      card.owner == nil ->
-        {:error, :card_has_no_owner}
-
-      card.type != :brand ->
-        {:error, :invalid_card_type}
-
-      card.owner != player_id ->
-        {:error, :player_not_owner}
-
-      card.upgrade_level < 1 ->
-        {:error, :upgrade_level_already_at_minimum}
-
-      card.on_loan ->
-        {:error, :card_on_loan}
-
-      in_monopoly?(game, player, card) != true ->
-        {:error, :no_such_monopoly}
-
-      true ->
-        true
-    end
-  end
-
-  def downgrade(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
-    with true <- can_downgrade?(game, player, card) do
-      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-      new_upgrade_level = card.upgrade_level - 1
-
-      updated_payment_amount =
-        get_payment_amount(%__MODULE__{
-          card
-          | upgrade_level: new_upgrade_level
-        })
-
-      updated_card = %__MODULE__{
-        card
-        | upgrade_level: new_upgrade_level,
-          payment_amount: updated_payment_amount
-      }
-
-      updated_player = %Player{player | balance: player.balance + card.upgrade_cost}
-
-      updated_game = %Monopoly{
-        game
-        | players:
-            game.players
-            |> List.replace_at(player_index, updated_player),
-          cards: game.cards |> List.replace_at(card_index, updated_card)
-      }
-
-      {:ok, updated_game, updated_player}
-    else
-      err ->
-        case err do
-          {:error, reason} = r ->
-            r
-        end
-    end
-  end
-
-  def upgrade(%Monopoly{} = game, %Player{player_id: player_id} = player, %__MODULE__{} = card) do
-    with true <- can_upgrade?(game, player, card) do
-      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-      new_upgrade_level = card.upgrade_level + 1
-
-      updated_payment_amount =
-        get_payment_amount(%__MODULE__{
-          card
-          | upgrade_level: new_upgrade_level
-        })
-
-      updated_card = %__MODULE__{
-        card
-        | upgrade_level: new_upgrade_level,
-          payment_amount: updated_payment_amount
-      }
-
-      updated_player = %Player{player | balance: player.balance - card.upgrade_cost}
-
-      updated_game = %Monopoly{
-        game
-        | players:
-            game.players
-            |> List.replace_at(player_index, updated_player),
-          cards: game.cards |> List.replace_at(card_index, updated_card)
-      }
-
-      {:ok, updated_game, updated_player}
-    else
-      err ->
-        case err do
-          {:error, reason} = r ->
-            r
-        end
-    end
-  end
-
-  def in_monopoly?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
+  def in_monopoly?(%{ game: game, player: player, card: card }) do
     game.cards
     |> Enum.filter(fn %__MODULE__{} = c ->
       c.monopoly_type != nil and c.monopoly_type == card.monopoly_type
@@ -281,89 +126,54 @@ defmodule Croc.Games.Monopoly.Card do
     end)
   end
 
-  def can_buy?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
-    cond do
-      card.type != :brand -> {:error, :invalid_card_type}
-      card.owner != nil -> {:error, :card_already_has_owner}
-      player.balance < card.cost -> {:error, :not_enough_money}
-      card.on_loan == true -> {:error, :on_loan}
-      true -> true
-    end
+  def downgrade(%{ game: game, player: %Player{player_id: player_id} = player, card: card } = args) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    new_upgrade_level = card.upgrade_level - 1
+    new_payment_amount = get_payment_amount(Map.put(card, :upgrade_level, new_upgrade_level))
+    card =
+      card
+      |> Map.put(:upgrade_level, new_upgrade_level)
+      |> Map.put(:payment_amount, new_payment_amount)
+    game = Map.put(game, :cards, List.replace_at(game.cards, card_index, card))
+    args
+    |> Map.put(:game, game)
   end
 
-  def can_put_on_loan?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
-    cond do
-      card.type != :brand -> {:error, :invalid_card_type}
-      card.owner == nil -> {:error, :card_has_no_owner}
-      card.owner != player.player_id -> {:error, :player_not_owner}
-      card.on_loan == true -> {:error, :already_on_loan}
-      true -> true
-    end
+  def upgrade(%{ game: game, player: %Player{player_id: player_id} = player, card: card } = args) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    new_upgrade_level = card.upgrade_level + 1
+    new_payment_amount = get_payment_amount(Map.put(card, :upgrade_level, new_upgrade_level))
+    card =
+      card
+      |> Map.put(:upgrade_level, new_upgrade_level)
+      |> Map.put(:payment_amount, new_payment_amount)
+    game = Map.put(game, :cards, List.replace_at(game.cards, card_index, card))
+    args
+    |> Map.put(:game, game)
   end
 
-  def can_buyout?(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
-    cond do
-      card.type != :brand -> {:error, :invalid_card_type}
-      card.owner == nil -> {:error, :card_has_no_owner}
-      card.owner != player.player_id -> {:error, :player_not_owner}
-      player.balance < card.buyout_cost -> {:error, :not_enough_money}
-      card.on_loan == false -> {:error, :not_on_loan}
-      true -> true
-    end
+  def buyout(%{ game: game, player: player, card: card } = args) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    updated_card = Map.put(card, :on_loan, false)
+    cards = List.replace_at(game.cards, card_index, updated_card)
+    game = Map.put(game, :cards, cards)
+    Map.put(args, :game, game)
   end
 
-  def buyout(%Monopoly{} = game, %Player{position: position} = player, %__MODULE__{} = card) do
-    with true <- can_buyout?(game, player, card) do
-      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-      updated_card = %__MODULE__{card | on_loan: false}
-      cards = List.replace_at(game.cards, card_index, updated_card)
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
-      player = %Player{player | balance: player.balance - card.buyout_cost}
-      players = List.replace_at(game.players, player_index, player)
-      game = %Monopoly{game | players: players, cards: cards}
-      {:ok, game, player}
-    else
-      err ->
-        case err do
-          {:error, reason} = r -> r
-        end
-    end
+  def buy(%{ game: game, player: player, card: card } = args) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    updated_card = Map.put(card, :owner, player.player_id)
+    cards = List.replace_at(game.cards, card_index, updated_card)
+    game = Map.put(game, :cards, cards)
+    Map.put(args, :game, game)
   end
 
-  def buy(%Monopoly{} = game, %Player{position: position} = player, %__MODULE__{} = card) do
-    with true <- can_buy?(game, player, card) do
-      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-      updated_card = %__MODULE__{card | owner: player.player_id}
-      cards = List.replace_at(game.cards, card_index, updated_card)
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
-      player = %Player{player | balance: player.balance - card.cost}
-      players = List.replace_at(game.players, player_index, player)
-      game = %Monopoly{game | players: players, cards: cards}
-      {:ok, game, player}
-    else
-      err ->
-        case err do
-          {:error, reason} = r -> r
-        end
-    end
-  end
-
-  def put_on_loan(%Monopoly{} = game, %Player{} = player, %__MODULE__{} = card) do
-    with true <- can_put_on_loan?(game, player, card) do
-      card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-      updated_card = %__MODULE__{card | on_loan: true}
-      cards = List.replace_at(game.cards, card_index, updated_card)
-      player_index = Enum.find_index(game.players, fn p -> p.player_id == player.player_id end)
-      player = %Player{player | balance: player.balance + card.loan_amount}
-      players = List.replace_at(game.players, player_index, player)
-      game = %Monopoly{game | players: players, cards: cards}
-      {:ok, game, player}
-    else
-      err ->
-        case err do
-          {:error, reason} = r ->
-            r
-        end
-    end
+  def put_on_loan(%{ game: game, card: card, player: player } = args) do
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    updated_card = Map.put(card, :on_loan, true)
+    cards = List.replace_at(game.cards, card_index, updated_card)
+    game = game
+           |> Map.put(:cards, cards)
+    Map.put(args, :game, game)
   end
 end
