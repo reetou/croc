@@ -72,7 +72,7 @@ defmodule Croc.Games.Monopoly.Player do
 
   def update(%Monopoly{} = game, player_id, %__MODULE__{} = player) do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
-    players = List.insert_at(game.players, player_index, player)
+    players = List.replace_at(game.players, player_index, player)
     Map.put(game, :players, players)
   end
 
