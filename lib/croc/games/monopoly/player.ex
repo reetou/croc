@@ -132,4 +132,15 @@ defmodule Croc.Games.Monopoly.Player do
     player = Enum.find(game.players, fn p -> p.player_id == player_id and p.surrender != true end)
     player != nil
   end
+
+  def can_roll?(%Monopoly{} = game, player_id) do
+    with %__MODULE__{events: events} <- get(game, player_id) do
+      roll_event = Enum.find(events, fn e -> e.type == :roll end)
+      filtered_events = events
+      |> Enum.filter(fn e -> e.type != :roll end)
+      length(filtered_events) == 0 and roll_event != nil
+    else
+      _ -> {:error, :no_player}
+    end
+  end
 end

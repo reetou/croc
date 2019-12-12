@@ -4,7 +4,8 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
   alias Croc.Games.{
     Monopoly,
     Monopoly.Player,
-    Monopoly.Lobby
+    Monopoly.Lobby,
+    Monopoly.Event
   }
 
   @players_ids Enum.take_random(1..999_999, 5)
@@ -41,6 +42,55 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
     expected_player = %Player{player | balance: player.balance + 500}
     assert player.balance + 500 == updated_player.balance
     assert expected_player == updated_player
+  end
+
+  describe "Can roll" do
+    test "should return true if no other events except :roll present", context do
+      player_id = Enum.at(@players_ids, 0)
+      player = Enum.at(context.game.players, 0)
+      player_index = Enum.find_index(context.game.players, fn p -> p.player_id == player_id end)
+      assert player_index != nil
+      assert player_id == player.player_id
+      %Monopoly{} = game = context.game
+      updated_player = Enum.at(game.players, 0)
+      assert length(updated_player.events) == 1
+      assert Player.can_roll?(game, updated_player.player_id) == true
+    end
+
+    test "should return false if no :roll event present", context do
+      player_id = Enum.at(@players_ids, 2)
+      player_index = Enum.find_index(context.game.players, fn p -> p.player_id == player_id end)
+      player = Enum.at(context.game.players, player_index)
+      assert player_index != nil
+      assert player_id == player.player_id
+      %Monopoly{} = game = context.game
+      updated_player = Enum.at(game.players, player_index)
+      assert length(updated_player.events) == 0
+      result = Player.can_roll?(game, updated_player.player_id)
+      assert result == false
+    end
+
+    test "should return false if events other than :roll present", context do
+      player_id = Enum.at(@players_ids, 0)
+      player = Enum.at(context.game.players, 0)
+      player_index = Enum.find_index(context.game.players, fn p -> p.player_id == player_id end)
+      assert player_index != nil
+      assert player_id == player.player_id
+      %Monopoly{} = game = context.game
+                           |> Event.add_player_event(player_id, Event.pay(500, "Должен заплатить"))
+      updated_player = Enum.at(game.players, 0)
+      assert length(updated_player.events) == 2
+      result = Player.can_roll?(game, updated_player.player_id)
+      |> IO.inspect(label: "At other than result")
+      assert result == false
+    end
+
+    test "should return error if player_id not exists in game", context do
+      player_id = Enum.random(999999..12999999)
+      result = Player.can_roll?(context.game, player_id)
+      |> IO.inspect(label: "At other than result")
+      assert result == {:error, :no_player}
+    end
   end
 
   describe "Give money" do
