@@ -1,5 +1,6 @@
 defmodule Croc.Games.Monopoly.Event do
   alias Croc.Games.Monopoly.Player
+  alias Croc.Games.Monopoly
 
   @derive Jason.Encoder
   defstruct [
@@ -81,6 +82,14 @@ defmodule Croc.Games.Monopoly.Event do
     |> Map.put(:players, players)
   end
 
+  def remove_player_event(%{ game: game, player_id: player_id, event_id: event_id } = args) do
+    with %Monopoly{} = result <- remove_player_event(game, player_id, event_id) do
+      Map.put(args, :game, result)
+    else
+      e -> e
+    end
+  end
+
   def remove_player_event(game, player_id, event_id) do
     players =
       Enum.map(game.players, fn p ->
@@ -130,12 +139,27 @@ defmodule Croc.Games.Monopoly.Event do
     Enum.random([250, 750])
   end
 
+  def get_by_type(%{ game: game, player_id: player_id, type: type }) do
+    get_by_type(game, player_id, type)
+  end
+
+  def has_by_type?(%{ game: game, player_id: player_id, type: type }) do
+    case get_by_type(game, player_id, type) do
+      %__MODULE__{} -> true
+      {:error, _reason} = e -> e
+    end
+  end
+
   def get_by_type(game, player_id, type) do
     with %Player{} = player <- Enum.find(game.players, fn p -> p.player_id == player_id end),
          %__MODULE__{} = event <- Enum.find(player.events, fn e -> e.type == type end) do
       event
     else
-      _ -> {:error, :no_event}
+      {:error, reason} = r -> r
+      nil -> {:error, :no_event}
+      e ->
+        IO.inspect(e, label: "Error at get by type")
+        {:error, :unknown_error}
     end
   end
 
