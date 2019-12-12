@@ -451,8 +451,10 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
         context.game.cards
         |> Stream.filter(fn c -> c.type == :brand end)
         |> Enum.random()
-
+      player_id = context.game.players |> Enum.at(0) |> Map.fetch!(:player_id)
       player = context.game.players |> Enum.at(0)
+      game = Player.update(context.game, player_id, Map.put(player, :balance, 0))
+      player = game.players |> Enum.at(0)
       card = %Card{card | owner: player.player_id}
       assert player.balance < card.upgrade_cost
       result = Card.upgrade(context.game, player, card)
@@ -623,7 +625,10 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
       cards = List.replace_at(context.game.cards, card_index, card)
-      game = Map.put(context.game, :cards, cards)
+      game = context.game
+             |> Map.put(:cards, cards)
+             |> Player.update(player.player_id, Map.put(player, :balance, 0))
+      player = game.players |> Enum.at(0)
 
       result = Card.buy(game, player, card)
       assert result == {:error, :not_enough_money}
@@ -848,7 +853,10 @@ defmodule Croc.GamesTest.MonopolyTest.CardTest do
       player = %Player{player | position: card.position}
       card_index = Enum.find_index(context.game.cards, fn c -> c.id == card.id end)
       cards = List.replace_at(context.game.cards, card_index, card)
-      game = Map.put(context.game, :cards, cards)
+      game = context.game
+             |> Map.put(:cards, cards)
+             |> Player.update(player.player_id, Map.put(player, :balance, 0))
+      player = game.players |> Enum.at(0)
 
       result = Card.buyout(game, player, card)
       assert result == {:error, :not_enough_money}

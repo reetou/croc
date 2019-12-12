@@ -210,7 +210,7 @@ defmodule Croc.Games.Monopoly do
               %Player{
                 player_id: p.player_id,
                 game_id: game_id,
-                balance: 0,
+                balance: 10000,
                 position: 0,
                 surrender: false,
                 events: events,
