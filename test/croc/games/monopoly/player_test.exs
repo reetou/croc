@@ -100,7 +100,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       player_index = Enum.find_index(context.game.players, fn p -> p.player_id == player_id end)
       assert player_index != nil
       amount = 500
-      %Monopoly{} = game = Player.give_money(context.game, player_id, amount)
+      %{ game: %Monopoly{} = game } = Player.give_money(%{ game: context.game, player_id: player_id, amount: amount })
 
       updated_player = Enum.at(game.players, 0)
       expected_player = %Player{player | balance: player.balance + amount}
@@ -116,7 +116,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       assert player != nil
       game = Player.update(context.game, player_id, Map.put(player, :balance, 0))
       amount = 500
-      result = Player.take_money(game, player_id, amount)
+      result = Player.take_money(%{ game: game, player_id: player_id, amount: amount })
       assert result == {:error, :not_enough_money}
     end
 
@@ -135,7 +135,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       player = Enum.at(updated_game.players, 0)
       assert player != nil
       assert player.balance >= amount
-      %Monopoly{} = game = Player.take_money(updated_game, player_id, amount)
+      %{ game: %Monopoly{} = game } = Player.take_money(%{ game: updated_game, player_id: player_id, amount: amount })
 
       updated_player = Enum.at(game.players, 0)
       expected_player = %Player{player | balance: player.balance - amount}
@@ -155,7 +155,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       assert player != nil
       assert receiver != nil
       amount = 500
-      result = Player.transfer(game, player_id, receiver_player_id, amount)
+      result = Player.transfer(%{ game: game, sender_id: player_id, receiver_id: receiver_player_id, amount: amount })
       assert result == {:error, :not_enough_money}
     end
 
@@ -177,7 +177,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       assert player.balance >= amount
       assert player != nil
       assert receiver != nil
-      %Monopoly{} = game = Player.transfer(updated_game, player_id, receiver_player_id, amount)
+      %{ game: %Monopoly{} = game } = Player.transfer(%{ game: updated_game, sender_id: player_id, receiver_id: receiver_player_id, amount: amount })
 
       updated_player = Enum.at(game.players, 0)
       expected_player = %Player{player | balance: player.balance - amount}

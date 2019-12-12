@@ -111,7 +111,7 @@ defmodule Croc.Games.Monopoly.Event do
         {add_player_event(game, player_id, event), event}
 
       :receive ->
-        {Player.give_money(game, player_id, amount), event}
+        {Player.give_money(%{ game: game, player_id: player_id, amount: amount }) |> Map.fetch!(:game), event}
 
       _ ->
         {game, Map.put(event, :amount, 0)}

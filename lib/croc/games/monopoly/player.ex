@@ -76,61 +76,57 @@ defmodule Croc.Games.Monopoly.Player do
     Map.put(game, :players, players)
   end
 
-  def take_money(%Monopoly{} = game, player_id, amount) do
+  def take_money(%{ game: game, player_id: player_id, amount: amount } = args) do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
-
     with true <- player.balance >= amount do
-      players =
-        List.insert_at(
-          game.players,
-          player_index,
-          Map.put(player, :balance, player.balance - amount)
-        )
-
-      Map.put(game, :players, players)
+      game = update(game, player_id, Map.put(player, :balance, player.balance - amount))
+      Map.put(args, :game, game)
     else
       _ -> {:error, :not_enough_money}
     end
   end
 
-  def give_money(%Monopoly{} = game, player_id, amount) do
+  def give_money(%{ game: game, player_id: player_id, amount: amount } = args) do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
-
     with true <- amount > 0 do
-      players =
-        List.insert_at(
-          game.players,
-          player_index,
-          Map.put(player, :balance, player.balance + amount)
-        )
-
-      Map.put(game, :players, players)
+      game = update(game, player_id, Map.put(player, :balance, player.balance + amount))
+      Map.put(args, :game, game)
     else
       _ -> {:error, :negative_amount}
     end
   end
 
-  def transfer(%Monopoly{} = game, sender_id, receiver_id, amount) do
+  def transfer(%{ game: game, sender_id: sender_id, receiver_id: receiver_id, amount: amount } = args) do
     with true <- amount > 0,
-         %Monopoly{} = g <- take_money(game, sender_id, amount),
-         %Monopoly{} = updated_game <- give_money(g, receiver_id, amount) do
-      updated_game
+         %{ game: %Monopoly{} = g } <- take_money(%{ game: game, player_id: sender_id, amount: amount }),
+         %{ game: %Monopoly{} = updated_game } <- give_money(%{ game: g, player_id: receiver_id, amount: amount }) do
+      Map.put(args, :game, updated_game)
     else
-      e ->
-        e
-        |> IO.inspect(label: "Error at transfer")
-        |> case do
-             {:error, reason} -> {:error, reason}
-             _ -> {:error, :unknown_error}
-           end
+      {:error, reason} -> {:error, reason}
     end
   end
 
-  def is_playing?(%Monopoly{} = game, player_id) do
+  def change_position(%{ game: game, player_id: player_id } = args) do
+    {x, y} = Monopoly.roll_dice()
+    move_value = x + y
+    player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    new_position = Monopoly.get_new_position(game, player.position, move_value)
+    with %Monopoly{} = result <- update(game, player_id, Map.put(player, :position, new_position)) do
+      Map.put(args, :game, result)
+    else
+      e -> e
+    end
+  end
+
+  def is_playing?(%{ game: %Monopoly{} = game, player_id: player_id }) do
     player = Enum.find(game.players, fn p -> p.player_id == player_id and p.surrender != true end)
     player != nil
+  end
+
+  def can_roll?(%{ game: %Monopoly{} = game, player_id: player_id }) do
+    can_roll?(game, player_id)
   end
 
   def can_roll?(%Monopoly{} = game, player_id) do

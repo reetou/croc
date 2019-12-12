@@ -11,6 +11,7 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
   import CrocWeb.Gettext
+  alias Croc.Pipelines.Games.Monopoly.Roll
   use GenServer
   require Logger
 
@@ -49,22 +50,14 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:roll, player_id}, _from, %{game: game} = state) do
-    with true <- Player.can_roll?(game, player_id),
-         true <- can_send_action?(game, player_id),
-         %Event{event_id: event_id} = event <- Event.get_by_type(game, player_id, :roll) do
-      {%__MODULE__{} = updated_game, event} = roll(game, player_id, event_id)
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, %{game: updated_game, event: event}}, new_state}
-    else
-      e ->
-        reply = e
-        |> case do
-             {:error, _reason} = r -> r
-             false -> {:error, :cannot_roll}
-           end
-        {:reply, reply, state}
+  def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
+    case Roll.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game, event: event}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
@@ -139,14 +132,7 @@ defmodule Croc.Games.Monopoly do
          %Player{} = player <- Player.get(game, player_id),
          %Event{} <- Event.get_by_type(game, player_id, :pay),
          %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
-      case pay(game, player_id, event_id) do
-        {:ok, game} ->
-          new_state = Map.put(state, :game, game)
-          update_game_state(game, new_state)
-          {:reply, {:ok, game}, new_state}
-        {:error, reason} ->
-          {:reply, {:error, reason}, state}
-      end
+      true
     else
       _ -> {:reply, {:error, :not_your_turn}, state}
     end
@@ -260,6 +246,10 @@ defmodule Croc.Games.Monopoly do
     {Enum.random(1..6), Enum.random(1..6)}
   end
 
+  def can_send_action?(%{ game: game, player_id: player_id }) do
+    can_send_action?(game, player_id)
+  end
+
   def can_send_action?(game, player_id) do
     with %Player{} = player <- Enum.find(game.players, fn p -> p.player_id == player_id end) do
       # Проверяем что игрок присутствует в игре, не сдался и сейчас его очередь ходить
@@ -271,33 +261,14 @@ defmodule Croc.Games.Monopoly do
     end
   end
 
-  def pay(game, player_id, event_id) do
-    player = game.players
-      |> Enum.find(fn p -> p.player_id == player_id end)
-    event = Enum.find(player.events, fn e -> e.event_id == event_id end)
-    cond do
-      event == nil -> {:error, :no_event}
-      event.type != :pay -> {:error, :invalid_event_type}
-      event.receiver != nil ->
-        Player.transfer(game, player_id, event.receiver, event.amount)
-        |> case do
-             %__MODULE__{} = g ->
-               g = g
-                   |> Event.remove_player_event(player_id, event_id)
-                   |> process_player_turn(player_id)
-               {:ok, g}
-             e -> e
-           end
-      true ->
-        Player.take_money(game, player_id, event.amount)
-        |> case do
-             %__MODULE__{} = g ->
-               g = g
-                   |> Event.remove_player_event(player_id, event_id)
-                   |> process_player_turn(player_id)
-               {:ok, g}
-             e -> e
-           end
+  def process_position_change(%{ game: game, player_id: player_id } = args) do
+    player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    with {game, event} <- process_position_change(game, player, player.position) do
+      args
+      |> Map.put(:game, game)
+      |> Map.put(:event, event)
+    else
+      e -> e
     end
   end
 
@@ -332,38 +303,12 @@ defmodule Croc.Games.Monopoly do
         {game, Event.ignored("Попадает в тюрьмочку")}
 
       card.type == :start ->
-        {Player.give_money(game, player_id, 1000),
+        {Player.give_money(%{ game: game, player_id: player_id, amount: 1000 }) |> Map.fetch!(:game),
          Event.ignored("Попадает на старт и получает на тыщу больше")}
 
       true ->
         {game, Event.ignored("Ничего не произошло, type: #{Atom.to_string(card.type)}")}
     end
-  end
-
-  def format_payload({:position_data, game, player, old_position, new_position}) do
-    %Card{} = card = Card.get_by_position(game, new_position)
-    foreign_owner = card.owner != nil and card.owner != player.player_id and card.type == :brand
-    passed_start = new_position < old_position and card.type != :prison
-    start_position_bonus = if card.type == :start, do: 1000, else: 0
-    passed_start_bonus = if passed_start, do: 2000, else: 0
-    must_pay = foreign_owner or card.type == :payment
-    payment_amount = if must_pay, do: Card.get_payment_amount(card), else: 0
-
-    data = %{
-      player_id: player.player_id,
-      card: card,
-      passed_start: passed_start,
-      receive_money_bonus_amount: start_position_bonus,
-      receive_money_amount: passed_start_bonus,
-      can_afford_card_payment_amount: can_afford_card_payment_amount?(card, player),
-      must_pay: must_pay,
-      payment_amount: payment_amount,
-      can_buy: card.owner == nil and card.type == :brand,
-      can_afford_buy: player.balance >= card.cost,
-      old_position: old_position,
-      new_position: new_position,
-      game: game
-    }
   end
 
   def can_afford_card_payment_amount?(%Card{} = card, %Player{} = player) do
@@ -400,6 +345,14 @@ defmodule Croc.Games.Monopoly do
   def get_all() do
     Registry.select(:monopoly_registry, [{{:"$1", :"$2", :"$3"}, [], [{{:"$1", :"$2", :"$3"}}]}])
     |> Enum.map(fn {key, pid, %{ game: game }} -> game end)
+  end
+
+  def process_player_turn(%{ game: game, player_id: player_id } = args) do
+    with %__MODULE__{} = updated_game <- process_player_turn(game, player_id) do
+      Map.put(args, :game, updated_game)
+    else
+      e -> e
+    end
   end
 
   def process_player_turn(%__MODULE__{} = game, player_id) do

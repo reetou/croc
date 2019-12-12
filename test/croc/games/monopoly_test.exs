@@ -86,7 +86,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       player_roll_event = Event.get_by_type(game, player_id, :roll)
       assert player_roll_event != nil
       {:ok, game, pid} = Monopoly.get(game.game_id)
-      {:ok, %{game: updated_game, event: received_event}} = GenServer.call(pid, {:roll, player_id})
+      {:ok, %{game: updated_game, event: received_event}} = GenServer.call(pid, {:roll, player_id, player_roll_event.event_id})
       updated_player = Enum.at(updated_game.players, 0)
       assert is_list(updated_player.events)
       event = Event.get_by_type(updated_game, player_id, :roll)
@@ -99,52 +99,18 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert updated_player.position != player.position
     end
 
-    test "should successfully pay", %{ game: game } do
-      first_player = Enum.at(game.players, 0)
-      index = 2
-      third_player = Enum.at(game.players, index)
-
-      cards =
-        Enum.map(game.cards, fn c ->
-          unless c.type != :brand or c.owner != nil do
-            Map.put(c, :owner, first_player.player_id)
-          else
-            c
-          end
-        end)
-
-      card = Enum.find(cards, fn c -> c.owner == first_player.player_id end)
-      players = Enum.map(game.players, fn p ->
-        unless p.player_id != third_player.player_id do
-          Map.put(p, :balance, 5000)
-        else
-          p
-        end
-      end)
-      game = game
-             |> Map.put(:cards, cards)
-             |> Map.put(:players, players)
-      {g, _event} = Monopoly.process_position_change(game, third_player, card.position)
-      updated_player = Enum.at(g.players, index)
-      player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
-      assert player_event != nil
-      {:ok, updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
-      updated_player = Enum.at(updated_game.players, index)
-      scored_pay_event = Enum.find(updated_player.events, fn e -> e.event_id == player_event.event_id end)
-      assert scored_pay_event == nil
-    end
-
     test "should throw error if player has no roll event", %{game: game} do
       %Player{player_id: player_id} = Enum.at(game.players, 2)
+      {:error, :no_event} = Event.get_by_type(game, player_id, :roll)
       assert game.player_turn != player_id
       {:ok, game, pid} = Monopoly.get(game.game_id)
-      {:error, :cannot_roll} = GenServer.call(pid, {:roll, player_id})
+      {:error, :no_roll_event} = GenServer.call(pid, {:roll, player_id, "123"})
     end
 
     test "should throw error if player is not in game", %{game: game} do
       player_id = Enum.random(999999..1300000)
       {:ok, game, pid} = Monopoly.get(game.game_id)
-      {:error, :no_player} = GenServer.call(pid, {:roll, player_id})
+      {:error, :no_player} = GenServer.call(pid, {:roll, player_id, "123"})
     end
   end
 
