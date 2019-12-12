@@ -7,13 +7,24 @@ defmodule Croc.Games.Monopoly.Event do
     :type,
     :amount,
     :text,
-    :receiver
+    :receiver,
+    priority: 999
   ]
+
+  defp priority(type) do
+    case type do
+      :pay -> 1
+      :free_card -> 2
+      :roll -> 3
+      _ -> 999
+    end
+  end
 
   def new(type) do
     %__MODULE__{
       event_id: Ecto.UUID.generate(),
-      type: type
+      type: type,
+      priority: priority(type)
     }
   end
 
@@ -22,6 +33,7 @@ defmodule Croc.Games.Monopoly.Event do
     |> Map.put(:amount, amount)
     |> Map.put(:text, text)
     |> Map.put(:receiver, receiver)
+    |> Map.put(:priority, priority(:pay))
   end
 
   def ignored(text) do
@@ -39,11 +51,13 @@ defmodule Croc.Games.Monopoly.Event do
     new(:free_card)
     |> Map.put(:amount, 0)
     |> Map.put(:text, text)
+    |> Map.put(:priority, priority(:free_card))
   end
 
   def roll(player_id) do
     new(:roll)
     |> Map.put(:text, "Ходит")
+    |> Map.put(:priority, priority(:roll))
   end
 
   def get_type(random_event_type) do
@@ -58,6 +72,21 @@ defmodule Croc.Games.Monopoly.Event do
       Enum.map(game.players, fn p ->
         unless p.player_id != player_id do
           Map.put(p, :events, p.events ++ [event])
+        else
+          p
+        end
+      end)
+
+    game
+    |> Map.put(:players, players)
+  end
+
+  def remove_player_event(game, player_id, event_id) do
+    players =
+      Enum.map(game.players, fn p ->
+        unless p.player_id != player_id do
+          updated_events = Enum.filter(p.events, fn e -> e.event_id != event_id end)
+          Map.put(p, :events, updated_events)
         else
           p
         end
