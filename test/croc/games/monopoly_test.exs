@@ -128,7 +128,10 @@ defmodule Croc.GamesTest.MonopolyTest do
       updated_player = Enum.at(g.players, index)
       player_event = Enum.find(updated_player.events, fn e -> e.type == :pay end)
       assert player_event != nil
-      {:ok, _updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
+      {:ok, updated_game} = Monopoly.pay(g, third_player.player_id, player_event.event_id)
+      updated_player = Enum.at(updated_game.players, index)
+      scored_pay_event = Enum.find(updated_player.events, fn e -> e.event_id == player_event.event_id end)
+      assert scored_pay_event == nil
     end
 
     test "should throw error if player has no roll event", %{game: game} do

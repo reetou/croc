@@ -281,13 +281,21 @@ defmodule Croc.Games.Monopoly do
       event.receiver != nil ->
         Player.transfer(game, player_id, event.receiver, event.amount)
         |> case do
-             %__MODULE__{} = g -> {:ok, process_player_turn(g, player_id)}
+             %__MODULE__{} = g ->
+               g = g
+                   |> Event.remove_player_event(player_id, event_id)
+                   |> process_player_turn(player_id)
+               {:ok, g}
              e -> e
            end
       true ->
         Player.take_money(game, player_id, event.amount)
         |> case do
-             %__MODULE__{} = g -> {:ok, process_player_turn(g, player_id)}
+             %__MODULE__{} = g ->
+               g = g
+                   |> Event.remove_player_event(player_id, event_id)
+                   |> process_player_turn(player_id)
+               {:ok, g}
              e -> e
            end
     end
