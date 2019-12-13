@@ -284,7 +284,8 @@ defmodule Croc.Games.Monopoly do
         {game, Event.ignored("Попадает на свое поле и ничего не платит")}
 
       card.type == :brand and Card.has_owner?(card, player_id) == false ->
-        {game, Event.free_card("Попадает на свободное поле #{card.name}")}
+        event = Event.free_card("Попадает на свободное поле #{card.name}")
+        {Event.add_player_event(game, player_id, event), event}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
         event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить", card.owner)

@@ -176,7 +176,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       updated_player = Enum.at(updated_game.players, index)
       assert updated_player.player_id == player.player_id
       assert updated_player.balance == player.balance
-      assert length(updated_player.events) == 0
+      assert length(updated_player.events) == 1
     end
 
     test "should process stepping on other player's card", %{game: game} do
