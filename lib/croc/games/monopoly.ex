@@ -12,6 +12,8 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
   import CrocWeb.Gettext
   alias Croc.Pipelines.Games.Monopoly.Roll
+  alias Croc.Pipelines.Games.Monopoly.Pay
+  alias Croc.Pipelines.Games.Monopoly.Buy
   use GenServer
   require Logger
 
@@ -114,27 +116,27 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:buy, player_id, card}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id) do
-      {:ok, updated_game, _updated_player} = Card.buy(game, player, card)
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, updated_game}, new_state}
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+  def handle_call({:buy, player_id}, _from, %{game: game} = state) do
+    case Buy.call(%{ game: game, player_id: player_id }) do
+      {:ok, %{game: game, event: event}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
   def handle_call({:pay, player_id, event_id}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id),
-         %Event{} <- Event.get_by_type(game, player_id, :pay),
-         %Event{} = event <- Event.get_by_id(game, player_id, event_id) do
-      true
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+    case Pay.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game, event: event}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+      x -> IO.inspect(x, label: "X AT PAY")
     end
   end
 
