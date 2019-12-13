@@ -7,6 +7,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
   check :can_send_action?, with: &Monopoly.can_send_action?/1, error_message: :not_your_turn
+  step :add_position
   check :card_exists?, error_message: :no_card
   step :add_card
   step :add_player
@@ -34,6 +35,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   def add_player(%{game: game, player_id: player_id, position: position} = args) do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     Map.put(args, :player, player)
+  end
+
+  def add_position(%{game: game, player_id: player_id, position: position} = args) do
+    player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    Map.put(args, :position, player.position)
   end
 
   def is_owner?(%{ card: card, player_id: player_id } = args) do
