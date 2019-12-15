@@ -148,7 +148,10 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
       player = Enum.at(game.players, player_index)
       bidder_player = Enum.at(game.players, bidder_player_index)
       %Card{} = card = Card.get_by_position(game, event.position)
+      event_starter_index = Enum.find_index(game.players, fn p -> p.player_id == event.starter end)
+      next_turn_player = Enum.at(game.players, event_starter_index + 1)
       assert card.owner == bidder_player.player_id
+      assert game.player_turn == next_turn_player.player_id
     end
   end
 
