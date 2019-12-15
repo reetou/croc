@@ -25,6 +25,7 @@ defmodule CrocWeb.Router do
     pipe_through :browser
 
     get "/", GameController, :index
+    get "/game/:game_id", GameController, :game
 
     get "/confirms", ConfirmController, :index
     resources "/password_resets", PasswordResetController, only: [:new, :create]

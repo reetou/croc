@@ -42,6 +42,8 @@ defmodule CrocWeb do
       import CrocWeb.ErrorHelpers
       import CrocWeb.Gettext
       alias CrocWeb.Router.Helpers, as: Routes
+      # phoenix_react shortcut
+      import ReactPhoenix.ClientSide
     end
   end
 

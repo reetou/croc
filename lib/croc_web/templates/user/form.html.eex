@@ -9,15 +9,16 @@
   <%= email_input f, :email %>
   <%= error_tag f, :email %>
 
-  <%= if @action == "/users" do %>
-    <%= label f, :password %>
-    <%= password_input f, :password %>
-    <%= error_tag f, :password %>
 
+  <%= unless @action == "/users" do %>
     <%= label f, :username %>
     <%= text_input f, :username %>
     <%= error_tag f, :username %>
   <% end %>
+
+  <%= label f, :password %>
+  <%= password_input f, :password %>
+  <%= error_tag f, :password %>
 
   <div>
     <%= submit "Save" %>

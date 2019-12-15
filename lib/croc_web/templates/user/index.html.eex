@@ -1,5 +1,11 @@
 <div class="container">
-  <h1>Hi user</h1>
-
+  <h1>Hi <%= @conn.assigns.user.username || "unknown user" %></h1>
+  <%= react_component("Components.LobbyContainer", %{
+      lobbies: @conn.assigns.lobbies,
+      user: @conn.assigns.user,
+      games: @conn.assigns.games,
+      game_path: Routes.game_url(@conn, :game, "")
+    })
+  %>
   <span><%= link "Back", to: Routes.user_path(@conn, :index) %></span>
 </div>

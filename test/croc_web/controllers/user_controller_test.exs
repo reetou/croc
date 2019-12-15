@@ -16,7 +16,7 @@ defmodule CrocWeb.UserControllerTest do
       user = add_user("reg@example.com")
       conn = conn |> add_session(user) |> send_resp(:ok, "/")
       conn = get(conn, Routes.user_path(conn, :index))
-      assert html_response(conn, 200) =~ "Hi user"
+      assert html_response(conn, 200) =~ "Hi #{user.username}"
     end
 
     test "renders /users error for nil user", %{conn: conn} do
