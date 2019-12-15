@@ -28,6 +28,16 @@ defmodule Croc.Games.Monopoly do
 
   @registry :monopoly_registry
 
+  @players_colors [
+    "red",
+    "yellow",
+    "blue",
+    "green",
+    "aquamarine",
+    "grey",
+    "brown"
+  ]
+
   @positions Enum.to_list(0..39)
 
   @enforce_keys [
@@ -234,13 +244,13 @@ defmodule Croc.Games.Monopoly do
           started_at = DateTime.utc_now() |> DateTime.truncate(:second)
           game_id = Ecto.UUID.generate()
           first_player_id = List.first(lobby_players) |> Map.fetch!(:player_id)
-
+          lobby_players_ids = Enum.map(lobby_players, fn p -> p.player_id end)
           players =
             lobby_players
             |> Enum.map(fn %LobbyPlayer{} = p ->
               events =
                 if p.player_id == first_player_id, do: [Event.roll(first_player_id)], else: []
-
+              index = Enum.find_index(lobby_players_ids, fn id -> id == p.player_id end)
               %Player{
                 player_id: p.player_id,
                 game_id: game_id,
@@ -248,7 +258,8 @@ defmodule Croc.Games.Monopoly do
                 position: 0,
                 surrender: false,
                 events: events,
-                player_cards: []
+                player_cards: [],
+                color: Enum.at(@players_colors, index, Enum.at(@players_colors, 0))
               }
             end)
 

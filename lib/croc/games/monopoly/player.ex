@@ -18,7 +18,8 @@ defmodule Croc.Games.Monopoly.Player do
       :position,
       :surrender,
       :player_cards,
-      :events
+      :events,
+      :color
     ],
     index: [:player_id, :game_id],
     autoincrement: true,
