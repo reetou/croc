@@ -201,6 +201,12 @@ defmodule Croc.Games.Monopoly do
     {:reply, {:ok, game}, state}
   end
 
+  @impl true
+  def handle_call(params, _from, state) do
+    Logger.error("Invalid params at monopoly process call #{inspect params}")
+    {:noreply, state}
+  end
+
   def get_new_position(%__MODULE__{} = game, position, move_value) do
       max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
       case position + move_value do
