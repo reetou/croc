@@ -7,6 +7,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
   require Logger
   use Opus.Pipeline
 
+  step :add_player
   step :take_money_from_bidder, with: &Player.take_money/1, if: :has_bidder?
   step :give_card_to_bidder, with: &Card.buy/1, if: :has_bidder?
   tee :send_bidder_bought_event, if: :has_bidder?
@@ -38,4 +39,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
     length(members) == 0
   end
 
+  def add_player(%{game: game, player_id: player_id} = args) do
+    player = Player.get(game, player_id)
+    Map.put(args, :player, player)
+  end
 end

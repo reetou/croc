@@ -48,6 +48,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionBid do
       event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
       event_id = Map.fetch!(event, :event_id)
       old_balance = player.balance
+      assert event.starter != nil
       {:ok, args} = AuctionBid.call(%{
         game: game,
         player_id: player.player_id,
@@ -61,6 +62,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionBid do
       assert card.owner == nil
       {:error, :no_event} = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
       event = Event.get_by_type(%{ game: game, player_id: next_player.player_id, type: :auction })
+      assert event.starter != nil
       assert game.player_turn == next_player.player_id
       assert %Event{} = event
       assert event.amount == card.cost + 100

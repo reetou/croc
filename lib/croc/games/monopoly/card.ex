@@ -160,14 +160,13 @@ defmodule Croc.Games.Monopoly.Card do
     Map.put(args, :game, game)
   end
 
-  def buy(%{ game: game, player: player, card: card } = args) do
+  def buy(%{ game: game, player_id: player_id, card: card } = args) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
-    updated_card = Map.put(card, :owner, player.player_id)
+    updated_card = Map.put(card, :owner, player_id)
     cards = List.replace_at(game.cards, card_index, updated_card)
     game = Map.put(game, :cards, cards)
     args
     |> Map.put(:game, game)
-    |> Map.put(:event, Event.ignored("Покупает карточку #{card.name}"))
   end
 
   def put_on_loan(%{ game: game, card: card, player: player } = args) do

@@ -417,8 +417,8 @@ defmodule Croc.Games.Monopoly do
     members = Map.get(args, :members, [])
     event = Event.auction(amount, "Думает над поднятием цены за #{card.name}", card.position, player_id, nil, members)
     game = game
-           |> set_player_turn(next_player.player_id)
            |> Event.add_player_event(next_player.player_id, event)
+           |> Map.put(:player_turn, next_player.player_id)
     args
     |> Map.put(:game, game)
     |> Map.put(:event, event)
