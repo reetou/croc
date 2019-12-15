@@ -53,6 +53,7 @@ defmodule Croc.MixProject do
       {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
       {:opus, "~> 0.6"},
       {:sentry, "~> 7.0"},
+      {:distillery, "~> 2.0"},
       {:decimal, "~> 1.0"}
     ]
   end
