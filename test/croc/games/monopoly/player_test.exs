@@ -81,14 +81,12 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       updated_player = Enum.at(game.players, 0)
       assert length(updated_player.events) == 2
       result = Player.can_roll?(game, updated_player.player_id)
-      |> IO.inspect(label: "At other than result")
       assert result == false
     end
 
     test "should return error if player_id not exists in game", context do
       player_id = Enum.random(999999..12999999)
       result = Player.can_roll?(context.game, player_id)
-      |> IO.inspect(label: "At other than result")
       assert result == {:error, :no_player}
     end
   end
