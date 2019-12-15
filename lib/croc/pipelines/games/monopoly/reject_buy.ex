@@ -1,4 +1,4 @@
-defmodule Croc.Pipelines.Games.Monopoly.Buy do
+defmodule Croc.Pipelines.Games.Monopoly.RejectBuy do
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
@@ -15,15 +15,47 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   step :add_player
   check :no_owner?, error_message: :card_has_owner
   check :card_type_valid?, error_message: :invalid_card_type
-  check :has_enough_money?, error_message: :not_enough_money
   step :set_amount
-  step :buy, with: &Card.buy/1
-  step :take_money, with: &Player.take_money/1
   step :remove_event, with: &Event.remove_player_event/1
-  step :process_player_turn, with: &Monopoly.process_player_turn/1
+  step :process_buy_turn, with: &Monopoly.process_buy_turn/1, if: :can_someone_buy?
+  step :overwrite_player_id, if: :can_someone_buy?
+  step :add_player, if: :can_someone_buy?
+  step :add_auction_members, if: :can_someone_buy?
+  step :add_nobody_bought_event, unless: :can_someone_buy?
+  step :process_player_turn, with: &Monopoly.process_player_turn/1, unless: :can_someone_buy?
+
+  def overwrite_player_id(%{ game: game, player_id: player_id } = args) do
+    args
+    |> Map.put(:player_id, game.player_turn)
+    |> Map.put(:rejector_id, player_id)
+  end
+
+  def add_nobody_bought_event(%{card: card, player: player} = args) do
+    Map.put(args, :event, Event.ignored("#{player.player_id} отказывается от покупки. Никто не может выкупить карточку #{card.name}"))
+  end
 
   def set_event_type(args) do
     Map.put(args, :type, :free_card)
+  end
+
+  def can_someone_buy?(%{ game: game, player_id: player_id, amount: amount }) do
+    game.players
+    |> Enum.filter(fn p -> p.player_id != player_id end)
+    |> Enum.any?(fn p -> p.surrender != true and p.balance >= amount end)
+  end
+
+  def add_auction_members(%{ game: game, player_id: player_id, rejector_id: rejector_id, amount: amount } = args) do
+    player = Player.get(game, player_id)
+    members = game.players
+              |> Enum.filter(fn p -> p.player_id != rejector_id end)
+              |> Enum.filter(fn p -> p.surrender != true and p.balance >= amount end)
+              |> Enum.map(fn p -> p.player_id end)
+    event = Enum.find(player.events, fn e -> e.type == :auction end)
+      |> Map.put(:members, members)
+    event_index = Enum.find_index(player.events, fn e -> e.event_id == event.event_id end)
+    events = List.replace_at(player.events, event_index, event)
+    player = Map.put(player, :events, events)
+    Map.put(args, :game, Player.replace(game, player_id, player))
   end
 
   def set_amount(%{ card: card } = args) do

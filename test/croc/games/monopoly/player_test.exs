@@ -36,7 +36,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
 
     %Monopoly{} =
       game =
-      Player.update(context.game, player_id, %Player{player | balance: player.balance + 500})
+      Player.replace(context.game, player_id, %Player{player | balance: player.balance + 500})
 
     updated_player = Enum.at(game.players, 0)
     expected_player = %Player{player | balance: player.balance + 500}
@@ -114,7 +114,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       player_id = Enum.at(@players_ids, 0)
       player = Enum.at(context.game.players, 0)
       assert player != nil
-      game = Player.update(context.game, player_id, Map.put(player, :balance, 0))
+      game = Player.replace(context.game, player_id, Map.put(player, :balance, 0))
       amount = 500
       result = Player.take_money(%{ game: game, player_id: player_id, amount: amount })
       assert result == {:error, :not_enough_money}
@@ -151,7 +151,7 @@ defmodule Croc.GamesTest.MonopolyTest.PlayerTest do
       receiver_player_id = Enum.at(@players_ids, 1)
       receiver = Enum.at(context.game.players, 1)
       player = Enum.at(context.game.players, 0)
-      game = Player.update(context.game, player_id, Map.put(player, :balance, 0))
+      game = Player.replace(context.game, player_id, Map.put(player, :balance, 0))
       assert player != nil
       assert receiver != nil
       amount = 500

@@ -1,6 +1,6 @@
 defmodule Croc.Games.Monopoly.Card do
   alias Croc.Games.Monopoly
-  alias Croc.Games.Monopoly.{Player}
+  alias Croc.Games.Monopoly.{Player, Event}
   require Logger
 
   @enforce_keys [
@@ -165,7 +165,9 @@ defmodule Croc.Games.Monopoly.Card do
     updated_card = Map.put(card, :owner, player.player_id)
     cards = List.replace_at(game.cards, card_index, updated_card)
     game = Map.put(game, :cards, cards)
-    Map.put(args, :game, game)
+    args
+    |> Map.put(:game, game)
+    |> Map.put(:event, Event.ignored("Покупает карточку #{card.name}"))
   end
 
   def put_on_loan(%{ game: game, card: card, player: player } = args) do

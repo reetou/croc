@@ -70,8 +70,16 @@ defmodule Croc.Games.Monopoly.Player do
     Enum.find(game.players, fn p -> p.player_id == player_id end)
   end
 
-  def update(%Monopoly{} = game, player_id, %__MODULE__{} = player) do
+  def replace(%Monopoly{} = game, player_id, %__MODULE__{} = player) do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    players = List.replace_at(game.players, player_index, player)
+    Map.put(game, :players, players)
+  end
+
+  def put(%Monopoly{} = game, player_id, key, value) when is_atom(key) do
+    player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(game.players, player_index)
+    |> Map.put(key, value)
     players = List.replace_at(game.players, player_index, player)
     Map.put(game, :players, players)
   end
@@ -80,7 +88,7 @@ defmodule Croc.Games.Monopoly.Player do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
     with true <- player.balance >= amount do
-      game = update(game, player_id, Map.put(player, :balance, player.balance - amount))
+      game = replace(game, player_id, Map.put(player, :balance, player.balance - amount))
       Map.put(args, :game, game)
     else
       _ -> {:error, :not_enough_money}
@@ -91,7 +99,7 @@ defmodule Croc.Games.Monopoly.Player do
     player_index = Enum.find_index(game.players, fn p -> p.player_id == player_id end)
     player = Enum.at(game.players, player_index)
     with true <- amount > 0 do
-      game = update(game, player_id, Map.put(player, :balance, player.balance + amount))
+      game = replace(game, player_id, Map.put(player, :balance, player.balance + amount))
       Map.put(args, :game, game)
     else
       _ -> {:error, :negative_amount}
@@ -113,7 +121,7 @@ defmodule Croc.Games.Monopoly.Player do
     move_value = x + y
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     new_position = Monopoly.get_new_position(game, player.position, move_value)
-    with %Monopoly{} = result <- update(game, player_id, Map.put(player, :position, new_position)) do
+    with %Monopoly{} = result <- replace(game, player_id, Map.put(player, :position, new_position)) do
       Map.put(args, :game, result)
     else
       e -> e

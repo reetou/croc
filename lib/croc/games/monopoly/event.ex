@@ -1,6 +1,7 @@
 defmodule Croc.Games.Monopoly.Event do
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly
+  require Logger
 
   @derive Jason.Encoder
   defstruct [
@@ -9,14 +10,19 @@ defmodule Croc.Games.Monopoly.Event do
     :amount,
     :text,
     :receiver,
-    priority: 999
+    :position,
+    :starter,
+    :last_bidder,
+    priority: 999,
+    members: []
   ]
 
   defp priority(type) do
     case type do
       :pay -> 1
-      :free_card -> 2
-      :roll -> 3
+      :auction -> 2
+      :free_card -> 3
+      :roll -> 100
       _ -> 999
     end
   end
@@ -48,17 +54,28 @@ defmodule Croc.Games.Monopoly.Event do
     |> Map.put(:text, text)
   end
 
-  def free_card(text) do
+  def free_card(text, position) do
     new(:free_card)
     |> Map.put(:amount, 0)
     |> Map.put(:text, text)
     |> Map.put(:priority, priority(:free_card))
+    |> Map.put(:position, position)
   end
 
   def roll(player_id) do
     new(:roll)
     |> Map.put(:text, "Ходит")
     |> Map.put(:priority, priority(:roll))
+  end
+
+  def auction(amount, text, position, starter_player_id, last_bidder, members \\ []) do
+    new(:auction)
+    |> Map.put(:text, text)
+    |> Map.put(:amount, amount)
+    |> Map.put(:position, position)
+    |> Map.put(:members, members)
+    |> Map.put(:starter, starter_player_id)
+    |> Map.put(:last_bidder, last_bidder)
   end
 
   def get_type(random_event_type) do
@@ -68,7 +85,7 @@ defmodule Croc.Games.Monopoly.Event do
     end
   end
 
-  def add_player_event(game, player_id, event) do
+  def add_player_event(game, player_id, %__MODULE__{} = event) do
     players =
       Enum.map(game.players, fn p ->
         unless p.player_id != player_id do

@@ -11,9 +11,14 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
   import CrocWeb.Gettext
-  alias Croc.Pipelines.Games.Monopoly.Roll
-  alias Croc.Pipelines.Games.Monopoly.Pay
-  alias Croc.Pipelines.Games.Monopoly.Buy
+  alias Croc.Pipelines.Games.Monopoly.{
+    Roll,
+    Pay,
+    Buy,
+    RejectBuy,
+    AuctionBid,
+    AuctionReject
+  }
   use GenServer
   require Logger
 
@@ -116,9 +121,51 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
-  def handle_call({:buy, player_id}, _from, %{game: game} = state) do
-    case Buy.call(%{ game: game, player_id: player_id }) do
+  def handle_call({:buy, player_id, event_id}, _from, %{game: game} = state) do
+    Logger.error("Showing for buy event")
+    case Buy.call(%{ game: game, player_id: player_id, event_id: event_id }) do
       {:ok, %{game: game, event: event}} ->
+        Logger.debug("Processing buy action")
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:reject_buy, player_id, event_id}, _from, %{game: game} = state) do
+    case RejectBuy.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game, event: event}} ->
+        Logger.debug("Processing buy action")
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:auction_bid, player_id, event_id}, _from, %{game: game} = state) do
+    case AuctionBid.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game, event: event}} ->
+        Logger.debug("Processing auction bid action")
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game, event: event}}, new_state}
+      {:error, pipeline_error} ->
+        IO.inspect(pipeline_error, label: "Error at bid")
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:auction_reject, player_id, event_id}, _from, %{game: game} = state) do
+    case AuctionReject.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game, event: event}} ->
+        Logger.debug("Processing auction reject action")
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
         {:reply, {:ok, %{game: game, event: event}}, new_state}
@@ -286,7 +333,7 @@ defmodule Croc.Games.Monopoly do
         {game, Event.ignored("Попадает на свое поле и ничего не платит")}
 
       card.type == :brand and Card.has_owner?(card, player_id) == false ->
-        event = Event.free_card("Попадает на свободное поле #{card.name}")
+        event = Event.free_card("Попадает на свободное поле #{card.name}", card.position)
         {Event.add_player_event(game, player_id, event), event}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
@@ -351,34 +398,58 @@ defmodule Croc.Games.Monopoly do
   end
 
   def process_player_turn(%{ game: game, player_id: player_id } = args) do
+    Logger.debug("Processing player turn for from #{player_id} to next")
     with %__MODULE__{} = updated_game <- process_player_turn(game, player_id) do
       Map.put(args, :game, updated_game)
     else
       e -> e
+      |> IO.inspect(label: "Error probably at process player turn")
     end
   end
 
-  def process_player_turn(%__MODULE__{} = game, player_id) do
+  def process_buy_turn(%{ game: game, player_id: player_id, card: card, amount: amount } = args) do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
+    actual_players = Enum.filter(game.players, fn p -> p.surrender != true and p.balance >= amount end)
+    current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
+    max_index = length(actual_players) - 1
+    next_player_index = if current_player_index + 1 > max_index, do: 0, else: current_player_index + 1
+    next_player = Enum.at(actual_players, next_player_index)
+    members = Map.get(args, :members, [])
+    event = Event.auction(amount, "Думает над поднятием цены за #{card.name}", card.position, player_id, nil, members)
+    game = game
+           |> set_player_turn(next_player.player_id)
+           |> Event.add_player_event(next_player.player_id, event)
+    args
+    |> Map.put(:game, game)
+    |> Map.put(:event, event)
+  end
+
+  def process_player_turn(%__MODULE__{} = game, player_id) do
+    player = Player.get(game, player_id)
+    Logger.debug("Checking if player #{player_id} not surrendered and 0 events: #{inspect player.events}")
     with true <- player.surrender != true and length(player.events) == 0 do
       actual_players = Enum.filter(game.players, fn p -> p.surrender != true end)
       current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
+      Logger.debug("Current player index #{current_player_index}")
       max_index = length(actual_players) - 1
       unless current_player_index == nil do
         next_player_index = if current_player_index + 1 > max_index, do: 0, else: current_player_index + 1
         next_player = Enum.at(actual_players, next_player_index)
+        Logger.debug("Next player gonna be #{next_player.player_id}")
         set_player_turn(game, next_player.player_id)
       else
+        Logger.error("No such player in game")
         {:error, :no_such_player_in_game}
       end
     else
-      _ -> game
+      _ ->
+        game
     end
   end
 
   def set_player_turn(%__MODULE__{} = game, player_id) do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
-    Event.add_player_event(game, player_id, Event.roll(player_id))
+    game = Event.add_player_event(game, player_id, Event.roll(player_id))
     |> Map.put(:player_turn, player_id)
   end
 
