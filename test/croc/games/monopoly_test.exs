@@ -86,7 +86,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       player_roll_event = Event.get_by_type(game, player_id, :roll)
       assert player_roll_event != nil
       {:ok, game, pid} = Monopoly.get(game.game_id)
-      {:ok, %{game: updated_game, event: received_event}} = GenServer.call(pid, {:roll, player_id, player_roll_event.event_id})
+      {:ok, %{game: updated_game}} = GenServer.call(pid, {:roll, player_id, player_roll_event.event_id})
       updated_player = Enum.at(updated_game.players, 0)
       assert is_list(updated_player.events)
       event = Event.get_by_type(updated_game, player_id, :roll)
@@ -94,7 +94,6 @@ defmodule Croc.GamesTest.MonopolyTest do
       if length(updated_player.events) == 0 do
         assert updated_game.player_turn == next_player.player_id
       end
-      assert received_event != nil
       assert updated_player.player_id == player.player_id
       assert updated_player.position != player.position
     end
