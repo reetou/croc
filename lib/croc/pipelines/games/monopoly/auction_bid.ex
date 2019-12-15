@@ -5,7 +5,8 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionBid do
   alias Croc.Games.Monopoly
   alias CrocWeb.MonopolyChannel
   alias Croc.Pipelines.Games.Monopoly.Events.{
-    AuctionEnded
+    AuctionEnded,
+    AuctionBidRequest
   }
   use Opus.Pipeline
 
@@ -24,15 +25,15 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionBid do
   step :set_bidder
   step :remove_event, with: &Event.remove_player_event/1
 
-  step :overwrite_player_id_with_next_member, unless: :no_other_members?
-  step :add_player, unless: :no_other_members?
-  step :set_next_bid_amount, unless: :no_other_members?
-  step :add_auction_event, unless: :no_other_members?
-  step :change_player_turn, unless: :no_other_members?
-  tee :send_bid_event, unless: :no_other_members?
+  link AuctionBidRequest, if: :has_members?
+  link AuctionEnded, unless: :has_members?
 
   def change_player_turn(%{ player_id: player_id, game: game } = args) do
     Map.put(args, :game, Map.put(game, :player_turn, player_id))
+  end
+
+  def has_members?(%{ members: members, event: event }) do
+    members != [event.last_bidder] and length(members) > 0
   end
 
   def overwrite_player_id_with_next_member(%{ event: event, player_id: player_id } = args) do
@@ -58,11 +59,6 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionBid do
                 |> Map.put(:last_bidder, player_id)
                 |> Map.put(:amount, amount)
     Map.put(args, :event, new_event)
-  end
-
-  def send_bid_event(%{ game: game, amount: amount, card: card, player: player } = args) do
-    event = Event.ignored("#{player.player_id} поднимает ставку до #{amount}k за #{card.name}")
-    MonopolyChannel.send_event(Map.put(args, :event, event))
   end
 
   def no_other_members?(%{ game: game, player_id: player_id, event: event }) do

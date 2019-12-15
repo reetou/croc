@@ -71,4 +71,40 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionBid do
     end
   end
 
+  describe "Auction end after bid" do
+    setup %{ game: game } do
+      first_player = Enum.at(game.players, 0)
+      player = Enum.at(game.players, 1)
+      bidder_player = Enum.at(game.players, 4)
+      %Event{} = roll_event = Event.get_by_type(game, first_player.player_id, :roll)
+      %Event{} = event = Event.get_by_type(game, player.player_id, :auction)
+      |> Map.put(:last_bidder, nil)
+      |> Map.put(:members, [bidder_player.player_id])
+      game =
+        game
+        |> Event.remove_player_event(first_player.player_id, roll_event.event_id)
+        |> Event.remove_player_event(player.player_id, event.event_id)
+        |> Event.add_player_event(bidder_player.player_id, event)
+        |> Map.put(:player_turn, bidder_player.player_id)
+      %{ game: game, bidder_player: bidder_player }
+    end
+
+    test "Should set as bidder and end auction", %{ game: game, bidder_player: bidder_player } do
+      %Event{ event_id: event_id } = event = Event.get_by_type(game, bidder_player.player_id, :auction)
+      {:ok, args} = AuctionBid.call(%{
+        game: game,
+        player_id: bidder_player.player_id,
+        event_id: event_id
+      })
+      game = args.game
+      first_player = Enum.at(game.players, 0)
+      player_ids = Enum.map(game.players, fn p -> p.player_id end)
+      index = Enum.find_index(player_ids, fn id -> id == event.starter end)
+      %Card{} = card = Card.get_by_position(game, event.position)
+      expected_player_turn = Enum.at(game.players, index + 1, first_player)
+      assert card.owner == bidder_player.player_id
+      assert game.player_turn == expected_player_turn.player_id
+    end
+  end
+
 end
