@@ -6,6 +6,8 @@ defmodule CrocWeb.UserController do
   alias Phauxth.Log
   alias Croc.Accounts
   alias Croc.Accounts.User
+  alias Croc.Games.Monopoly.Lobby
+  alias Croc.Games.Monopoly
   alias CrocWeb.{Auth.Token, Email}
 
   action_fallback CrocWeb.FallbackController
@@ -15,8 +17,8 @@ defmodule CrocWeb.UserController do
   plug :id_check when action in [:edit, :update, :delete]
 
   def index(conn, _) do
-    users = Accounts.list_users()
-    render(conn, "index.html", users: users)
+    user = User.get_public_fields(conn.assigns.current_user)
+    render(conn, "index.html", lobbies: Lobby.get_all(), user: user, games: Monopoly.get_all())
   end
 
   def new(conn, _) do

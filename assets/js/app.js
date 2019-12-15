@@ -14,4 +14,12 @@ import "phoenix_html"
 // Import local files
 //
 // Local files can be imported directly using relative paths, for example:
-// import socket from "./socket"
+import socket from "./socket"
+import "react-phoenix"
+import LobbyContainer from '../src/components/lobby/LobbyContainer'
+import Game from '../src/components/game/monopoly/Game'
+
+window.Components = {
+  LobbyContainer,
+  Game,
+}

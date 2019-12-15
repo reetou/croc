@@ -5,6 +5,8 @@
 # It is also run when you use `mix ecto.setup` or `mix ecto.reset`
 #
 
+alias Croc.Repo.Games.Monopoly.Card
+
 users = [
   %{
     email: "jane.doe@example.com",

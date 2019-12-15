@@ -1,0 +1,5 @@
+
+<h1>Welcome to this game <%= @conn.assigns.game.game_id %></h1>
+<p>You are now a <%= if @conn.assigns.is_player, do: "player", else: "spectator" %></p>
+
+<%= react_component("Components.Game", %{ game: @conn.assigns.game, user: @conn.assigns.user, is_player: @conn.assigns.is_player }) %>

@@ -27,6 +27,10 @@ defmodule Croc.Accounts.User do
     field :reset_sent_at, :utc_datetime
     has_many :sessions, Session, on_delete: :delete_all
 
+    has_many :user_monopoly_cards, Croc.Repo.Games.Monopoly.UserCard
+
+    has_many :monopoly_cards, through: [:user_monopoly_cards, :monopoly_card]
+
     timestamps()
   end
 
@@ -103,4 +107,14 @@ defmodule Croc.Accounts.User do
   end
 
   defp strong_password?(_), do: {:error, "The password is too short"}
+
+  def get_public_fields(%__MODULE__{} = user) do
+    assoc = Repo.all(Ecto.assoc(user, :monopoly_cards))
+    user = Map.put(user, :user_monopoly_cards, assoc)
+    %{}
+    |> Map.put(:email, user.email)
+    |> Map.put(:id, user.id)
+    |> Map.put(:username, user.username)
+    |> Map.put(:user_monopoly_cards, user.user_monopoly_cards)
+  end
 end

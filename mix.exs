@@ -5,7 +5,7 @@ defmodule Croc.MixProject do
     [
       app: :croc,
       version: "0.1.0",
-      elixir: "~> 1.5",
+      elixir: "~> 1.9",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix, :gettext] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -47,7 +47,14 @@ defmodule Croc.MixProject do
       {:bamboo, "~> 1.3"},
       {:plug_cowboy, "~> 2.0"},
       {:react_phoenix, "~> 1.1.0"},
-      {:memento, "~> 0.3.1"}
+      {:memento, "~> 0.3.1"},
+      {:elixir_uuid, "~> 1.2"},
+      {:mix_test_watch, "~> 1.0", only: :dev, runtime: false},
+      {:dialyxir, "~> 0.5", only: [:dev], runtime: false},
+      {:opus, "~> 0.6"},
+      {:sentry, "~> 7.0"},
+      {:distillery, "~> 2.0"},
+      {:decimal, "~> 1.0"}
     ]
   end
 
