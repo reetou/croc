@@ -10,7 +10,9 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :croc, CrocWeb.Endpoint,
-  url: [host: "example.com", port: 80],
+  http: [port: {:system, "PORT"}], # Possibly not needed, but doesn't hurt
+  url: [host: System.get_env("APP_NAME") <> ".gigalixirapp.com", port: 80],
+  server: true,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 config :sentry,
