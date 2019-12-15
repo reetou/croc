@@ -41,7 +41,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.Buy do
     })
     game = args.game
     player = Enum.at(game.players, 0)
-    assert player.balance == old_balance - card.cost - 100
+    assert player.balance == old_balance - card.cost
     card = Enum.at(game.cards, card_index)
     assert card.owner == player.player_id
   end
