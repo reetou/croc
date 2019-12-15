@@ -4,7 +4,8 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionReject do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
   alias Croc.Pipelines.Games.Monopoly.Events.{
-    AuctionEnded
+    AuctionEnded,
+    AuctionRequest
   }
   require Logger
   use Opus.Pipeline
@@ -23,11 +24,14 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionReject do
   check :card_type_valid?, error_message: :invalid_card_type
   step :remove_event, with: &Event.remove_player_event/1
   step :set_new_auction_members
-  step :overwrite_player_id, unless: :no_other_members?
-  step :add_player, unless: :no_other_members?
-  step :add_auction_event, unless: :no_other_members?
-  step :change_player_turn, unless: :no_other_members?
-  link AuctionEnded, if: :no_other_members?
+  link AuctionEnded, if: :no_members?
+  step :overwrite_player_id, if: :last_member_is_bidder?
+  link AuctionEnded, if: :last_member_is_bidder?
+  link AuctionRequest, if: :has_members?
+
+  def has_members?(%{ members: members, event: event }) do
+    members != [event.last_bidder] and length(members) > 0
+  end
 
   def add_event(%{ game: game, player_id: player_id, event_id: event_id } = args) do
     player = Player.get(game, player_id)
@@ -57,6 +61,10 @@ defmodule Croc.Pipelines.Games.Monopoly.AuctionReject do
 
   def no_members?(%{ members: members }) do
     length(members) == 0
+  end
+
+  def last_member_is_bidder?(%{ event: event, members: members }) do
+    members == [event.last_bidder]
   end
 
   def no_other_members?(%{ game: game, player_id: player_id, event: event, members: members }) do

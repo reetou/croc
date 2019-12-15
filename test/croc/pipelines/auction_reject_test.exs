@@ -40,13 +40,59 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
     })
     %{game: args.game}
   end
+  test "should reject auction and move turn with auction event to next auction member", %{ game: game } do
+    player_index = 1
+    next_player_index = 2
+    player = Enum.at(game.players, player_index)
+    assert game.player_turn == player.player_id
+    event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
+    event_id = Map.fetch!(event, :event_id)
+    old_balance = player.balance
+    {:ok, args} = AuctionReject.call(%{
+      game: game,
+      player_id: player.player_id,
+      event_id: event_id
+    })
+    game = args.game
+    %Card{} = card = Card.get_by_position(game, event.position)
+    player = Enum.at(game.players, player_index)
+    next_player = Enum.at(game.players, next_player_index)
+    assert player.balance == old_balance
+    assert card.owner == nil
+    {:error, :no_event} = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
+    event = Event.get_by_type(%{ game: game, player_id: next_player.player_id, type: :auction })
+    assert game.player_turn == next_player.player_id
+    expected_members = event.members
+                       |> Enum.filter(fn id -> id != player.player_id end)
+    assert %Event{} = event
+    assert event.starter != nil
+    assert event.amount == card.cost
+    assert event.members == expected_members
+  end
+  describe "Reject edge cases" do
 
-  describe "Reject" do
-    test "should reject auction and move turn with auction event to next auction member", %{ game: game } do
+    setup context do
+      game = context.game
+      player_index = 1
+      next_player_index = 2
+      third_player_index = 3
+      player = Enum.at(game.players, player_index)
+      next_player = Enum.at(game.players, next_player_index)
+      third_player = Enum.at(game.players, third_player_index)
+      assert game.player_turn == player.player_id
+      event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
+              |> Map.put(:members, [player.player_id, next_player.player_id])
+      event_id = Map.fetch!(event, :event_id)
+      game = game
+             |> Event.remove_player_event(player.player_id, event_id)
+             |> Event.add_player_event(player.player_id, event)
+      Map.put(context, :game, game)
+    end
+
+    test "should reject auction and move turn with auction event to next auction member when 2 members present", %{ game: game } do
       player_index = 1
       next_player_index = 2
       player = Enum.at(game.players, player_index)
-      assert game.player_turn == player.player_id
       event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
       event_id = Map.fetch!(event, :event_id)
       old_balance = player.balance
@@ -59,16 +105,11 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
       %Card{} = card = Card.get_by_position(game, event.position)
       player = Enum.at(game.players, player_index)
       next_player = Enum.at(game.players, next_player_index)
-      assert player.balance == old_balance
       assert card.owner == nil
       {:error, :no_event} = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
       event = Event.get_by_type(%{ game: game, player_id: next_player.player_id, type: :auction })
-      assert game.player_turn == next_player.player_id
-      expected_members = event.members
-                         |> Enum.filter(fn id -> id != player.player_id end)
+      expected_members = [next_player.player_id]
       assert %Event{} = event
-      assert event.starter != nil
-      assert event.amount == card.cost
       assert event.members == expected_members
     end
   end
@@ -77,10 +118,10 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
     setup %{ game: game } do
       player = Enum.at(game.players, 1)
       assert game.player_turn == player.player_id
-      %Event{} = event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
-              |> Map.put(:members, [player.player_id])
       player_index = 2
       auction_player = Enum.at(game.players, player_index)
+      %Event{} = event = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
+              |> Map.put(:members, [auction_player.player_id, player.player_id])
       game = game
              |> Event.remove_player_event(player.player_id, event.event_id)
              |> Event.add_player_event(auction_player.player_id, event)
@@ -104,14 +145,12 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
       })
       game = args.game
       next_turn_player = Enum.at(game.players, 1)
-      event_starter_player = Enum.at(game.players, 0)
       %Card{} = card = Card.get_by_position(game, event.position)
       player = Enum.at(game.players, player_index)
       assert player.balance == old_balance
       assert card.owner == nil
       {:error, :no_event} = Event.get_by_type(%{ game: game, player_id: player.player_id, type: :auction })
       assert game.player_turn == next_turn_player.player_id
-      assert %Event{} = Event.get_by_type(%{ game: game, player_id: next_turn_player.player_id, type: :roll })
       assert length(next_turn_player.events) == 1
     end
   end
@@ -149,7 +188,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionReject do
       bidder_player = Enum.at(game.players, bidder_player_index)
       %Card{} = card = Card.get_by_position(game, event.position)
       event_starter_index = Enum.find_index(game.players, fn p -> p.player_id == event.starter end)
-      next_turn_player = Enum.at(game.players, event_starter_index + 1)
+      next_turn_player = Enum.at(game.players, event_starter_index + 1, Enum.at(game.players, 0))
       assert card.owner == bidder_player.player_id
       assert game.player_turn == next_turn_player.player_id
     end

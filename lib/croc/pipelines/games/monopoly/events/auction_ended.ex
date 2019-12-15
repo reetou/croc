@@ -15,6 +15,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
   step :set_player_id_back_to_auction_starter
   step :process_player_turn, with: &Monopoly.process_player_turn/1
 
+  def log(args) do
+    IO.inspect(args.members, label: "starting auction end, members are")
+  end
+
   def has_bidder?(%{ event: event }) do
     event.last_bidder != nil
   end
