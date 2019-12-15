@@ -19,6 +19,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Upgrade do
   step :set_amount
   step :upgrade, with: &Card.upgrade/1
   step :take_money, with: &Player.take_money/1
+  tee :send_upgrade_event
+
+  def send_upgrade_event(%{ game: game, player_id: player_id, card: card }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} покупает филиал #{card.name} за #{card.upgrade_cost}") })
+  end
 
   def set_amount(%{ card: card } = args) do
     Map.put(args, :amount, card.upgrade_cost)

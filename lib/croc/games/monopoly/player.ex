@@ -122,7 +122,9 @@ defmodule Croc.Games.Monopoly.Player do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     new_position = Monopoly.get_new_position(game, player.position, move_value)
     with %Monopoly{} = result <- replace(game, player_id, Map.put(player, :position, new_position)) do
-      Map.put(args, :game, result)
+      args
+      |> Map.put(:dice, {x, y})
+      |> Map.put(:game, result)
     else
       e -> e
     end

@@ -21,6 +21,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   step :take_money, with: &Player.take_money/1
   step :remove_event, with: &Event.remove_player_event/1
   step :process_player_turn, with: &Monopoly.process_player_turn/1
+  tee :send_buy_event
+
+  def send_buy_event(%{ game: game, player_id: player_id, card: card }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} покупает #{card.name} за #{card.cost}") })
+  end
 
   def set_event_type(args) do
     Map.put(args, :type, :free_card)

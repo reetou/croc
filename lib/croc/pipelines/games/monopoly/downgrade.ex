@@ -19,6 +19,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Downgrade do
   step :set_amount
   step :downgrade, with: &Card.downgrade/1
   step :give_money, with: &Player.give_money/1
+  tee :send_downgrade_event
+
+  def send_downgrade_event(%{ game: game, player_id: player_id, card: card }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} продает филиал #{card.name} за #{card.upgrade_cost}") })
+  end
 
   def set_amount(%{ card: card } = args) do
     Map.put(args, :amount, card.upgrade_cost)

@@ -3,6 +3,7 @@ defmodule Croc.Pipelines.Games.Monopoly.PutOnLoan do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias CrocWeb.MonopolyChannel
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
@@ -17,7 +18,11 @@ defmodule Croc.Pipelines.Games.Monopoly.PutOnLoan do
   step :set_amount
   step :put_on_loan, with: &Card.put_on_loan/1
   step :give_money, with: &Player.give_money/1
+  tee :send_put_on_loan_event
 
+  def send_put_on_loan_event(%{ game: game, player_id: player_id, card: card }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} закладывает #{card.name} и получает #{card.loan_amount}k") })
+  end
 
   def set_amount(%{ card: card } = args) do
     Map.put(args, :amount, card.loan_amount)

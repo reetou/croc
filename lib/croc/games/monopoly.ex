@@ -17,7 +17,11 @@ defmodule Croc.Games.Monopoly do
     Buy,
     RejectBuy,
     AuctionBid,
-    AuctionReject
+    AuctionReject,
+    Upgrade,
+    Downgrade,
+    PutOnLoan,
+    Buyout
   }
   use GenServer
   require Logger
@@ -59,76 +63,71 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
     case Roll.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
-  def handle_call({:put_on_loan, player_id, card}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id),
-      {:ok, updated_game, _updated_player} <- Card.put_on_loan(game, player, card) do
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, updated_game}, new_state}
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+  def handle_call({:put_on_loan, player_id, position}, _from, %{game: game} = state) do
+    case PutOnLoan.call(%{ game: game, player_id: player_id, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
-  def handle_call({:upgrade, player_id, card}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id) do
-      {:ok, updated_game, _updated_player} = Card.upgrade(game, player, card)
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, updated_game}, new_state}
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+  def handle_call({:upgrade, player_id, position}, _from, %{game: game} = state) do
+    case Upgrade.call(%{ game: game, player_id: player_id, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
-  def handle_call({:downgrade, player_id, card}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id) do
-      {:ok, updated_game, _updated_player} = Card.downgrade(game, player, card)
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, updated_game}, new_state}
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+  def handle_call({:downgrade, player_id, position}, _from, %{game: game} = state) do
+    case Downgrade.call(%{ game: game, player_id: player_id, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
-  def handle_call({:buyout, player_id, card}, _from, %{game: game} = state) do
-    with true <- can_send_action?(game, player_id),
-         %Player{} = player <- Player.get(game, player_id) do
-      {:ok, updated_game, _updated_player} = Card.buyout(game, player, card)
-      new_state = Map.put(state, :game, updated_game)
-      update_game_state(updated_game, new_state)
-      {:reply, {:ok, updated_game}, new_state}
-    else
-      _ -> {:reply, {:error, :not_your_turn}, state}
+  def handle_call({:buyout, player_id, position}, _from, %{game: game} = state) do
+    case Buyout.call(%{ game: game, player_id: player_id, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
   @impl true
   def handle_call({:buy, player_id, event_id}, _from, %{game: game} = state) do
-    Logger.error("Showing for buy event")
     case Buy.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         Logger.debug("Processing buy action")
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
     end
@@ -137,11 +136,11 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:reject_buy, player_id, event_id}, _from, %{game: game} = state) do
     case RejectBuy.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         Logger.debug("Processing buy action")
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
     end
@@ -150,11 +149,11 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:auction_bid, player_id, event_id}, _from, %{game: game} = state) do
     case AuctionBid.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         Logger.debug("Processing auction bid action")
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         IO.inspect(pipeline_error, label: "Error at bid")
         {:reply, {:error, pipeline_error.error}, state}
@@ -164,11 +163,11 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:auction_reject, player_id, event_id}, _from, %{game: game} = state) do
     case AuctionReject.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         Logger.debug("Processing auction reject action")
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
     end
@@ -177,10 +176,10 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:pay, player_id, event_id}, _from, %{game: game} = state) do
     case Pay.call(%{ game: game, player_id: player_id, event_id: event_id }) do
-      {:ok, %{game: game, event: event}} ->
+      {:ok, %{game: game}} ->
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
-        {:reply, {:ok, %{game: game, event: event}}, new_state}
+        {:reply, {:ok, %{game: game}}, new_state}
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
       x -> IO.inspect(x, label: "X AT PAY")

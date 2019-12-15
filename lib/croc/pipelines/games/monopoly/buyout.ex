@@ -3,6 +3,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Buyout do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias CrocWeb.MonopolyChannel
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
@@ -17,6 +18,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Buyout do
   step :set_amount
   step :buyout, with: &Card.buyout/1
   step :take_money, with: &Player.take_money/1
+  tee :send_buyout_event
+
+  def send_buyout_event(%{ game: game, player_id: player_id, card: card }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} выкупает #{card.name} за #{card.buyout_cost}") })
+  end
 
 
   def set_amount(%{ card: card } = args) do
