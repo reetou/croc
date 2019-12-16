@@ -177,4 +177,12 @@ defmodule Croc.Games.Monopoly.Card do
            |> Map.put(:cards, cards)
     Map.put(args, :game, game)
   end
+
+  def reset(%__MODULE__{} = card) do
+    card
+    |> Map.put(:owner, nil)
+    |> Map.put(:upgrade_level, 0)
+    |> Map.put(:payment_amount, :raw_payment_amount)
+    |> Map.put(:on_loan, false)
+  end
 end

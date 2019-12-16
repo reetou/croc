@@ -53,6 +53,7 @@ defmodule Croc.Games.Monopoly do
     :game_id,
     :players,
     :started_at,
+    :ended_at,
     :winners,
     :player_turn,
     :cards
@@ -307,6 +308,15 @@ defmodule Croc.Games.Monopoly do
     end
   end
 
+  def end_game(%{ game: game }) do
+    Memento.transaction(fn ->
+      Enum.each(game.players, fn p ->
+        :ok = Memento.Query.delete(Player, p.id)
+      end)
+    end)
+    :ok = MonopolySupervisor.stop_game_process(game.game_id)
+  end
+
   def roll_dice do
     {Enum.random(1..6), Enum.random(1..6)}
   end
@@ -443,7 +453,7 @@ defmodule Croc.Games.Monopoly do
   def process_player_turn(%__MODULE__{} = game, player_id) do
     player = Player.get(game, player_id)
     Logger.debug("Checking if player #{player_id} not surrendered and 0 events: #{inspect player.events}")
-    with true <- player.surrender != true and length(player.events) == 0 do
+    with true <- length(player.events) == 0 do
       actual_players = Enum.filter(game.players, fn p -> p.surrender != true end)
       current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
       Logger.debug("Current player index #{current_player_index}")
@@ -454,6 +464,7 @@ defmodule Croc.Games.Monopoly do
         Logger.debug("Next player gonna be #{next_player.player_id}")
         set_player_turn(game, next_player.player_id)
       else
+        IO.inspect(actual_players, label: "Looking for #{player_id} in players")
         Logger.error("No such player in game")
         {:error, :no_such_player_in_game}
       end
