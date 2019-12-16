@@ -3,6 +3,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias CrocWeb.MonopolyChannel
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
