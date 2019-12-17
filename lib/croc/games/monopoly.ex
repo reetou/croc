@@ -470,7 +470,6 @@ defmodule Croc.Games.Monopoly do
       end
     else
       _ ->
-        IO.inspect(player, label: "Player already has events")
         game
     end
   end
