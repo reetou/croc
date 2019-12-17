@@ -12,7 +12,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
   step :give_card_to_bidder, with: &Card.buy/1, if: :has_bidder?
   tee :send_bidder_bought_event, if: :has_bidder?
   tee :send_nobody_bought_event, unless: :has_bidder?
-  step :set_player_id_back_to_auction_starter
+  step :set_player_id_back_to_auction_starter, unless: :auction_starter_not_playing?
+  step :set_player_id_to_player_before_auction_starter, if: :auction_starter_not_playing?
   step :process_player_turn, with: &Monopoly.process_player_turn/1
 
   def log(args) do
@@ -21,6 +22,20 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
 
   def has_bidder?(%{ event: event }) do
     event.last_bidder != nil
+  end
+
+  def auction_starter_not_playing?(%{ game: game, event: event }) do
+    %Player{} = player = Player.get(game, event.starter)
+    player.surrender == true
+  end
+
+  def set_player_id_to_player_before_auction_starter(%{ game: game, event: event } = args) do
+    players =
+      game.players
+      |> Enum.filter(fn p -> p.player_id == event.starter or p.surrender != true end)
+    starter_index = Enum.find_index(players, fn p -> p.player_id == event.starter end)
+    player = Enum.at(players, starter_index - 1, Enum.at(players, 0))
+    Map.put(args, :player_id, player.player_id)
   end
 
   def add_roll_event(%{ game: game, player_id: player_id } = args) do
