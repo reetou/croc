@@ -1,4 +1,4 @@
-# Croc
+# Croc [![Build Status](https://travis-ci.com/reetou/croc.svg?token=xxmdQ8xxo5o6w3WZNRrE&branch=master)](https://travis-ci.com/reetou/croc)
 
 To start your Phoenix server:
 
