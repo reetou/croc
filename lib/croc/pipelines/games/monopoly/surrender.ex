@@ -14,6 +14,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
   check :not_in_auction?, error_message: :finish_auction_first
   step :set_owned_cards
   tee :send_reset_owned_cards_event, if: :has_cards?
+  tee :send_surrender_event, unless: :has_cards?
   step :reset_owned_cards
   step :clear_player_events
   step :update_player
@@ -72,6 +73,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
       |> Enum.map(fn c -> c.name end)
       |> Enum.join(", ")
     MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} сдается и лишается карт #{owned_cards_string}") })
+  end
+
+  def send_surrender_event(%{ game: game, player_id: player_id }) do
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} сдается") })
   end
 
   def set_owned_cards(%{ game: game, player_id: player_id } = args) do

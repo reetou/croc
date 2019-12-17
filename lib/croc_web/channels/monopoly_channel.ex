@@ -81,6 +81,24 @@ defmodule CrocWeb.MonopolyChannel do
     end
   end
 
+  def handle_in("action", %{ "type" => type }, socket) when type in ["surrender"] do
+    @prefix <> game_id = socket.topic
+    Logger.debug("Received action type #{type} in game id: #{game_id}")
+    action_type = String.to_atom(type)
+    Logger.debug("Gonna send action_type #{action_type}")
+    with {:ok, %Monopoly{}, pid} <- Monopoly.get(game_id),
+         {:ok, %{ game: game }} <- GenServer.call(pid, {action_type, socket.assigns.user_id}) do
+      broadcast!(socket, "game_update", %{ game: game })
+      {:noreply, socket}
+    else
+      {:ok, %{game: game }} -> Logger.error("No event in result")
+      {:error, _reason} = r ->
+        Logger.error("Cannot handle #{type} event #{inspect(r)}")
+        send_error(socket, r)
+        {:noreply, socket}
+    end
+  end
+
   def handle_in("action", _params, socket) do
     send_error(socket, {:error, :invalid_action_type})
     {:reply, {:error, %{ reason: :invalid_request_format }}, socket}
@@ -96,5 +114,9 @@ defmodule CrocWeb.MonopolyChannel do
 
   def send_event(%{ game: game, event: event }) do
     CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "event", %{ event: event })
+  end
+
+  def send_game_end_event(%{ game: game } = payload) do
+    CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "game_end", payload)
   end
 end

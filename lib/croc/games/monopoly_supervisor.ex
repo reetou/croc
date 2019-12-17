@@ -25,7 +25,6 @@ defmodule Croc.Games.Monopoly.Supervisor do
   def stop_game_process(game_id) do
     {:ok, game, pid} = Monopoly.get(game_id)
     :ok = DynamicSupervisor.terminate_child(__MODULE__, pid)
-    :ok = CrocWeb.Endpoint.broadcast("game:" <> game_id, "game_end", %{ game: game })
   end
 end
 

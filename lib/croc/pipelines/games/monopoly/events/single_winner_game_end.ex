@@ -13,10 +13,18 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   step :set_ended_time
   step :set_winner
   tee :send_win_event
+  tee :broadcast_game_end_event
   step :end_game
 
+  def broadcast_game_end_event(args) do
+    :ok = MonopolyChannel.send_game_end_event(args)
+  end
+
   def end_game(args) do
-    :ok = Monopoly.end_game(args)
+    {:ok, pid} = Task.start(fn ->
+      Process.sleep(20000)
+      :ok = Monopoly.end_game(args)
+    end)
     args
   end
 

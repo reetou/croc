@@ -21,7 +21,8 @@ defmodule Croc.Games.Monopoly do
     Upgrade,
     Downgrade,
     PutOnLoan,
-    Buyout
+    Buyout,
+    Surrender
   }
   use GenServer
   require Logger
@@ -194,6 +195,18 @@ defmodule Croc.Games.Monopoly do
       {:error, pipeline_error} ->
         {:reply, {:error, pipeline_error.error}, state}
       x -> IO.inspect(x, label: "X AT PAY")
+    end
+  end
+
+  @impl true
+  def handle_call({:surrender, player_id}, _from, %{game: game} = state) do
+    case Surrender.call(%{ game: game, player_id: player_id }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
     end
   end
 
