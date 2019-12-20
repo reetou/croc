@@ -3,6 +3,9 @@ defmodule Croc.Pipelines.Games.Monopoly.RejectBuy do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
@@ -23,6 +26,13 @@ defmodule Croc.Pipelines.Games.Monopoly.RejectBuy do
   step :add_auction_members, if: :can_someone_buy?
   step :add_nobody_bought_event, unless: :can_someone_buy?
   step :process_player_turn, with: &Monopoly.process_player_turn/1, unless: :can_someone_buy?
+
+  step :set_timeout_callback
+  link CreatePlayerTimeout
+
+  def set_timeout_callback(args) do
+    Map.put(args, :on_timeout, :auction_reject)
+  end
 
   def overwrite_player_id(%{ game: game, player_id: player_id } = args) do
     args

@@ -4,6 +4,9 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionRequest do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
   alias CrocWeb.MonopolyChannel
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   require Logger
   use Opus.Pipeline
 
@@ -11,7 +14,12 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionRequest do
   step :add_player
   step :add_auction_event
   step :change_player_turn
+  step :set_timeout_callback
+  link CreatePlayerTimeout
 
+  def set_timeout_callback(args) do
+    Map.put(args, :on_timeout, :auction_reject)
+  end
 
   def log(args) do
     IO.inspect(args.player_id, label: "Started auction request to next player")

@@ -3,6 +3,9 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionBidRequest do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   alias CrocWeb.MonopolyChannel
   require Logger
   use Opus.Pipeline
@@ -12,7 +15,13 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionBidRequest do
   step :set_next_bid_amount
   step :add_auction_event
   step :change_player_turn
+  step :set_timeout_callback
+  link CreatePlayerTimeout
   tee :send_bid_event
+
+  def set_timeout_callback(args) do
+    Map.put(args, :on_timeout, :auction_reject)
+  end
 
   def send_bid_event(%{ game: game, amount: amount, card: card, player: player } = args) do
     event = Event.ignored("#{player.player_id} поднимает ставку до #{amount}k за #{card.name}")

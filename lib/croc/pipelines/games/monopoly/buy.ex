@@ -4,6 +4,9 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
   alias CrocWeb.MonopolyChannel
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
@@ -23,6 +26,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   step :remove_event, with: &Event.remove_player_event/1
   step :process_player_turn, with: &Monopoly.process_player_turn/1
   tee :send_buy_event
+  step :set_timeout_callback
+  link CreatePlayerTimeout
+
+  def set_timeout_callback(args), do: Map.put(args, :on_timeout, :surrender)
 
   def send_buy_event(%{ game: game, player_id: player_id, card: card }) do
     MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} покупает #{card.name} за #{card.cost}") })

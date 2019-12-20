@@ -4,6 +4,9 @@ defmodule Croc.Pipelines.Games.Monopoly.Roll do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
   alias CrocWeb.MonopolyChannel
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use Opus.Pipeline
 
   step :set_event_type
@@ -16,6 +19,13 @@ defmodule Croc.Pipelines.Games.Monopoly.Roll do
   step  :process_position_change, with: &Monopoly.process_position_change/1
   tee :send_roll_event
   step :process_player_turn, with: &Monopoly.process_player_turn/1
+
+  step :set_timeout_callback
+  link CreatePlayerTimeout
+
+  def set_timeout_callback(args) do
+    Map.put(args, :on_timeout, :surrender)
+  end
 
   def send_roll_event(%{ dice: dice, game: game, player_id: player_id }) do
     {x, y} = dice

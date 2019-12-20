@@ -2,6 +2,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Pay do
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly
+  alias CrocWeb.MonopolyChannel
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use Opus.Pipeline
 
   step :set_event_type
@@ -16,6 +20,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Pay do
   step :transfer_money, with: &Player.transfer/1, if: :has_receiver?
   step :take_money, with: &Player.take_money/1, unless: :has_receiver?
   step :process_player_turn, with: &Monopoly.process_player_turn/1
+  step :set_timeout_callback
+  link CreatePlayerTimeout
+
+  def set_timeout_callback(args), do: Map.put(args, :on_timeout, :surrender)
 
   def set_event_type(args) do
     Map.put(args, :type, :pay)

@@ -7,6 +7,9 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
   alias Croc.Pipelines.Games.Monopoly.{
     SingleWinnerGameEnd
   }
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use Opus.Pipeline
 
   check :is_playing?,      with: &Player.is_playing?/1, error_message: :no_player
@@ -20,6 +23,10 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
   step :update_player
   link SingleWinnerGameEnd, if: :last_player_left?
   step :process_player_turn_from_previous_actual_player, if: :is_player_turn?
+  step :set_timeout_callback, if: :processed_player_turn?
+  link CreatePlayerTimeout, if: :processed_player_turn?
+
+  def set_timeout_callback(args), do: Map.put(args, :on_timeout, :surrender)
 
   def last_player_left?(%{ game: game, player_id: player_id }) do
     players =
@@ -27,6 +34,11 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
       |> Enum.filter(fn p -> p.player_id != player_id end)
       |> Enum.filter(fn p -> p.surrender != true end)
     length(players) == 1
+  end
+
+  def processed_player_turn?(args) do
+    processed = Map.get(args, :processed_player_turn, false)
+    processed == true
   end
 
   def is_player_turn?(%{ game: game, player_id: player_id } = args) do
@@ -41,6 +53,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
     current_player_index = Enum.find_index(players_ids, fn id -> id == player_id end)
     previous_player_id = Enum.at(players_ids, current_player_index - 1, Enum.at(players_ids, 0))
     Monopoly.process_player_turn(%{ game: game, player_id: previous_player_id })
+    |> Map.put(:processed_player_turn, true)
   end
 
   def update_player(%{ game: game, player_id: player_id } = args) do
