@@ -119,4 +119,8 @@ defmodule CrocWeb.MonopolyChannel do
   def send_game_end_event(%{ game: game } = payload) do
     CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "game_end", payload)
   end
+
+  def send_game_update_event(%{ game: game } = payload) do
+    CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "game_update", payload)
+  end
 end
