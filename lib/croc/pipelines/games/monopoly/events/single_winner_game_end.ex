@@ -21,8 +21,12 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   end
 
   def end_game(args) do
+    sleep_time = case Mix.env() do
+      :test -> 1
+      _ -> 20000
+    end
     {:ok, pid} = Task.start(fn ->
-      Process.sleep(20000)
+      Process.sleep(sleep_time)
       :ok = Monopoly.end_game(args)
     end)
     args

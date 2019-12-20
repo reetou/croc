@@ -150,6 +150,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.AuctionBid do
           result == nil
         end)
       end)
+      Process.sleep(100)
       {:error, :no_game} = Monopoly.get(game.game_id)
     end
   end
