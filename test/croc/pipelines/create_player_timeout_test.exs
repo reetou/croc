@@ -31,16 +31,11 @@ defmodule Croc.PipelinesTest.Games.Monopoly.CreatePlayerTimeout do
     end
 
     test "should have timeout pid and turn_timeout_at", %{ game: game } do
-      assert game.timeout_pid != nil
-      assert Process.alive?(game.timeout_pid) == true
       assert game.on_timeout == :surrender
       assert game.turn_timeout_at != nil
     end
 
     test "should overwrite timeout pid and kill old process on new timeout", %{ game: game } do
-      assert game.timeout_pid != nil
-      assert Process.alive?(game.timeout_pid) == true
-      old_timeout_pid = game.timeout_pid
       old_turn_timeout_at = game.turn_timeout_at
       Process.sleep(1000)
       {:ok, args} = CreatePlayerTimeout.call(%{
@@ -48,16 +43,10 @@ defmodule Croc.PipelinesTest.Games.Monopoly.CreatePlayerTimeout do
         on_timeout: :surrender
       })
       game = args.game
-      assert game.timeout_pid != old_timeout_pid
       assert game.turn_timeout_at != old_turn_timeout_at
-      assert Process.alive?(old_timeout_pid) == false
-      assert Process.alive?(game.timeout_pid) == true
     end
 
     test "should surrender with callback :surrender", %{ game: game } do
-      assert game.timeout_pid != nil
-      assert Process.alive?(game.timeout_pid) == true
-      old_timeout_pid = game.timeout_pid
       old_turn_timeout_at = game.turn_timeout_at
       Process.sleep(1000)
       {:ok, args} = CreatePlayerTimeout.call(%{
@@ -65,10 +54,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.CreatePlayerTimeout do
         on_timeout: :surrender
       })
       game = args.game
-      assert game.timeout_pid != old_timeout_pid
       assert game.turn_timeout_at != old_turn_timeout_at
-      assert Process.alive?(old_timeout_pid) == false
-      assert Process.alive?(game.timeout_pid) == true
     end
   end
 
