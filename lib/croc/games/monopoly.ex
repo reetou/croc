@@ -24,6 +24,9 @@ defmodule Croc.Games.Monopoly do
     Buyout,
     Surrender
   }
+  alias Croc.Pipelines.Games.Monopoly.Events.{
+    CreatePlayerTimeout
+  }
   use GenServer
   require Logger
 
@@ -57,8 +60,14 @@ defmodule Croc.Games.Monopoly do
     :ended_at,
     :winners,
     :player_turn,
-    :cards
+    :cards,
+    :turn_timeout_at,
+    :on_timeout,
   ]
+
+  def turn_timeout(), do: 20000
+
+  def auction_timeout(), do: 20000
 
   def start_link(state) do
     name = state.game.game_id
@@ -216,6 +225,14 @@ defmodule Croc.Games.Monopoly do
   end
 
   @impl true
+  def handle_call({:update, game}, _from, state) do
+    new_state = Map.put(state, :game, game)
+    update_game_state(game, new_state)
+    IO.inspect(label: "Received update game")
+    {:reply, {:ok, game}, new_state}
+  end
+
+  @impl true
   def handle_call(params, _from, state) do
     Logger.error("Invalid params at monopoly process call #{inspect params}")
     {:noreply, state}
@@ -304,6 +321,8 @@ defmodule Croc.Games.Monopoly do
       Enum.each(game.players, fn p ->
         :ok = LobbyPlayer.delete(p.player_id, lobby_id)
       end)
+      {:ok, args} = CreatePlayerTimeout.call(%{ game: game, on_timeout: :surrender })
+      game = args.game
 
       {:ok, game}
     else
