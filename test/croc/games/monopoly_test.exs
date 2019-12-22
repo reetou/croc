@@ -293,6 +293,7 @@ defmodule Croc.GamesTest.MonopolyTest do
           _ -> p
         end
       end))
+      assert game.round == 1
       updated_game = Monopoly.process_player_turn(game, player_id)
       assert updated_game.player_turn == next_player.player_id
       player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
@@ -301,6 +302,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert length(player.events) == 1
       event = List.first(player.events)
       assert event.type == :roll
+      assert updated_game.round == 1
     end
 
     test "should ignore surrendered players", %{ game: game } do
@@ -325,7 +327,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert event.type == :roll
     end
 
-    test "if player is last in array, should set first player as player_turn", %{ game: game } do
+    test "if player is last in array, should set first player as player_turn and change round", %{ game: game } do
       %Player{player_id: player_id} = Enum.at(game.players, length(game.players) - 1)
       game = Map.put(game, :player_turn, player_id)
       %Player{player_id: next_player_id} = Enum.at(game.players, 0)
@@ -336,12 +338,14 @@ defmodule Croc.GamesTest.MonopolyTest do
           _ -> Map.put(p, :events, [])
         end
       end))
+      assert game.round == 1
       %Monopoly{} = updated_game = Monopoly.process_player_turn(game, player_id)
       assert updated_game.player_turn == next_player_id
       player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
       assert player != nil
       assert player.surrender == false
       assert length(player.events) == 1
+      assert updated_game.round == game.round + 1
       event = List.first(player.events)
       assert event.type == :roll
     end

@@ -63,9 +63,10 @@ defmodule Croc.Games.Monopoly do
     :cards,
     :turn_timeout_at,
     :on_timeout,
+    round: 1
   ]
 
-  def turn_timeout(), do: 20000
+  def turn_timeout(), do: 90000
 
   def auction_timeout(), do: 20000
 
@@ -494,7 +495,13 @@ defmodule Croc.Games.Monopoly do
         next_player_index = if current_player_index + 1 > max_index, do: 0, else: current_player_index + 1
         next_player = Enum.at(actual_players, next_player_index)
         Logger.debug("Next player gonna be #{next_player.player_id}")
-        set_player_turn(game, next_player.player_id)
+        case next_player_index do
+          0 -> game
+               |> set_player_turn(next_player.player_id)
+               |> change_round()
+          _ -> game
+               |> set_player_turn(next_player.player_id)
+        end
       else
         IO.inspect(actual_players, label: "Looking for #{player_id} in players")
         Logger.error("No such player in game")
@@ -510,6 +517,11 @@ defmodule Croc.Games.Monopoly do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     game = Event.add_player_event(game, player_id, Event.roll(player_id))
     |> Map.put(:player_turn, player_id)
+  end
+
+  def change_round(%__MODULE__{} = game) do
+    game
+    |> Map.put(:round, game.round + 1)
   end
 
   def update_game_state(%__MODULE__{ game_id: game_id } = game, state) do
