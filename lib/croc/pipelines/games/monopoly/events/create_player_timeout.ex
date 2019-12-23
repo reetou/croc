@@ -53,13 +53,13 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.CreatePlayerTimeout do
 
   def create_auction_reject_timeout(%{ game: game } = args) do
     player_id = game.player_turn
-    Logger.error("SCHEDULING auction reject for player #{player_id}")
+    Logger.debug("SCHEDULING auction reject for player #{player_id}")
     %Event{event_id: event_id} = Event.get_by_type(game, player_id, :auction)
     timeout = Monopoly.auction_timeout()
     {:ok, %Monopoly{} = game} = update_game_timeout(game, timeout)
     {:ok, timeout_pid} = start_timeout_task(game, timeout, fn ->
       {:ok, game, pid} = Monopoly.get(game.game_id)
-      Logger.error("Calling auction reject for player #{player_id}")
+      Logger.debug("Calling auction reject for player #{player_id}")
       {:ok, args} = AuctionReject.call(%{
         game: game,
         player_id: player_id,
@@ -73,7 +73,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.CreatePlayerTimeout do
   def create_surrender_timeout(%{ game: game } = args) do
     timeout = Monopoly.turn_timeout()
     player_id = game.player_turn
-    Logger.error("SCHEDULING surrender for player #{player_id}")
+    Logger.debug("SCHEDULING surrender for player #{player_id}")
     {:ok, %Monopoly{} = game} = update_game_timeout(game, timeout)
     {:ok, timeout_pid} = start_timeout_task(game, timeout, fn ->
       {:ok, game, pid} = Monopoly.get(game.game_id)
