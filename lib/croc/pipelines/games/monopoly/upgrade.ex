@@ -17,10 +17,23 @@ defmodule Croc.Pipelines.Games.Monopoly.Upgrade do
   check :upgradable?, error_message: :max_upgrade_level_reached
   check :in_monopoly?, with: &Card.in_monopoly?/1, error_message: :not_in_monopoly
   check :has_enough_money?, error_message: :not_enough_money
+  check :already_upgraded_in_this_round?, error_message: :already_upgraded_in_this_round
   step :set_amount
   step :upgrade, with: &Card.upgrade/1
   step :take_money, with: &Player.take_money/1
+  step :write_upgrade_to_round_data
   tee :send_upgrade_event
+
+  def write_upgrade_to_round_data(%{ game: game, player_id: player_id, card: card } = args) do
+    upgrades = game.round_data.upgrades ++ [{player_id, card.monopoly_type}]
+    round_data = Map.put(game.round_data, :upgrades, upgrades)
+    Map.put(args, :game, Map.put(game, :round_data, round_data))
+  end
+
+  def already_upgraded_in_this_round?(%{ game: game, player_id: player_id, card: card }) do
+    member = Enum.member?(game.round_data.upgrades, {player_id, card.monopoly_type})
+    member == false
+  end
 
   def send_upgrade_event(%{ game: game, player_id: player_id, card: card }) do
     MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} покупает филиал #{card.name} за #{card.upgrade_cost}") })

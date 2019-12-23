@@ -52,7 +52,12 @@ defmodule Croc.Games.Monopoly do
     :player_turn
   ]
 
-  @derive Jason.Encoder
+  @default_round_data %{
+    upgrades: [],
+    picked_event_cards: []
+  }
+
+  @derive {Jason.Encoder, except: [:round_data]}
   defstruct [
     :game_id,
     :players,
@@ -63,7 +68,12 @@ defmodule Croc.Games.Monopoly do
     :cards,
     :turn_timeout_at,
     :on_timeout,
-    round: 1
+    round: 1,
+    event_cards: [],
+    round_data: @default_round_data,
+    game_data: %{
+      picked_event_cards: []
+    }
   ]
 
   def turn_timeout(), do: 90000
@@ -522,6 +532,7 @@ defmodule Croc.Games.Monopoly do
   def change_round(%__MODULE__{} = game) do
     game
     |> Map.put(:round, game.round + 1)
+    |> Map.put(:round_data, @default_round_data)
   end
 
   def update_game_state(%__MODULE__{ game_id: game_id } = game, state) do

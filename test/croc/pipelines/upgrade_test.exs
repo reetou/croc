@@ -47,11 +47,44 @@ defmodule Croc.PipelinesTest.Games.Monopoly.Upgrade do
       position: card.position
     })
     game = args.game
+    assert game.round_data.upgrades == [{player.player_id, card.monopoly_type}]
     player = Enum.at(game.players, 0)
     assert player.balance + card.upgrade_cost == old_balance
     card = Enum.at(game.cards, card_index)
     assert card.upgrade_level == 1
     assert card.payment_amount > card.raw_payment_amount
+  end
+
+  test "should get error if this monopoly type was already upgraded in current round by this player", %{ game: game } do
+    player = Enum.at(game.players, 0)
+    assert game.player_turn == player.player_id
+    card = Enum.find(game.cards, fn c -> c.type == :brand end)
+           |> Map.put(:owner, player.player_id)
+    card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
+    cards =
+      List.replace_at(game.cards, card_index, card)
+      |> Enum.map(fn c ->
+        unless c.monopoly_type != card.monopoly_type do
+          Map.put(c, :owner, player.player_id)
+        else
+          c
+        end
+      end)
+    game = game
+           |> Map.put(:cards, cards)
+
+    {:ok, args} = Upgrade.call(%{
+      game: game,
+      player_id: player.player_id,
+      position: card.position
+    })
+    game = args.game
+    {:error, pipeline_error} = Upgrade.call(%{
+      game: game,
+      player_id: player.player_id,
+      position: card.position
+    })
+    :already_upgraded_in_this_round = pipeline_error.error
   end
 
 

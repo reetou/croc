@@ -293,6 +293,7 @@ defmodule Croc.GamesTest.MonopolyTest do
           _ -> p
         end
       end))
+      game = Map.put(game, :round_data, %{ upgrades: [{1, :cars}], picked_event_cards: [] })
       assert game.round == 1
       updated_game = Monopoly.process_player_turn(game, player_id)
       assert updated_game.player_turn == next_player.player_id
@@ -301,6 +302,8 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert player.surrender == false
       assert length(player.events) == 1
       event = List.first(player.events)
+      # Не должен чистить round_data если раунд не поменялся
+      assert updated_game.round_data.upgrades == [{1, :cars}]
       assert event.type == :roll
       assert updated_game.round == 1
     end
@@ -339,6 +342,7 @@ defmodule Croc.GamesTest.MonopolyTest do
         end
       end))
       assert game.round == 1
+      game = Map.put(game, :round_data, %{ upgrades: [{1, :cars}], picked_event_cards: [] })
       %Monopoly{} = updated_game = Monopoly.process_player_turn(game, player_id)
       assert updated_game.player_turn == next_player_id
       player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
@@ -346,6 +350,8 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert player.surrender == false
       assert length(player.events) == 1
       assert updated_game.round == game.round + 1
+      # Должен чистить round_data при изменении раунда
+      assert updated_game.round_data.upgrades == []
       event = List.first(player.events)
       assert event.type == :roll
     end
