@@ -153,15 +153,15 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
       %{ game: game, owner: owner, caller: caller }
     end
 
-    test "should throw error when card is in monopoly", %{ game: game } do
+    test "should throw error when card is in monopoly", %{ game: game, owner: owner } do
       %Player{player_id: player_id} = Enum.at(game.players, 0)
       {:error, pipeline_error} = ForceAuction.call(%{
         game: game,
         type: @event_card_type,
         player_id: player_id,
-        position: Enum.find(game.cards, fn c -> c.monopoly_type != nil end) |> Map.fetch!(:position)
+        position: Enum.find(game.cards, fn c -> c.monopoly_type != nil and c.owner == owner.player_id end) |> Map.fetch!(:position)
       })
-      assert pipeline_error.error == :card_has_no_owner
+      assert pipeline_error.error == :card_in_monopoly
     end
 
     test "should throw error when monopoly type has unoccupied cards", %{ game: game } do
