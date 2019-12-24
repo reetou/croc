@@ -57,7 +57,7 @@ defmodule Croc.Games.Monopoly do
     picked_event_cards: []
   }
 
-  @derive {Jason.Encoder, except: [:round_data]}
+  @derive {Jason.Encoder, except: [:round_data, :picked_event_cards]}
   defstruct [
     :game_id,
     :players,
@@ -71,9 +71,7 @@ defmodule Croc.Games.Monopoly do
     round: 1,
     event_cards: [],
     round_data: @default_round_data,
-    game_data: %{
-      picked_event_cards: []
-    }
+    picked_event_cards: []
   ]
 
   def turn_timeout(), do: 90000

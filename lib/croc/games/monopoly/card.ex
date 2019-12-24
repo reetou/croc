@@ -126,6 +126,19 @@ defmodule Croc.Games.Monopoly.Card do
     end)
   end
 
+  def not_in_monopoly?(%{ game: game, card: card }) do
+    game.cards
+    |> Enum.filter(fn c ->
+      c.monopoly_type != nil and c.monopoly_type == card.monopoly_type
+    end)
+    |> Enum.uniq_by(fn c -> c.owner end)
+    |> length()
+    |> case do
+         1 -> false
+         _ -> true
+       end
+  end
+
   def downgrade(%{ game: game, player: %Player{player_id: player_id} = player, card: card } = args) do
     card_index = Enum.find_index(game.cards, fn c -> c.id == card.id end)
     new_upgrade_level = card.upgrade_level - 1
