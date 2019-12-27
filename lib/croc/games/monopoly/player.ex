@@ -19,7 +19,8 @@ defmodule Croc.Games.Monopoly.Player do
       :surrender,
       :player_cards,
       :events,
-      :color
+      :color,
+      :old_position
     ],
     index: [:player_id, :game_id],
     autoincrement: true,
@@ -122,13 +123,13 @@ defmodule Croc.Games.Monopoly.Player do
     move_value = x + y
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
     new_position = Monopoly.get_new_position(game, player.position, move_value)
-    with %Monopoly{} = result <- replace(game, player_id, Map.put(player, :position, new_position)) do
-      args
-      |> Map.put(:dice, {x, y})
-      |> Map.put(:game, result)
-    else
-      e -> e
-    end
+    game =
+      game
+      |> put(player_id, :old_position, player.position)
+      |> put(player_id, :position, new_position)
+    args
+    |> Map.put(:dice, {x, y})
+    |> Map.put(:game, game)
   end
 
   def is_playing?(%{ game: %Monopoly{} = game, player_id: player_id }) do
