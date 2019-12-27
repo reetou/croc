@@ -31,22 +31,27 @@ function VkMiniApp(props) {
     user: null,
   }))
   useEffect(() => {
-    connect.send('VKWebAppInit')
-
     const handler = (e) => {
       console.log('Received VK event', e)
       if (e.detail.type === 'VKWebAppGetUserInfoResult') {
         console.log('Getting user info', e)
       }
     }
-
     connect.subscribe(handler)
-
+    connect.send('VKWebAppInit')
     return () => {
       console.log('Unsubscribing')
       connect.unsubscribe(handler)
     }
   }, [])
+  const getUserData = async () => {
+    try {
+      const userData = await connect.sendPromise('VKWebAppGetUserInfo')
+      console.log('User data', userData)
+    } catch (e) {
+      state.activeModal = 'cannot_get_user_data'
+    }
+  }
   const signIn = async () => {
     try {
       console.log('Send login')
@@ -58,8 +63,7 @@ function VkMiniApp(props) {
         state.activeModal = 'email_not_confirmed'
         return
       }
-      const userData = await connect.sendPromise('VKWebAppGetUserInfo')
-      console.log('User data', userData)
+      await getUserData()
       return data
     } catch (error) {
       console.log('Cannot get email data', error)
@@ -94,13 +98,25 @@ function VkMiniApp(props) {
           id={'cannot_get_email'}
           onClose={() => state.activeModal = null}
           icon={<DenyOutline56Icon />}
-          title="Не удалось получить E-mail"
+          title="Не удалось получить Email"
           caption="Без вашего Email мы не можем допустить вас к игре.
           Пожалуйста, разрешите доступ к Email, чтобы продолжить."
           actions={[{
             title: 'Ладно',
             type: 'primary',
             action: signIn
+          }]}
+        />
+        <ModalCard
+          id={'cannot_get_user_data'}
+          onClose={() => state.activeModal = null}
+          icon={<DenyOutline56Icon />}
+          title="Не удалось получить данные профиля"
+          caption="Без вашего имени игроки не смогут вас запомнить! Пожалуйста, разрешите доступ к данным профиля"
+          actions={[{
+            title: 'Ладно',
+            type: 'primary',
+            action: getUserData
           }]}
         />
       </ModalRoot>
