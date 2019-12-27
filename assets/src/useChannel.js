@@ -7,12 +7,18 @@ const useChannel = (channelName, onReply) => {
 
   useEffect(() => {
     const phoenixChannel = socket.channel(channelName);
-    phoenixChannel.join().receive('ok', (c) => {
-      setChannel(phoenixChannel)
-      if (onReply) {
-        onReply(c, socket)
-      }
-    });
+    phoenixChannel
+      .join()
+      .receive('ok', (c) => {
+        console.log('Joined successfully, cb is', c)
+        setChannel(phoenixChannel)
+        if (onReply) {
+          onReply(c, socket)
+        }
+      })
+      .receive('error', c => {
+        console.log('Cannot connect: ', c)
+      })
 
     // leave the channel when the component unmounts
     return () => {

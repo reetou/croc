@@ -21,6 +21,7 @@ defmodule CrocWeb.Router do
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_frame_settings
+    plug :put_layout, {CrocWeb.VkMobileView, "layout.html"}
   end
 
   pipeline :api do

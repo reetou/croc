@@ -8,8 +8,7 @@ const PhoenixSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState()
 
   useEffect(() => {
-    const socket = new Socket('/socket')
-    setSocket(socket)
+    setSocket(socketClient)
   }, [])
 
   if (!socket) return null
