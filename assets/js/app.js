@@ -17,9 +17,11 @@ import "phoenix_html"
 import socket from "./socket"
 import "react-phoenix"
 import LobbyContainer from '../src/components/lobby/LobbyContainer'
+import VkMiniApp from '../src/VkMiniApp'
 import Game from '../src/components/game/monopoly/Game'
 
 window.Components = {
   LobbyContainer,
   Game,
+  VkMiniApp,
 }

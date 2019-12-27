@@ -16,6 +16,8 @@ defmodule CrocWeb.Router do
 
   pipeline :vk do
     plug :accepts, ["html"]
+    plug :fetch_session
+    plug :fetch_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_frame_settings
@@ -51,7 +53,7 @@ defmodule CrocWeb.Router do
 
   scope "/vk", CrocWeb do
     pipe_through :vk
-    get "/", GameController, :index
+    get "/", VkController, :index
   end
 
   if Mix.env() == :dev do
