@@ -70,6 +70,8 @@ defmodule CrocWeb.Router do
   end
 
   defp put_frame_settings(conn, _) do
-    put_resp_header(conn, "x-frame-ancestors", "'self' https://vk.com")
+    conn
+    |> put_resp_header("x-frame-ancestors", "'self' https://vk.com")
+    |> put_resp_header("x-frame-options", "ALLOW-FROM https://vk.com")
   end
 end
