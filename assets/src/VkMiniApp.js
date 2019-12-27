@@ -35,6 +35,9 @@ function VkMiniApp(props) {
 
     const handler = (e) => {
       console.log('Received VK event', e)
+      if (e.detail.type === 'VKWebAppGetUserInfoResult') {
+        console.log('Getting user info', e)
+      }
     }
 
     connect.subscribe(handler)
@@ -47,7 +50,6 @@ function VkMiniApp(props) {
   const signIn = async () => {
     try {
       console.log('Send login')
-      state.activeModal = 'email_not_confirmed'
       const data = await connect.sendPromise('VKWebAppGetEmail')
 
       // Handling received data
@@ -56,7 +58,7 @@ function VkMiniApp(props) {
         state.activeModal = 'email_not_confirmed'
         return
       }
-      const userData = await connect.sendPromise('VKWebAppGetUserInfoResult', {})
+      connect.send('VKWebAppGetUserInfoResult')
       console.log('User data', userData)
       return data
     } catch (error) {
