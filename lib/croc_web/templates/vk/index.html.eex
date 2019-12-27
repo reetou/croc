@@ -1,0 +1,4 @@
+<div class="container">
+  <h1>Welcome to vk mini app</h1>
+  <%= react_component("Components.VkMiniApp") %>
+</div>
