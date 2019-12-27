@@ -39,6 +39,7 @@ function VkMiniApp(props) {
     }
     connect.subscribe(handler)
     connect.send('VKWebAppInit')
+    getUserData()
     return () => {
       console.log('Unsubscribing')
       connect.unsubscribe(handler)
@@ -49,6 +50,7 @@ function VkMiniApp(props) {
       const userData = await connect.sendPromise('VKWebAppGetUserInfo')
       console.log('User data', userData)
     } catch (e) {
+      console.log('User error', e)
       state.activeModal = 'cannot_get_user_data'
     }
   }
