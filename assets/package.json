@@ -6,6 +6,7 @@
     "watch": "webpack --mode development --watch"
   },
   "dependencies": {
+    "@babel/runtime": "^7.7.7",
     "@inlet/react-pixi": "^1.1.11",
     "@vkontakte/vk-connect": "^1.7.2",
     "@vkontakte/vkui": "^3.0.0-alpha.3",
@@ -28,6 +29,7 @@
     "@babel/core": "^7.0.0",
     "@babel/plugin-proposal-class-properties": "^7.7.4",
     "@babel/plugin-proposal-decorators": "^7.7.4",
+    "@babel/plugin-transform-runtime": "^7.7.6",
     "@babel/preset-env": "^7.7.4",
     "@babel/preset-react": "^7.7.4",
     "babel-loader": "^8.0.0",
