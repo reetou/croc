@@ -58,7 +58,8 @@ function VkMiniApp(props) {
         state.activeModal = 'email_not_confirmed'
         return
       }
-      connect.send('VKWebAppGetUserInfoResult')
+      const userData = await connect.sendPromise('VKWebAppGetUserInfo')
+      console.log('User data', userData)
       return data
     } catch (error) {
       console.log('Cannot get email data', error)
