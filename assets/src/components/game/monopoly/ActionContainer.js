@@ -12,16 +12,25 @@ function ActionContainer(props) {
       if (!props.user) return false
       return state.game.player_turn === props.user.id
     },
+    get me() {
+      return state.game.players.find(p => p.player_id === props.user.id)
+    },
+    get playing() {
+      return this.me && !this.me.surrender
+    },
     get playerInCharge() {
       return state.game.players.find(p => state.game.player_turn === p.player_id)
     },
     get firstEventTurn() {
-      if (!this.playerInCharge.events.length) return null
+      if (!this.playerInCharge || !this.playerInCharge.events.length) return null
       const events = this.playerInCharge.events
         .slice()
         .sort((a, b) => a.priority - b.priority)
       console.log('Events', events.map(e => toJS(e)))
       return events[0]
+    },
+    get eventType() {
+      return at(this, 'firstEventTurn.type')[0]
     },
     get currentCard() {
       return state.game.cards.find(c => c.position === this.playerInCharge.position)
@@ -35,6 +44,7 @@ function ActionContainer(props) {
     } else {
       document.title = 'Игра'
     }
+    console.log('Game', toJS(props.game))
   }, [props.game])
   useEffect(() => {
     state.channel = props.channel
@@ -51,6 +61,20 @@ function ActionContainer(props) {
       event_id: state.firstEventTurn.event_id,
     })
   }
+  const sendMessage = () => {
+    state.channel.push('chat_message', {
+      text: "Shit",
+      to: null,
+      chat_id: props.game.chat_id
+    })
+  }
+  const sendPrivateMessage = () => {
+    state.channel.push('chat_message', {
+      text: "Personal message yo",
+      to: 17,
+      chat_id: props.game.chat_id
+    })
+  }
   const sendBuy = () => {
     state.channel.push('action', {
       type: 'buy',
@@ -61,6 +85,11 @@ function ActionContainer(props) {
     state.channel.push('action', {
       type: 'reject_buy',
       event_id: state.firstEventTurn.event_id,
+    })
+  }
+  const sendSurrender = () => {
+    state.channel.push('action', {
+      type: 'surrender',
     })
   }
   const sendAuctionAction = (bid = true) => {
@@ -75,7 +104,6 @@ function ActionContainer(props) {
       position,
     })
   }
-  const eventType = at(state, 'firstEventTurn.type')[0]
   return useObserver(() => (
     <div>
       {
@@ -90,21 +118,29 @@ function ActionContainer(props) {
           />
           : null
       }
-      <p>Event {state.firstEventTurn ? state.firstEventTurn.event_id : 'no event'}</p>
+      {
+        state.playing
+          ? (
+            <button onClick={sendSurrender}>Surrender</button>
+          )
+          : (
+            <h1>You are not playing anymore</h1>
+          )
+      }
       {
         state.myTurn
           ? (
             <div>
               <h1>Вы ходите...</h1>
               {
-                eventType === 'roll' || eventType === 'pay'
+                state.eventType === 'roll' || state.eventType === 'pay'
                   ? (
-                    <button onClick={sendAction}>Send action {eventType}</button>
+                    <button onClick={sendAction}>Send action {state.eventType}</button>
                   )
                   : null
               }
               {
-                eventType === 'free_card'
+                state.eventType === 'free_card'
                   ? (
                     <div>
                       <button onClick={sendBuy}>Купить {state.currentCard.name} за {state.currentCard.cost}k</button>
@@ -114,10 +150,10 @@ function ActionContainer(props) {
                   : null
               }
               {
-                eventType === 'auction'
+                state.eventType === 'auction'
                   ? (
                     <div>
-                      <button onClick={sendAuctionAction}>Поднять цену до {state.firstEventTurn.amount}k</button>
+                      <button onClick={sendAuctionAction}>Поднять цену до {at(state, 'firstEventTurn.amount')[0]}k</button>
                       <button style={{ marginLeft: 10 }} onClick={() => sendAuctionAction(false)}>Отказаться от аукциона</button>
                     </div>
                   )
@@ -126,9 +162,11 @@ function ActionContainer(props) {
             </div>
           )
           : (
-            <h1>{state.firstEventTurn.text} {state.playerInCharge.player_id}</h1>
+            <h1>{at(state, 'firstEventTurn.text')[0]} {at(state, 'playerInCharge.player_id')[0]}</h1>
           )
       }
+      <button onClick={sendMessage}>Send message</button>
+      <button onClick={sendPrivateMessage}>Send PRIVATE message</button>
     </div>
   ))
 }
