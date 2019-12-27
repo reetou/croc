@@ -14,6 +14,13 @@ defmodule CrocWeb.Router do
     plug :put_user_token
   end
 
+  pipeline :vk do
+    plug :accepts, ["html"]
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+    plug :put_frame_settings
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug :fetch_session
@@ -42,6 +49,11 @@ defmodule CrocWeb.Router do
     resources "/sessions", SessionController, only: [:create, :delete]
   end
 
+  scope "/vk", CrocWeb do
+    pipe_through :vk
+    get "/", GameController, :index
+  end
+
   if Mix.env() == :dev do
     forward "/sent_emails", Bamboo.SentEmailViewerPlug
   end
@@ -53,5 +65,9 @@ defmodule CrocWeb.Router do
     else
       conn
     end
+  end
+
+  defp put_frame_settings(conn, _) do
+    put_resp_header(conn, "x-frame-ancestors", "'self' https://vk.com")
   end
 end
