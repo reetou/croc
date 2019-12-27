@@ -8,6 +8,8 @@ import {
   Epic,
   Placeholder,
   Button,
+  ModalRoot,
+  ModalCard,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import AppTabbar from './components/vk_mobile/AppTabbar'
@@ -16,11 +18,15 @@ import LobbyView from './components/vk_mobile/views/LobbyView'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
+import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
+import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
 
 function VkMiniApp(props) {
   console.log('props', props)
   const state = useLocalStore(() => ({
+    history: [],
     activeStory: 'find_game',
+    activeModal: null,
     game: null,
     user: null,
   }))
@@ -41,13 +47,22 @@ function VkMiniApp(props) {
   const signIn = async () => {
     try {
       console.log('Send login')
+      state.activeModal = 'email_not_confirmed'
       const data = await connect.sendPromise('VKWebAppGetEmail')
 
       // Handling received data
-      console.log('received email data', data);
+      console.log('received email data', data)
+      if (!data.email) {
+        state.activeModal = 'email_not_confirmed'
+        return
+      }
+      const userData = await connect.sendPromise('VKWebAppGetUserInfoResult', {})
+      console.log('User data', userData)
+      return data
     } catch (error) {
       console.log('Cannot get email data', error)
       // Handling an error
+      state.activeModal = 'cannot_get_email'
     }
   }
   const onChangeStory = (story) => {
@@ -60,6 +75,33 @@ function VkMiniApp(props) {
   const wsUrl = process.env.NODE_ENV !== 'production' ? 'localhost:4000/socket' : 'crocapp.gigalixir.com/socket'
   return useObserver(() => (
     <PhoenixSocketProvider wsUrl={wsUrl} options={{ token: window.userToken }}>
+      <ModalRoot activeModal={state.activeModal}>
+        <ModalCard
+          id={'email_not_confirmed'}
+          onClose={() => state.activeModal = null}
+          icon={<ErrorOutline56Icon />}
+          title="Email не подтвержден"
+          caption="Подтвердите Email в настройках профиля Вконтакте и попробуйте снова"
+          actions={[{
+            title: 'Сейчас сделаю',
+            type: 'primary',
+            action: () => state.activeModal = null
+          }]}
+        />
+        <ModalCard
+          id={'cannot_get_email'}
+          onClose={() => state.activeModal = null}
+          icon={<DenyOutline56Icon />}
+          title="Не удалось получить E-mail"
+          caption="Без вашего Email мы не можем допустить вас к игре.
+          Пожалуйста, разрешите доступ к Email, чтобы продолжить."
+          actions={[{
+            title: 'Ладно',
+            type: 'primary',
+            action: signIn
+          }]}
+        />
+      </ModalRoot>
       <Epic
         activeStory={state.activeStory}
         tabbar={<AppTabbar activeStory={state.activeStory} onChangeStory={onChangeStory} />}
