@@ -18,7 +18,7 @@ defmodule CrocWeb.LobbyChannel do
     else
       _ ->
         Logger.debug("No current lobby data found for user")
-        {:ok, socket}
+        {:ok, %{lobby_id: nil}, socket}
     end
   end
 
@@ -32,6 +32,11 @@ defmodule CrocWeb.LobbyChannel do
         Logger.error("Probably not in lobby")
         {:error, %{reason: :not_in_lobby}}
     end
+  end
+
+  def handle_in(action, _params, %{ assigns: %{ user_id: nil } } = socket) when action in ["create", "join", "leave", "start"] do
+    send_error(socket, {:error, :authenticate_first})
+    {:noreply, socket}
   end
 
   def handle_in("create", %{"options" => options} = params, socket) do
@@ -130,7 +135,6 @@ defmodule CrocWeb.LobbyChannel do
       else
         :ok = CrocWeb.Endpoint.subscribe(topic)
         assign(acc, :topics, [topic | topics])
-        |> IO.inspect(label: "Assigned topics")
       end
     end)
   end
