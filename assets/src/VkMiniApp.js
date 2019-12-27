@@ -59,7 +59,6 @@ function VkMiniApp(props) {
         return
       }
       connect.send('VKWebAppGetUserInfoResult')
-      console.log('User data', userData)
       return data
     } catch (error) {
       console.log('Cannot get email data', error)
