@@ -68,6 +68,7 @@ defmodule Croc.Games.Monopoly do
     :cards,
     :turn_timeout_at,
     :on_timeout,
+    :chat_id,
     round: 1,
     event_cards: [],
     round_data: @default_round_data,
@@ -317,6 +318,7 @@ defmodule Croc.Games.Monopoly do
             started_at: started_at,
             winners: [],
             player_turn: first_player_id,
+            chat_id: Ecto.UUID.generate(),
             cards: get_default_cards
           }
 

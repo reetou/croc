@@ -16,8 +16,10 @@ defmodule Croc.Application do
       # {Croc.Worker, arg},
       Croc.Games.Lobby.Supervisor,
       Croc.Games.Monopoly.Supervisor,
+      Croc.Games.Chat.Supervisor,
       {Registry, [keys: :unique, name: :monopoly_registry]},
-      {Registry, [keys: :unique, name: :lobby_registry]}
+      {Registry, [keys: :unique, name: :lobby_registry]},
+      {Registry, [keys: :unique, name: :chat_registry]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

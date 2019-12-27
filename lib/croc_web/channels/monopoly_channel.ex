@@ -4,13 +4,19 @@ defmodule CrocWeb.MonopolyChannel do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly.Card
+  alias Croc.Games.Chat.Message
+  alias Croc.Games.Chat
   require Logger
 
   @prefix "game:monopoly:"
 
-  def join(@prefix <> game_id, _message, socket) do
+  def join(@prefix <> game_id = topic, _message, socket) do
     IO.inspect(game_id, label: "Someone is joining")
     with {:ok, %Monopoly{} = game, _pid} <- Monopoly.get(game_id) do
+      topics = [topic <> ":#{socket.assigns.user_id}"]
+      socket = socket
+               |> assign(:topics, [])
+               |> put_new_topics(topics)
       {:ok, %{ game: game }, socket}
     else
       _ -> {:error, %{ reason: :no_game }}
@@ -104,6 +110,35 @@ defmodule CrocWeb.MonopolyChannel do
     {:reply, {:error, %{ reason: :invalid_request_format }}, socket}
   end
 
+  def handle_in("chat_message", %{ "chat_id" => chat_id, "text" => text, "to" => to }, socket) do
+    with {:ok, chat, pid} <- Chat.get(chat_id),
+         %Message{} = message <- Message.new(chat_id, text, socket.assigns.user_id, to, :message),
+         {:ok, chat} <- GenServer.call(pid, {:message, message}) do
+      unless message.to != nil do
+        broadcast!(socket, "message", message)
+        Logger.debug("Broadcasting message! #{inspect message}")
+      else
+        Logger.debug("Broadcasting personal message #{inspect message}")
+        :ok = CrocWeb.Endpoint.broadcast("user:#{socket.assigns.user_id}", "message", message)
+        :ok = CrocWeb.Endpoint.broadcast("user:#{message.to}", "message", message)
+      end
+      {:noreply, socket}
+    else
+      {:error, reason} ->
+        Logger.error("Error happened at chat message #{inspect reason}")
+        send_error(socket, {:error, reason})
+        {:noreply, socket}
+      e ->
+        Logger.error("Error happened at chat message with unhandled error #{inspect e}")
+        {:noreply, socket}
+    end
+  end
+
+  def handle_in("chat_message", params, socket) do
+    Logger.error("Unhandled message with params #{inspect params}")
+    {:noreply, socket}
+  end
+
   def send_error(socket, {:error, reason}) do
     push(socket, "error", %{ reason: reason })
   end
@@ -113,7 +148,9 @@ defmodule CrocWeb.MonopolyChannel do
   end
 
   def send_event(%{ game: game, event: event }) do
-    CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "event", %{ event: event })
+    topic = @prefix <> game.game_id
+    CrocWeb.Endpoint.broadcast(topic, "event", %{ event: event })
+    CrocWeb.Endpoint.broadcast(topic, "message", Message.new(game.chat_id, event.text, :event))
   end
 
   def send_game_end_event(%{ game: game } = payload) do
@@ -122,5 +159,18 @@ defmodule CrocWeb.MonopolyChannel do
 
   def send_game_update_event(%{ game: game } = payload) do
     CrocWeb.Endpoint.broadcast(@prefix <> game.game_id, "game_update", payload)
+  end
+
+  defp put_new_topics(socket, topics) do
+    Enum.reduce(topics, socket, fn topic, acc ->
+      topics = acc.assigns.topics
+      if topic in topics do
+        acc
+        Logger.debug("Ignoring topic #{topic} because already subscribed")
+      else
+        :ok = CrocWeb.Endpoint.subscribe(topic)
+        assign(acc, :topics, [topic | topics])
+      end
+    end)
   end
 end

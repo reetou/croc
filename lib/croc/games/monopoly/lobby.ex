@@ -9,7 +9,8 @@ defmodule Croc.Games.Monopoly.Lobby do
   defstruct [
     :lobby_id,
     :players,
-    :options
+    :options,
+    :chat_id
   ]
 
   @registry :lobby_registry
@@ -71,6 +72,7 @@ defmodule Croc.Games.Monopoly.Lobby do
       lobby = %__MODULE__{
         lobby_id: Ecto.UUID.generate(),
         players: [],
+        chat_id: Ecto.UUID.generate(),
         options: options
       }
 
