@@ -11,6 +11,7 @@
     "@vkontakte/icons": "^1.13.0",
     "@vkontakte/vk-connect": "^1.7.2",
     "@vkontakte/vkui": "^3.0.0-alpha.3",
+    "axios": "^0.19.0",
     "color-string": "^1.5.3",
     "lodash-es": "^4.17.15",
     "mobx": "^5.15.0",
