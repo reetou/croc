@@ -10,13 +10,22 @@ defmodule CrocWeb.MonopolyChannel do
 
   @prefix "game:monopoly:"
 
+  def join(@prefix <> game_id = topic, %{ "token" => token }, socket) do
+    IO.inspect(game_id, label: "Someone is joining")
+    with {:ok, user_id} <- Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600),
+         {:ok, %Monopoly{} = game, _pid} <- Monopoly.get(game_id) do
+      socket =
+        socket
+        |> assign(:user_id, user_id)
+      {:ok, %{ game: game, user_id: user_id }, socket}
+    else
+      {:error, reason} -> {:error, %{ reason: reason }}
+    end
+  end
+
   def join(@prefix <> game_id = topic, _message, socket) do
     IO.inspect(game_id, label: "Someone is joining")
     with {:ok, %Monopoly{} = game, _pid} <- Monopoly.get(game_id) do
-      topics = [topic <> ":#{socket.assigns.user_id}"]
-      socket = socket
-               |> assign(:topics, [])
-               |> put_new_topics(topics)
       {:ok, %{ game: game }, socket}
     else
       _ -> {:error, %{ reason: :no_game }}
