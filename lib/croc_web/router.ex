@@ -49,7 +49,7 @@ defmodule CrocWeb.Router do
 
   scope "/api", CrocWeb do
     pipe_through :api
-    post "/vk/auth", VkController, :auth
+    post "/auth/vk", VkController, :auth
     resources "/users", UserController, except: [:new, :index]
     resources "/sessions", SessionController, only: [:create, :delete]
   end
