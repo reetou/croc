@@ -9,7 +9,7 @@ defmodule CrocWeb.LobbyChannel do
   def join("lobby:all", %{ "token" => token }, socket) when token != nil do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
       {:ok, user_id} ->
-        with {:ok, %LobbyPlayer{lobby_id: lobby_id}} <- LobbyPlayer.get_current_lobby_data(socket.assigns.user_id) do
+        with {:ok, %LobbyPlayer{lobby_id: lobby_id}} <- LobbyPlayer.get_current_lobby_data(user_id) do
           Logger.debug("Has current lobby data, gonna send it")
           topic = "lobby:" <> lobby_id
           updated_socket =
@@ -17,14 +17,14 @@ defmodule CrocWeb.LobbyChannel do
             |> assign(:user_id, user_id)
             |> assign(:topics, [])
             |> put_new_topics([topic])
-          {:ok, %{lobby_id: lobby_id}, updated_socket}
+          {:ok, %{lobby_id: lobby_id, user_id: user_id}, updated_socket}
         else
           _ ->
             updated_socket = assign(socket, :user_id, user_id)
             {:ok, %{lobby_id: nil, user_id: user_id}, updated_socket}
         end
       {:error, reason} ->
-        {:ok, %{lobby_id: nil, user_id: nil}, socket}
+        {:ok, %{lobby_id: nil, user_id: nil, error: reason}, socket}
     end
   end
 
@@ -40,6 +40,22 @@ defmodule CrocWeb.LobbyChannel do
       _ ->
         Logger.debug("No current lobby data found for user")
         {:ok, %{lobby_id: nil, user_id: socket.assigns.user_id}, socket}
+    end
+  end
+
+  def join("lobby:" <> lobby_id, %{ "token" => token }, socket) do
+    with {:ok, user_id} <- Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600),
+         {:ok, %Lobby{} = lobby, _pid} <- Lobby.get(lobby_id),
+         true <- LobbyPlayer.in_lobby?(user_id, lobby) do
+      Logger.debug("Joined to personal lobby #{lobby_id}")
+      {:ok, socket}
+    else
+      {:error, reason} ->
+        Logger.error("Throwing error: #{reason}")
+        {:error, %{ reason: reason }}
+      e ->
+        Logger.error("Unknown error when joining with token #{inspect e}")
+        {:error, %{reason: :unknown_error}}
     end
   end
 
