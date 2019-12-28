@@ -8,6 +8,9 @@ import {
   Epic,
   Placeholder,
   Button,
+  Group,
+  Cell,
+  Avatar,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import AppTabbar from './components/vk_mobile/AppTabbar'
@@ -21,13 +24,22 @@ import Modals from './components/vk_mobile/Modals'
 
 function VkMiniApp(props) {
   console.log('props', props)
+  const mock = {
+    email: null,
+    first_name: "Вова",
+    id: 20,
+    image_url: "https://sun9-71.userapi.com/c855132/v855132776/a7dc/AuDfdnWSglE.jpg?ava=1",
+    last_name: "Синицынъ",
+    user_monopoly_cards: [],
+    username: null,
+  }
   const state = useLocalStore(() => ({
     history: [],
     activeStory: 'find_game',
     activeModal: null,
     game: null,
     token: null,
-    user: null,
+    user: process.env.NODE_ENV === 'production' ? null : mock,
   }))
   useEffect(() => {
     const handler = (e) => {
@@ -94,7 +106,7 @@ function VkMiniApp(props) {
       />
       <Epic
         activeStory={state.activeStory}
-        tabbar={<AppTabbar activeStory={state.activeStory} onChangeStory={onChangeStory} />}
+        tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
       >
         <View id={'profile'} activePanel={'main'}>
           <Panel id={'main'}>
@@ -102,7 +114,18 @@ function VkMiniApp(props) {
             {
               state.user
                 ? (
-                  <div>User</div>
+                  <React.Fragment>
+                    <Group title="Big avatar (80px)">
+                      <Cell
+                        photo={state.user.image_url}
+                        description="Игрок"
+                        before={<Avatar src={state.user.image_url} size={80}/>}
+                        size="l"
+                      >
+                        {state.user.first_name} {state.user.last_name}
+                      </Cell>
+                    </Group>
+                  </React.Fragment>
                 )
                 : (
                   <Placeholder

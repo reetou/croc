@@ -45,21 +45,26 @@ function VkLobbyContainer(props) {
           {
             props.lobbies.map(l => {
               console.log('Lobby', toJS(l))
-              const canJoin = !l.closed
+              const member = l.players.find(p => p.player_id === props.user.id)
+              const canJoin = !l.closed && !member
               const { players } = l
               const owner = players.length && props.user && players[0].player_id == props.user.id
 
               return (
                 <VkLobby
                   key={l.lobby_id}
+                  member={member}
                   onJoin={() => {
                     if (props.user) {
-                      joinLobby(l.lobby_id)
+                      props.joinLobby(l.lobby_id)
                     } else {
                       props.signIn()
                     }
                   }}
                   canJoin={canJoin}
+                  leaveLobby={() => {
+                    props.leaveLobby(l.lobby_id)
+                  }}
                   owner={owner}
                   lobby={l}
                   user={props.user}

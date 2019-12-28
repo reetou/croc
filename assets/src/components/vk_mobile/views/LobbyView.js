@@ -138,9 +138,11 @@ function LobbyView(props) {
         <PanelHeader>Найти игру</PanelHeader>
         <VkLobbyContainer
           user={props.user}
+          onCreateLobby={createLobby}
           lobbies={state.lobbies}
           signIn={props.signIn}
           joinLobby={joinLobby}
+          leaveLobby={leaveLobby}
         />
       </Panel>
       <CurrentLobby
