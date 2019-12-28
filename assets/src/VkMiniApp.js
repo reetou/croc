@@ -37,6 +37,7 @@ function VkMiniApp(props) {
     history: [],
     activeStory: 'find_game',
     activeModal: null,
+    errorMessage: null,
     game: null,
     token: null,
     user: process.env.NODE_ENV === 'production' ? null : mock,
@@ -93,6 +94,10 @@ function VkMiniApp(props) {
     state.activeStory = 'current_game'
     state.game = game
   }
+  const setActiveModal = (modal_id, errorMessage = null) => {
+    state.activeModal = modal_id
+    state.errorMessage = errorMessage
+  }
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
@@ -103,6 +108,8 @@ function VkMiniApp(props) {
         onClose={() => { state.activeModal = null }}
         onSignIn={signIn}
         onGetUserData={getUserData}
+        errorMessage={state.errorMessage}
+        activeModal={state.activeModal}
       />
       <Epic
         activeStory={state.activeStory}
@@ -155,6 +162,7 @@ function VkMiniApp(props) {
           user={state.user}
           id={'find_game'}
           onGameStart={onGameStart}
+          setActiveModal={setActiveModal}
         />
         <View id={'current_game'} activePanel="main" header={false}>
           <Panel id="main">

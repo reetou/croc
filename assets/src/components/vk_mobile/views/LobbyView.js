@@ -20,8 +20,11 @@ function LobbyView(props) {
       this.lobbies = [...this.lobbies, payload]
     },
     lobbyError(payload) {
-      console.log('Error', payload)
+      console.log('Error at lobby', payload)
       this.errors = [...this.errors, payload]
+      if (props.setActiveModal) {
+        props.setActiveModal('lobby_error', payload.reason)
+      }
     },
     lobbyUpdate(payload) {
       if (payload.players.length === 0) {

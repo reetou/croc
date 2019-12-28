@@ -4,7 +4,14 @@ import { ModalCard, ModalRoot } from '@vkontakte/vkui'
 import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
 import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
 
-function Modals({ activeModal, onClose, onSignIn, onGetUserData }) {
+function getErrorMessage(errorMessage) {
+  switch (errorMessage) {
+    case 'already_in_lobby': return 'Вы уже находитесь в лобби'
+    default: return 'Неизвестная ошибка'
+  }
+}
+
+function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage }) {
   return useObserver(() => (
     <ModalRoot activeModal={activeModal}>
       <ModalCard
@@ -42,6 +49,18 @@ function Modals({ activeModal, onClose, onSignIn, onGetUserData }) {
           title: 'Ладно',
           type: 'primary',
           action: onGetUserData
+        }]}
+      />
+      <ModalCard
+        id={'lobby_error'}
+        onClose={onClose}
+        icon={<DenyOutline56Icon />}
+        title="Не удалось присоединиться к лобби"
+        caption={getErrorMessage(errorMessage)}
+        actions={[{
+          title: 'Понятно',
+          type: 'primary',
+          action: onClose
         }]}
       />
     </ModalRoot>
