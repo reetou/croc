@@ -1,5 +1,5 @@
 const axios = require('axios')
-const host = process.env.API_HOST || 'https://crocapp.gigalixir.com'
+const host = process.env.API_HOST || 'https://crocapp.gigalixirapp.com'
 console.log(`Host at axios`, host)
 const instance = axios.create({
   withCredentials: true,

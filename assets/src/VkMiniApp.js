@@ -84,7 +84,7 @@ function VkMiniApp(props) {
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
-  const wsUrl = process.env.NODE_ENV !== 'production' ? 'ws://localhost:4000/socket' : 'wss://crocapp.gigalixir.com/socket'
+  const wsUrl = process.env.NODE_ENV !== 'production' ? 'ws://localhost:4000/socket' : 'wss://crocapp.gigalixirapp.com/socket'
   return useObserver(() => (
     <PhoenixSocketProvider wsUrl={wsUrl} userToken={state.token}>
       <Modals
