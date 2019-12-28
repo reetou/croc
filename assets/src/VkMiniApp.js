@@ -43,7 +43,9 @@ function VkMiniApp(props) {
   }, [])
   const getUserData = async () => {
     try {
-      state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
+      if (process.env.NODE_ENV !== 'production') {
+        state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
+      }
       const userData = await connect.sendPromise('VKWebAppGetUserInfo')
       console.log('User data', userData)
       const res = await axios.post('/vk/auth', userData)
