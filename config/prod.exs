@@ -13,7 +13,8 @@ config :croc, CrocWeb.Endpoint,
   http: [port: {:system, "PORT"}], # Possibly not needed, but doesn't hurt
   url: [host: System.get_env("APP_NAME") <> ".gigalixirapp.com", port: 80],
   server: true,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: ["//#{System.get_env("APP_NAME") <> ".gigalixirapp.com"}", "//*.vk.com"]
 
 config :sentry,
        dsn: System.get_env("SENTRY_DSN"),
