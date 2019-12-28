@@ -107,4 +107,22 @@ defmodule Croc.Accounts do
     |> User.update_password_changeset(attrs)
     |> Repo.update()
   end
+
+  def create_vk_user(%User{} = user, attrs) do
+    user
+    |> User.vk_changeset(attrs)
+    |> Repo.insert!()
+  end
+
+  def get_vk_user(vk_id) do
+    Repo.get_by(User, vk_id: vk_id)
+  end
+
+  def get_or_create_vk_user(vk_id, attrs) do
+    case get_vk_user(vk_id) do
+      nil -> create_vk_user(%User{}, attrs)
+      %User{} = user -> user
+    end
+    |> User.get_public_fields()
+  end
 end
