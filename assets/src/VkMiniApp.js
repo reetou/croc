@@ -11,6 +11,7 @@ import {
   Group,
   Cell,
   Avatar,
+  PanelSpinner,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import AppTabbar from './components/vk_mobile/AppTabbar'
@@ -29,6 +30,7 @@ function VkMiniApp(props) {
     first_name: "Вова",
     id: 20,
     image_url: "https://sun9-71.userapi.com/c855132/v855132776/a7dc/AuDfdnWSglE.jpg?ava=1",
+    photo_200: "https://sun9-71.userapi.com/c855132/v855132776/a7dc/AuDfdnWSglE.jpg?ava=1",
     last_name: "Синицынъ",
     user_monopoly_cards: [],
     username: null,
@@ -40,6 +42,7 @@ function VkMiniApp(props) {
     errorMessage: null,
     game: null,
     token: null,
+    loading: false,
     user: process.env.NODE_ENV === 'production' ? null : mock,
   }))
   useEffect(() => {
@@ -55,6 +58,9 @@ function VkMiniApp(props) {
     }
   }, [])
   const getUserData = async () => {
+    if (process.env.NODE_ENV === 'production') {
+      state.loading = true
+    }
     try {
       if (process.env.NODE_ENV !== 'production') {
         state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
@@ -68,6 +74,7 @@ function VkMiniApp(props) {
       console.log('User error', e)
       state.activeModal = 'cannot_get_user_data'
     }
+    state.loading = false
   }
   const getEmail = async () => {
     try {
@@ -156,14 +163,25 @@ function VkMiniApp(props) {
             }
           </Panel>
         </View>
-        <LobbyView
-          {...props}
-          signIn={signIn}
-          user={state.user}
-          id={'find_game'}
-          onGameStart={onGameStart}
-          setActiveModal={setActiveModal}
-        />
+        {
+          state.loading
+            ? (
+              <View id={'find_game'}>
+                <PanelHeader>Найти игру</PanelHeader>
+                <PanelSpinner height={200} size={'large'}/>
+              </View>
+            )
+            : (
+              <LobbyView
+                {...props}
+                signIn={signIn}
+                user={state.user}
+                id={'find_game'}
+                onGameStart={onGameStart}
+                setActiveModal={setActiveModal}
+              />
+            )
+        }
         <View id={'current_game'} activePanel="main" header={false}>
           <Panel id="main">
             <Placeholder
