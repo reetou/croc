@@ -46,7 +46,7 @@ function VkMiniApp(props) {
       state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
       const userData = await connect.sendPromise('VKWebAppGetUserInfo')
       console.log('User data', userData)
-      const res = await axios.post('/auth/vk', userData)
+      const res = await axios.post('/vk/auth', userData)
       state.user = res.data.user
       state.token = res.data.token
     } catch (e) {
