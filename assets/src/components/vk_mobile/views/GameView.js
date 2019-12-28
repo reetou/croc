@@ -376,6 +376,7 @@ function GameView(props) {
   const channelName = `game:monopoly:${props.game ? props.game.game_id : 'noop'}`
   const userChannelName = `user:${props.user.id}`
   const [gameChannel] = useChannel(channelName, (payload) => {
+    state.game = payload.game
     console.log('On game view join', payload)
   })
   const [userChannel] = useChannel(userChannelName, onJoin)
@@ -391,9 +392,9 @@ function GameView(props) {
     })
 
     gameChannel.on('game_end', payload => {
-      document.title = 'Игра окончена'
       console.log('Game ENDED, setting shit')
       state.game = payload.game
+      props.onGameEnd(payload.game)
     })
     //the LOAD_SCREENSHOT_MESSAGE is a message defined by the server
     gameChannel.on('error', payload => {
@@ -406,6 +407,7 @@ function GameView(props) {
 
     gameChannel.on('message', payload => {
       console.log('Message happened', payload)
+      props.onShowSnackbar(payload.text)
       state.messages.push(payload)
     })
 

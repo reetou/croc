@@ -10,15 +10,18 @@ import {
   Button,
   Group,
   Cell,
+  Div,
   Avatar,
   PanelSpinner,
   ScreenSpinner,
+  Snackbar,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import '@vkontakte/vkui/dist/vkui.css';
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
 import axios from './axios'
+import SnackbarContainer from './components/vk_mobile/SnackbarContainer'
 
 const Modals = lazy(() => import('./components/vk_mobile/Modals'))
 const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
@@ -900,8 +903,10 @@ function VkMiniApp(props) {
     activeModal: null,
     errorMessage: null,
     game: null,
+    endedGame: null,
     gamePanel: null,
     token: null,
+    snackbar: null,
     modalParams: {},
     loading: false,
     user: process.env.NODE_ENV === 'production' ? null : mock,
@@ -956,6 +961,7 @@ function VkMiniApp(props) {
     await getUserData()
   }
   const onChangeStory = (story) => {
+    console.log('Changing story to', story)
     state.activeStory = story
   }
   const onGameStart = (game) => {
@@ -971,6 +977,15 @@ function VkMiniApp(props) {
     state.modalParams = modalParams
     state.activeModal = modal_id
   }
+  const onShowSnackbar = (text) => {
+    state.snackbar = <Snackbar
+      layout="vertical"
+      duration={2000}
+      onClose={() => { state.snackbar = null }}
+    >
+      {text}
+    </Snackbar>
+  }
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
@@ -978,6 +993,9 @@ function VkMiniApp(props) {
   return useObserver(() => (
     <PhoenixSocketProvider wsUrl={wsUrl} userToken={state.token}>
       <Suspense fallback={<ScreenSpinner/>}>
+        <SnackbarContainer
+          snackbar={state.snackbar}
+        />
         <Modals
           onClose={() => { state.activeModal = null }}
           onSignIn={signIn}
@@ -1055,9 +1073,35 @@ function VkMiniApp(props) {
             game={state.game}
             activePanel={state.gamePanel}
             user={state.user}
+            onShowSnackbar={onShowSnackbar}
+            onGameEnd={(game) => {
+              state.endedGame = game
+              state.activeStory = 'ended_game'
+              state.gamePanel = 'no_game'
+              state.game = null
+            }}
             onChangeStory={onChangeStory}
             setActiveOptionsModal={setActiveOptionsModal}
           />
+          <View
+            id={'ended_game'}
+            game={state.endedGame}
+            activePanel={'main'}
+            user={state.user}
+            onChangeStory={onChangeStory}
+            setActiveOptionsModal={setActiveOptionsModal}
+          >
+            <Panel id={'main'}>
+              <PanelHeader>Игра окончена</PanelHeader>
+              {
+                state.endedGame
+                  ? (
+                    <Div>Победитель: {state.endedGame.winners[0] || 'Unknown error'}</Div>
+                  )
+                  : null
+              }
+            </Panel>
+          </View>
         </Epic>
       </Suspense>
     </PhoenixSocketProvider>
