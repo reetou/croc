@@ -1,6 +1,6 @@
 import React from 'react'
 import { useObserver } from 'mobx-react-lite'
-import { Cell, Div, Group, InfoRow, List } from '@vkontakte/vkui'
+import { Cell, Group, InfoRow, List } from '@vkontakte/vkui'
 
 function Start({ card }) {
   return useObserver(() => (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, lazy, Suspense } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import {
   Button,
@@ -6,27 +6,25 @@ import {
   Panel,
   Placeholder,
   ScreenSpinner,
+  Spinner,
   View,
-  Div,
-  Group,
-  Tabs,
-  TabsItem,
-  HorizontalScroll
 } from '@vkontakte/vkui'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
 import { Stage } from '@inlet/react-pixi'
 import Field from '../../game/monopoly/Field'
-import _ from 'lodash-es'
+import { set } from 'lodash-es'
 import PlayerSprite from '../../game/monopoly/PlayerSprite'
 import * as PIXI from 'pixi.js'
-import { toJS } from 'mobx'
-import styled from 'styled-components'
 import { getMobileHeight, getMobileWidth } from '../../../util'
-import VkActionContainer from '../VkActionContainer'
 import useChannel from '../../../useChannel'
 
-window.__PIXI_INSPECTOR_GLOBAL_HOOK__ &&
-window.__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
+const VkActionContainer = lazy(() => import('../VkActionContainer'))
+
+
+if (process.env.NODE_ENV !== 'production') {
+  window.__PIXI_INSPECTOR_GLOBAL_HOOK__ &&
+  window.__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
+}
 
 const mockFieldSettings = [
   {
@@ -327,8 +325,8 @@ function GameView(props) {
   const [active, setActive] = useState(null)
   const [old, setOld] = useState(0)
   const state = useLocalStore(() => ({
-    activePanel: 'no_game',
-    game: null,
+    activePanel: props.activePanel || 'no_game',
+    game: props.game,
     fieldSettings: [],
     messages: [],
     stageWidth: window.innerWidth,
@@ -436,11 +434,13 @@ function GameView(props) {
       </Panel>
       <Panel id={'game'}>
         <FixedLayout vertical="top">
-          <VkActionContainer
-            {...props}
-            game={state.game}
-            gameChannel={gameChannel}
-          />
+          <Suspense fallback={<Spinner size="large"/>}>
+            <VkActionContainer
+              {...props}
+              game={state.game}
+              gameChannel={gameChannel}
+            />
+          </Suspense>
         </FixedLayout>
         <FixedLayout vertical="bottom">
           <Stage options={{ backgroundColor: 0x10bb99, height: state.stageHeight, width: state.stageWidth }}>
@@ -474,8 +474,8 @@ function GameView(props) {
                             x={state.fieldSettings[c.position].point.x}
                             y={state.fieldSettings[c.position].point.y}
                             onSubmitPoint={(v) => {
-                              _.set(state, `fieldSettings.${c.position}.point.x`, v[0])
-                              _.set(state, `fieldSettings.${c.position}.point.y`, v[1])
+                              set(state, `fieldSettings.${c.position}.point.x`, v[0])
+                              set(state, `fieldSettings.${c.position}.point.y`, v[1])
                             }}
                           />
                         )

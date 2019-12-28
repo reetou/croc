@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, lazy, Suspense } from 'react'
 import { PhoenixSocketProvider } from './SocketContext'
 import connect from '@vkontakte/vk-connect'
 import {
@@ -12,19 +12,18 @@ import {
   Cell,
   Avatar,
   PanelSpinner,
+  ScreenSpinner,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
-import AppTabbar from './components/vk_mobile/AppTabbar'
 import '@vkontakte/vkui/dist/vkui.css';
-import LobbyView from './components/vk_mobile/views/LobbyView'
-import Game28Icon from '@vkontakte/icons/dist/28/game'
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
 import axios from './axios'
-import Modals from './components/vk_mobile/Modals'
-import GameView from './components/vk_mobile/views/GameView'
 
-
+const Modals = lazy(() => import('./components/vk_mobile/Modals'))
+const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
+const AppTabbar = lazy(() => import('./components/vk_mobile/AppTabbar'))
+const LobbyView = lazy(() => import('./components/vk_mobile/views/LobbyView'))
 
 const mock_game = {
   "cards": [
@@ -901,6 +900,7 @@ function VkMiniApp(props) {
     activeModal: null,
     errorMessage: null,
     game: null,
+    gamePanel: null,
     token: null,
     modalParams: {},
     loading: false,
@@ -961,6 +961,7 @@ function VkMiniApp(props) {
   const onGameStart = (game) => {
     state.game = game
     state.activeStory = 'current_game'
+    state.gamePanel = 'game'
   }
   const setActiveModal = (modal_id, errorMessage = null) => {
     state.activeModal = modal_id
@@ -976,86 +977,89 @@ function VkMiniApp(props) {
   const wsUrl = process.env.NODE_ENV !== 'production' ? 'ws://localhost:4000/socket' : 'wss://crocapp.gigalixirapp.com/socket'
   return useObserver(() => (
     <PhoenixSocketProvider wsUrl={wsUrl} userToken={state.token}>
-      <Modals
-        onClose={() => { state.activeModal = null }}
-        onSignIn={signIn}
-        onGetUserData={getUserData}
-        errorMessage={state.errorMessage}
-        activeModal={state.activeModal}
-        params={state.modalParams}
-      />
-      <Epic
-        activeStory={state.activeStory}
-        tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
-      >
-        <View id={'profile'} activePanel={'main'}>
-          <Panel id={'main'}>
-            <PanelHeader>Профиль</PanelHeader>
-            {
-              state.user
-                ? (
-                  <React.Fragment>
-                    <Group title="Big avatar (80px)">
-                      <Cell
-                        photo={state.user.image_url}
-                        description="Игрок"
-                        before={<Avatar src={state.user.image_url} size={80}/>}
-                        size="l"
-                      >
-                        {state.user.first_name} {state.user.last_name}
-                      </Cell>
-                    </Group>
-                  </React.Fragment>
-                )
-                : (
-                  <Placeholder
-                    icon={<User28Icon />}
-                    title="Вы еще не вошли в Монополию"
-                    action={
-                      (
-                        <Button
-                          size="xl"
-                          onClick={signIn}
-                          before={<User24Icon />}
-                        >
-                          Войти
-                        </Button>
-                      )
-                    }
-                  >
-                    После входа вы сможете играть в игру, зарабатывать баллы и многое другое
-                  </Placeholder>
-                )
-            }
-          </Panel>
-        </View>
-        {
-          state.loading
-            ? (
-              <View id={'find_game'}>
-                <PanelHeader>Найти игру</PanelHeader>
-                <PanelSpinner height={200} size={'large'}/>
-              </View>
-            )
-            : (
-              <LobbyView
-                {...props}
-                signIn={signIn}
-                user={state.user}
-                id={'find_game'}
-                onGameStart={onGameStart}
-                setActiveModal={setActiveModal}
-              />
-            )
-        }
-        <GameView
-          id={'current_game'}
-          game={state.game}
-          user={state.user}
-          onChangeStory={onChangeStory}
-          setActiveOptionsModal={setActiveOptionsModal}
+      <Suspense fallback={<ScreenSpinner/>}>
+        <Modals
+          onClose={() => { state.activeModal = null }}
+          onSignIn={signIn}
+          onGetUserData={getUserData}
+          errorMessage={state.errorMessage}
+          activeModal={state.activeModal}
+          params={state.modalParams}
         />
-      </Epic>
+        <Epic
+          activeStory={state.activeStory}
+          tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
+        >
+          <View id={'profile'} activePanel={'main'}>
+            <Panel id={'main'}>
+              <PanelHeader>Профиль</PanelHeader>
+              {
+                state.user
+                  ? (
+                    <React.Fragment>
+                      <Group title="Big avatar (80px)">
+                        <Cell
+                          photo={state.user.image_url}
+                          description="Игрок"
+                          before={<Avatar src={state.user.image_url} size={80}/>}
+                          size="l"
+                        >
+                          {state.user.first_name} {state.user.last_name}
+                        </Cell>
+                      </Group>
+                    </React.Fragment>
+                  )
+                  : (
+                    <Placeholder
+                      icon={<User28Icon />}
+                      title="Вы еще не вошли в Монополию"
+                      action={
+                        (
+                          <Button
+                            size="xl"
+                            onClick={signIn}
+                            before={<User24Icon />}
+                          >
+                            Войти
+                          </Button>
+                        )
+                      }
+                    >
+                      После входа вы сможете играть в игру, зарабатывать баллы и многое другое
+                    </Placeholder>
+                  )
+              }
+            </Panel>
+          </View>
+          {
+            state.loading
+              ? (
+                <View id={'find_game'}>
+                  <PanelHeader>Найти игру</PanelHeader>
+                  <PanelSpinner height={200} size={'large'}/>
+                </View>
+              )
+              : (
+                <LobbyView
+                  {...props}
+                  signIn={signIn}
+                  user={state.user}
+                  id={'find_game'}
+                  onGameStart={onGameStart}
+                  setActiveModal={setActiveModal}
+                />
+              )
+          }
+          <GameView
+            id={'current_game'}
+            game={state.game}
+            activePanel={state.gamePanel}
+            user={state.user}
+            onChangeStory={onChangeStory}
+            setActiveOptionsModal={setActiveOptionsModal}
+          />
+        </Epic>
+      </Suspense>
     </PhoenixSocketProvider>
   ))
 }

@@ -1,6 +1,6 @@
 import React from 'react'
 import { useObserver } from 'mobx-react-lite'
-import { Cell, Div, Group, InfoRow, List } from '@vkontakte/vkui'
+import { Div, Group } from '@vkontakte/vkui'
 
 function RandomEvent({ card }) {
   return useObserver(() => (

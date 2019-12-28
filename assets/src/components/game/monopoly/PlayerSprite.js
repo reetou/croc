@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import * as PIXI from 'pixi.js'
 import { Ease } from 'pixi-ease'
 import { toJS } from 'mobx'
-import _ from 'lodash-es'
+import { maxBy, findIndex } from 'lodash-es'
 import colorString from 'color-string'
 
 function PlayerSprite(props) {
@@ -69,9 +69,9 @@ function PlayerSprite(props) {
       })
     // Тут надо добавить какое то важное условие чтобы карта не скакала
     if (props.position < old_position) {
-      const max = _.maxBy(squares, 'position')
+      const max = maxBy(squares, 'position')
       const zero = squares.find(s => s.position === 0)
-      const index = _.findIndex(squares, s => s.position === max.position)
+      const index = findIndex(squares, s => s.position === max.position)
       if (index >= 0 && zero) {
         squares = squares.slice(0, squares.length - 1)
         console.log('Index', index)

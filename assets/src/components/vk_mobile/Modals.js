@@ -7,25 +7,16 @@ import {
   HeaderButton,
   ModalRoot,
   Div,
-  Group,
-  FormLayout,
-  List,
-  InfoRow,
-  Cell,
-  Avatar,
 } from '@vkontakte/vkui'
 import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
 import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
 import Icon24Done from '@vkontakte/icons/dist/24/done'
 import { usePlatform, IOS } from '@vkontakte/vkui'
-import _ from 'lodash-es'
 import { toJS } from 'mobx'
 import Brand from './cards_info/Brand'
 import RandomEvent from './cards_info/RandomEvent'
 import Start from './cards_info/Start'
 import Payment from './cards_info/Payment'
-import JailCell from './cards_info/JailCell'
-import Prison from './cards_info/Prison'
 import CardInDevelopment from './cards_info/CardInDevelopment'
 
 function getErrorMessage(errorMessage) {
