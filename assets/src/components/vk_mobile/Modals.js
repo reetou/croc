@@ -7,6 +7,7 @@ import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
     case 'already_in_lobby': return 'Вы уже находитесь в лобби'
+    case 'authenticate_first': return 'Вход не был завершен полностью. Попробуйте перезапустить приложение'
     default: return 'Неизвестная ошибка'
   }
 }
