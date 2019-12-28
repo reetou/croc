@@ -91,7 +91,7 @@ function VkActionContainer(props) {
     if (!gameChannel) {
       throw new Error('No channel passed to action container')
     }
-    if (!state.firstEventTurn) {
+    if (!state.myFirstEventTurn) {
       throw new Error('No events at player')
     }
     gameChannel.push('action', {
