@@ -30,7 +30,7 @@ function VkLobby(props) {
             visibleCount={5}
             style={{ color: "#fff" }}
           >
-            {lobby.players.length} игроков в лобби{member ? ', включая вас' : null}
+            {lobby.players.length} игроков в лобби{member && lobby.players.length > 1 ? ', включая вас' : null}
           </UsersStack>
           {
             member
