@@ -29,6 +29,7 @@ defmodule CrocWeb.Router do
     plug :fetch_session
     plug :fetch_flash
     plug Phauxth.AuthenticateToken
+    plug :put_user_token
   end
 
   scope "/", CrocWeb do
@@ -48,6 +49,7 @@ defmodule CrocWeb.Router do
 
   scope "/api", CrocWeb do
     pipe_through :api
+    post "/vk/auth", VkController, :auth
     resources "/users", UserController, except: [:new, :index]
     resources "/sessions", SessionController, only: [:create, :delete]
   end

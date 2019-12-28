@@ -1,9 +1,10 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useContext } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import { Div, Panel, PanelHeader, View } from '@vkontakte/vkui'
 import VkLobbyContainer from '../VkLobbyContainer'
 import useChannel from '../../../useChannel'
 import CurrentLobby from '../CurrentLobby'
+import { PhoenixSocketContext } from '../../../SocketContext'
 
 
 function LobbyView(props) {
@@ -37,6 +38,31 @@ function LobbyView(props) {
       }
     }
   }))
+  const { token } = useContext(PhoenixSocketContext)
+  const onJoin = (payload, socket) => {
+    const { lobby_id } = payload
+    if (!lobby_id) {
+      console.log('No lobby_id')
+      return
+    }
+    console.log('Received joined', payload)
+    if (state.joinedLobbyChannel) {
+      state.joinedLobbyChannel.leave()
+    }
+    const topic = `lobby:${lobby_id}`
+    const chan = socket.channel(topic, { token })
+    state.lobby = lobby_id
+    chan.on('game_start', (payload) => {
+      console.log('Game is gonna start', payload)
+      state.game_id = payload.game.game_id
+      window.location.href = `${props.game_path}${state.game_id}`
+    })
+    chan.join().receive('ok', () => {
+      console.log(`Joined topic ${topic}`)
+    })
+    state.joinedLobbyChannel = chan
+  }
+  const [lobbyChannel] = useChannel('lobby:all', onJoin)
   const inLobby = (lobby) => {
     if (!props.user) return false
     return lobby.players.some(p => p.player_id === props.user.id)
@@ -65,29 +91,6 @@ function LobbyView(props) {
       lobby_id,
     })
   }
-  const onJoin = (payload, socket) => {
-    const { lobby_id } = payload
-    if (!lobby_id) {
-      console.log('No lobby_id')
-      return
-    }
-    console.log('Received joined', payload)
-    if (state.joinedLobbyChannel) {
-      state.joinedLobbyChannel.leave()
-    }
-    const topic = `lobby:${lobby_id}`
-    const chan = socket.channel(topic)
-    state.lobby = lobby_id
-    chan.on('game_start', (payload) => {
-      console.log('Game is gonna start', payload)
-      state.game_id = payload.game.game_id
-      window.location.href = `${props.game_path}${state.game_id}`
-    })
-    chan.join().receive('ok', () => {
-      console.log(`Joined topic ${topic}`)
-    })
-    state.joinedLobbyChannel = chan
-  }
   const onLeave = (payload) => {
     console.log('Received left', payload)
     if (state.joinedLobbyChannel) {
@@ -95,12 +98,10 @@ function LobbyView(props) {
       state.joinedLobbyChannel = null
     }
   }
-  console.log('Using channel')
-  const [lobbyChannel] = useChannel('lobby:all', onJoin)
   // listening for messages from the channel
   useEffect(() => {
     if (!lobbyChannel) {
-      console.log('No lobby channel, returning')
+      console.log('No lobby channel at lobby view, returning')
       return
     }
     console.log('Setting up listeners')

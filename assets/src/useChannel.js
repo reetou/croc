@@ -3,10 +3,11 @@ import { PhoenixSocketContext } from './SocketContext'
 
 const useChannel = (channelName, onReply) => {
   const [channel, setChannel] = useState(null);
-  const { socket } = useContext(PhoenixSocketContext);
+  const { socket, token } = useContext(PhoenixSocketContext)
 
-  useEffect(() => {
-    const phoenixChannel = socket.channel(channelName);
+  const setupChannel = () => {
+    const phoenixChannel = socket.channel(channelName, { token })
+    console.log(`Joining with token ${token}`)
     phoenixChannel
       .join()
       .receive('ok', (c) => {
@@ -17,15 +18,19 @@ const useChannel = (channelName, onReply) => {
         }
       })
       .receive('error', c => {
-        console.log('Cannot connect: ', c)
+        console.error('Cannot connect: ', c)
       })
+    return phoenixChannel
+  }
 
+  useEffect(() => {
+    const phoenixChannel = setupChannel()
     // leave the channel when the component unmounts
     return () => {
       console.log('Left channel')
       phoenixChannel.leave();
     };
-  }, []);
+  }, [])
   // only connect to the channel once on component mount
   // by passing the empty array as a second arg to useEffect
 

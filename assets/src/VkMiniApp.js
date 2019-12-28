@@ -8,8 +8,6 @@ import {
   Epic,
   Placeholder,
   Button,
-  ModalRoot,
-  ModalCard,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import AppTabbar from './components/vk_mobile/AppTabbar'
@@ -18,8 +16,8 @@ import LobbyView from './components/vk_mobile/views/LobbyView'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
-import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
-import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
+import axios from './axios'
+import Modals from './components/vk_mobile/Modals'
 
 function VkMiniApp(props) {
   console.log('props', props)
@@ -28,14 +26,12 @@ function VkMiniApp(props) {
     activeStory: 'find_game',
     activeModal: null,
     game: null,
+    token: null,
     user: null,
   }))
   useEffect(() => {
     const handler = (e) => {
       console.log('Received VK event', e)
-      if (e.detail.type === 'VKWebAppGetUserInfoResult') {
-        console.log('Getting user info', e)
-      }
     }
     connect.subscribe(handler)
     connect.send('VKWebAppInit')
@@ -47,31 +43,34 @@ function VkMiniApp(props) {
   }, [])
   const getUserData = async () => {
     try {
+      state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
       const userData = await connect.sendPromise('VKWebAppGetUserInfo')
       console.log('User data', userData)
+      const res = await axios.post('/auth/vk', userData)
+      state.user = res.data.user
+      state.token = res.data.token
     } catch (e) {
       console.log('User error', e)
       state.activeModal = 'cannot_get_user_data'
     }
   }
-  const signIn = async () => {
+  const getEmail = async () => {
     try {
-      console.log('Send login')
       const data = await connect.sendPromise('VKWebAppGetEmail')
-
       // Handling received data
       console.log('received email data', data)
       if (!data.email) {
         state.activeModal = 'email_not_confirmed'
         return
       }
-      await getUserData()
-      return data
-    } catch (error) {
+    } catch (e) {
       console.log('Cannot get email data', error)
       // Handling an error
       state.activeModal = 'cannot_get_email'
     }
+  }
+  const signIn = async () => {
+    await getUserData()
   }
   const onChangeStory = (story) => {
     state.activeStory = story
@@ -80,48 +79,17 @@ function VkMiniApp(props) {
     state.activeStory = 'current_game'
     state.game = game
   }
-  const wsUrl = process.env.NODE_ENV !== 'production' ? 'localhost:4000/socket' : 'crocapp.gigalixir.com/socket'
+  useEffect(() => {
+    console.log('Token ADDED', state.token)
+  }, [state.token])
+  const wsUrl = process.env.NODE_ENV !== 'production' ? 'ws://localhost:4000/socket' : 'wss://crocapp.gigalixir.com/socket'
   return useObserver(() => (
-    <PhoenixSocketProvider wsUrl={wsUrl} options={{ token: window.userToken }}>
-      <ModalRoot activeModal={state.activeModal}>
-        <ModalCard
-          id={'email_not_confirmed'}
-          onClose={() => state.activeModal = null}
-          icon={<ErrorOutline56Icon />}
-          title="Email не подтвержден"
-          caption="Подтвердите Email в настройках профиля Вконтакте и попробуйте снова"
-          actions={[{
-            title: 'Сейчас сделаю',
-            type: 'primary',
-            action: () => state.activeModal = null
-          }]}
-        />
-        <ModalCard
-          id={'cannot_get_email'}
-          onClose={() => state.activeModal = null}
-          icon={<DenyOutline56Icon />}
-          title="Не удалось получить Email"
-          caption="Без вашего Email мы не можем допустить вас к игре.
-          Пожалуйста, разрешите доступ к Email, чтобы продолжить."
-          actions={[{
-            title: 'Ладно',
-            type: 'primary',
-            action: signIn
-          }]}
-        />
-        <ModalCard
-          id={'cannot_get_user_data'}
-          onClose={() => state.activeModal = null}
-          icon={<DenyOutline56Icon />}
-          title="Не удалось получить данные профиля"
-          caption="Без вашего имени игроки не смогут вас запомнить! Пожалуйста, разрешите доступ к данным профиля"
-          actions={[{
-            title: 'Ладно',
-            type: 'primary',
-            action: getUserData
-          }]}
-        />
-      </ModalRoot>
+    <PhoenixSocketProvider wsUrl={wsUrl} userToken={state.token}>
+      <Modals
+        onClose={() => { state.activeModal = null }}
+        onSignIn={signIn}
+        onGetUserData={getUserData}
+      />
       <Epic
         activeStory={state.activeStory}
         tabbar={<AppTabbar activeStory={state.activeStory} onChangeStory={onChangeStory} />}
