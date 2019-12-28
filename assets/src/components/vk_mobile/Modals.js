@@ -1,8 +1,16 @@
 import React from 'react'
 import { useObserver } from 'mobx-react-lite'
-import { ModalCard, ModalRoot } from '@vkontakte/vkui'
+import {
+  ModalCard,
+  ModalPage,
+  ModalPageHeader,
+  HeaderButton,
+  ModalRoot
+} from '@vkontakte/vkui'
 import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
 import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
+import Icon24Done from '@vkontakte/icons/dist/24/done'
+import { IS_PLATFORM_IOS } from '@vkontakte/vkui/dist/lib/platform';
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -63,6 +71,26 @@ function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage })
           type: 'primary',
           action: onClose
         }]}
+      />
+      <ModalPage
+        id={'edit_event_cards'}
+        onClose={onClose}
+        icon={<ErrorOutline56Icon />}
+        header={
+          <ModalPageHeader
+            right={(
+              <HeaderButton
+                onClick={() => {
+                  onClose()
+                }}
+              >
+                {IS_PLATFORM_IOS ? 'Готово' : <Icon24Done />}
+              </HeaderButton>
+            )}
+          >
+            Колода
+          </ModalPageHeader>
+        }
       />
     </ModalRoot>
   ))

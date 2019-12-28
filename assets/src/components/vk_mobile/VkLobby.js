@@ -8,6 +8,7 @@ function VkLobby(props) {
     onJoin,
     canJoin,
     member,
+    onGoToLobby,
     leaveLobby,
   } = props
   return useObserver(() => (
@@ -15,7 +16,7 @@ function VkLobby(props) {
       <Div>
         <div style={{
           backgroundImage: 'linear-gradient(135deg, #f24973 0%, #3948e6 100%)',
-          height: 100,
+          height: 120,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -35,22 +36,36 @@ function VkLobby(props) {
           {
             member
               ? (
-                <Button
-                  level="outline"
-                  disabled={!member}
-                  onClick={leaveLobby}
-                >
-                  Выйти
-                </Button>
+                <Div style={{display: 'flex'}}>
+                  <Button
+                    onClick={onGoToLobby}
+                    disabled={!member}
+                    mode={'primary'}
+                    stretched
+                    style={{ marginRight: 8 }}
+                  >
+                    Перейти
+                  </Button>
+                  <Button
+                    stretched
+                    mode="overlay_secondary"
+                    disabled={!member}
+                    onClick={leaveLobby}
+                  >
+                    Выйти
+                  </Button>
+                </Div>
               )
               : (
-                <Button
-                  level="outline"
-                  disabled={!canJoin}
-                  onClick={onJoin}
-                >
-                  Присоединиться
-                </Button>
+                <Div>
+                  <Button
+                    level="outline"
+                    disabled={!canJoin}
+                    onClick={onJoin}
+                  >
+                    Присоединиться
+                  </Button>
+                </Div>
               )
           }
         </div>

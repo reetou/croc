@@ -13,7 +13,11 @@ function LobbyView(props) {
     game_id: null,
     lobbies: props.lobbies || [],
     errors: [],
-    lobby: null,
+    joined_lobby_id: null,
+    get lobby() {
+      if (!this.joined_lobby_id) return null
+      return this.lobbies.find(l => l.lobby_id === this.joined_lobby_id)
+    },
     joinedLobbyChannel: null,
     newLobby(payload) {
       console.log('new lobby', payload)
@@ -54,7 +58,7 @@ function LobbyView(props) {
     }
     const topic = `lobby:${lobby_id}`
     const chan = socket.channel(topic, { token })
-    state.lobby = lobby_id
+    state.joined_lobby_id = lobby_id
     chan.on('game_start', (payload) => {
       console.log('Game is gonna start', payload)
       state.game_id = payload.game.game_id
@@ -64,6 +68,7 @@ function LobbyView(props) {
       console.log(`Joined topic ${topic}`)
     })
     state.joinedLobbyChannel = chan
+    state.activePanel = 'in_lobby'
   }
   const [lobbyChannel] = useChannel('lobby:all', onJoin)
   const inLobby = (lobby) => {
@@ -100,6 +105,8 @@ function LobbyView(props) {
       state.joinedLobbyChannel.leave()
       state.joinedLobbyChannel = null
     }
+    state.activePanel = 'main'
+    state.joined_lobby_id = null
   }
   // listening for messages from the channel
   useEffect(() => {
@@ -140,6 +147,10 @@ function LobbyView(props) {
       <Panel id="main">
         <PanelHeader>Найти игру</PanelHeader>
         <VkLobbyContainer
+          onGoToLobby={(lobby) => {
+            state.joined_lobby_id = lobby.lobby_id
+            state.activePanel = 'in_lobby'
+          }}
           user={props.user}
           onCreateLobby={createLobby}
           lobbies={state.lobbies}
@@ -149,6 +160,8 @@ function LobbyView(props) {
         />
       </Panel>
       <CurrentLobby
+        {...props}
+        onGoBack={() => { state.activePanel = 'main' }}
         id="in_lobby"
         lobby={state.lobby}
         leaveLobby={leaveLobby}

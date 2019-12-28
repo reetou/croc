@@ -187,7 +187,7 @@ function VkMiniApp(props) {
             <Placeholder
               icon={<Game28Icon />}
               title="Вы пока не в игре"
-              action={<Button size="xl">Найти игру</Button>}
+              action={<Button onClick={() => state.activeStory = 'find_game'} size="xl">Найти игру</Button>}
             >
               Найдите игру и переходите сюда
             </Placeholder>
