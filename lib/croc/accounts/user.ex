@@ -19,8 +19,12 @@ defmodule Croc.Accounts.User do
         }
 
   schema "users" do
-    field :username, :string, null: false, unique: true
-    field :email, :string, unique: true
+    field :username, :string
+    field :first_name, :string
+    field :last_name, :string
+    field :vk_id, :integer
+    field :image_url, :string
+    field :email, :string
     field :password, :string, virtual: true
     field :password_hash, :string
     field :confirmed_at, :utc_datetime
@@ -37,6 +41,13 @@ defmodule Croc.Accounts.User do
   def find_user(id) do
     __MODULE__
     |> Repo.get(id)
+  end
+
+  def vk_changeset(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:first_name, :vk_id, :last_name, :image_url])
+    |> validate_required([:vk_id])
+    |> unique_constraint(:vk_id)
   end
 
   def changeset(%__MODULE__{} = user, attrs) do
@@ -115,6 +126,9 @@ defmodule Croc.Accounts.User do
     |> Map.put(:email, user.email)
     |> Map.put(:id, user.id)
     |> Map.put(:username, user.username)
+    |> Map.put(:first_name, user.first_name)
+    |> Map.put(:image_url, user.image_url)
+    |> Map.put(:last_name, user.last_name)
     |> Map.put(:user_monopoly_cards, user.user_monopoly_cards)
   end
 end
