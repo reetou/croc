@@ -6,19 +6,40 @@ defmodule CrocWeb.LobbyChannel do
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Games.Monopoly
 
+  def join("lobby:all", %{ "token" => token }, socket) when token != nil do
+    case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
+      {:ok, user_id} ->
+        with {:ok, %LobbyPlayer{lobby_id: lobby_id}} <- LobbyPlayer.get_current_lobby_data(socket.assigns.user_id) do
+          Logger.debug("Has current lobby data, gonna send it")
+          topic = "lobby:" <> lobby_id
+          updated_socket =
+            socket
+            |> assign(:user_id, user_id)
+            |> assign(:topics, [])
+            |> put_new_topics([topic])
+          {:ok, %{lobby_id: lobby_id}, updated_socket}
+        else
+          _ ->
+            updated_socket = assign(socket, :user_id, user_id)
+            {:ok, %{lobby_id: nil, user_id: user_id}, updated_socket}
+        end
+      {:error, reason} ->
+        {:ok, %{lobby_id: nil, user_id: nil}, socket}
+    end
+  end
+
   def join("lobby:all", _message, socket) do
-    IO.inspect(socket, label: "Socket at lobby all")
     with {:ok, %LobbyPlayer{lobby_id: lobby_id}} <- LobbyPlayer.get_current_lobby_data(socket.assigns.user_id) do
       Logger.debug("Has current lobby data, gonna send it")
       topic = "lobby:" <> lobby_id
       updated_socket = socket
                        |> assign(:topics, [])
                        |> put_new_topics([topic])
-      {:ok, %{lobby_id: lobby_id}, updated_socket}
+      {:ok, %{lobby_id: lobby_id, user_id: socket.assigns.user_id}, updated_socket}
     else
       _ ->
         Logger.debug("No current lobby data found for user")
-        {:ok, %{lobby_id: nil}, socket}
+        {:ok, %{lobby_id: nil, user_id: socket.assigns.user_id}, socket}
     end
   end
 
