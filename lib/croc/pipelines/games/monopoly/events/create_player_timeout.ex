@@ -124,13 +124,16 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.CreatePlayerTimeout do
   end
 
   def update_game_timeout(game, timeout) do
-    timeout_at =
+    now =
       DateTime.utc_now()
       |> DateTime.truncate(:second)
+    timeout_at =
+      now
       |> DateTime.add(timeout, :millisecond)
     game =
       game
       |> Map.put(:turn_timeout_at, timeout_at)
+      |> Map.put(:turn_started_at, now)
     {:ok, game}
   end
 

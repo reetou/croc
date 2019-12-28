@@ -67,6 +67,7 @@ defmodule Croc.Games.Monopoly do
     :player_turn,
     :cards,
     :turn_timeout_at,
+    :turn_started_at,
     :on_timeout,
     :chat_id,
     round: 1,

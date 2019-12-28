@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
-import { Div, Panel, PanelHeader, View } from '@vkontakte/vkui'
+import { Div, Panel, PanelHeader, ScreenSpinner, View } from '@vkontakte/vkui'
 import VkLobbyContainer from '../VkLobbyContainer'
 import useChannel from '../../../useChannel'
 import CurrentLobby from '../CurrentLobby'
@@ -13,6 +13,7 @@ function LobbyView(props) {
     game_id: null,
     lobbies: props.lobbies || [],
     errors: [],
+    popout: null,
     joined_lobby_id: null,
     get lobby() {
       if (!this.joined_lobby_id) return null
@@ -57,16 +58,21 @@ function LobbyView(props) {
       state.joinedLobbyChannel.leave()
     }
     const topic = `lobby:${lobby_id}`
+    console.log('Topic')
     const chan = socket.channel(topic, { token })
     state.joined_lobby_id = lobby_id
     chan.on('game_start', (payload) => {
-      console.log('Game is gonna start', payload)
+      console.log('Game is gonna start!!!!', payload)
       state.game_id = payload.game.game_id
-      window.location.href = `${props.game_path}${state.game_id}`
+      props.onGameStart(payload.game)
     })
-    chan.join().receive('ok', () => {
-      console.log(`Joined topic ${topic}`)
-    })
+    chan.join()
+      .receive('ok', () => {
+        console.log(`Joined LOBBY topic ${topic}`)
+      })
+      .receive('error', (e) => {
+        console.log(`Cannot connect lobby topic ${topic}`, e)
+      })
     state.joinedLobbyChannel = chan
     state.activePanel = 'in_lobby'
   }
@@ -98,6 +104,7 @@ function LobbyView(props) {
     lobbyChannel.push('start', {
       lobby_id,
     })
+    state.popout = <ScreenSpinner />
   }
   const onLeave = (payload) => {
     console.log('Received left', payload)
@@ -143,7 +150,7 @@ function LobbyView(props) {
     }
   }, [lobbyChannel])
   return useObserver(() => (
-    <View activePanel={state.activePanel}>
+    <View activePanel={state.activePanel} popout={state.popout}>
       <Panel id="main">
         <PanelHeader>Найти игру</PanelHeader>
         <VkLobbyContainer

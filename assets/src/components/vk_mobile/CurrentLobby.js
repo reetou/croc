@@ -11,6 +11,7 @@ import {
   Footer,
   Div,
   Button,
+  InfoRow,
 } from '@vkontakte/vkui'
 import Icon24Back from '@vkontakte/icons/dist/24/back';
 
@@ -29,6 +30,9 @@ function CurrentLobby(props) {
         Ваше лобби
       </PanelHeader>
       <Group>
+        <InfoRow>
+          {props.lobby.lobby_id}
+        </InfoRow>
         <List>
           {
             props.lobby.players
@@ -61,7 +65,7 @@ function CurrentLobby(props) {
             onClick={() => {
               props.setActiveModal('edit_event_cards')
             }}
-            disabled={state.loading}
+            disabled
           >
             Изменить колоду (В разработке)
           </Button>

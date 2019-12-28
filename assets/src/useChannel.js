@@ -6,8 +6,8 @@ const useChannel = (channelName, onReply) => {
   const { socket, token } = useContext(PhoenixSocketContext)
 
   const setupChannel = () => {
-    const phoenixChannel = socket.channel(channelName, { token })
-    console.log(`Joining with token ${token}`)
+    const phoenixChannel = token ? socket.channel(channelName, { token }) : socket.channel(channelName)
+    console.log(`Joining with token ${token} to ${channelName}`)
     phoenixChannel
       .join()
       .receive('ok', (c) => {

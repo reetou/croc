@@ -5,12 +5,28 @@ import {
   ModalPage,
   ModalPageHeader,
   HeaderButton,
-  ModalRoot
+  ModalRoot,
+  Div,
+  Group,
+  FormLayout,
+  List,
+  InfoRow,
+  Cell,
+  Avatar,
 } from '@vkontakte/vkui'
 import ErrorOutline56Icon from '@vkontakte/icons/dist/56/error_outline'
 import DenyOutline56Icon from '@vkontakte/icons/dist/56/do_not_disturb_outline'
 import Icon24Done from '@vkontakte/icons/dist/24/done'
-import { IS_PLATFORM_IOS } from '@vkontakte/vkui/dist/lib/platform';
+import { usePlatform, IOS } from '@vkontakte/vkui'
+import _ from 'lodash-es'
+import { toJS } from 'mobx'
+import Brand from './cards_info/Brand'
+import RandomEvent from './cards_info/RandomEvent'
+import Start from './cards_info/Start'
+import Payment from './cards_info/Payment'
+import JailCell from './cards_info/JailCell'
+import Prison from './cards_info/Prison'
+import CardInDevelopment from './cards_info/CardInDevelopment'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -19,8 +35,26 @@ function getErrorMessage(errorMessage) {
     default: return 'Неизвестная ошибка'
   }
 }
+const cardInfo = (card) => {
+  switch (card.type) {
+    case 'random_event': return <RandomEvent card={card} />
+    case 'brand': return <Brand card={card} />
+    case 'start': return <Start card={card} />
+    case 'payment': return <Payment card={card} />
+    case 'jail_cell':
+    case 'teleport':
+    case 'prison': return <CardInDevelopment card={card} />
+    default: return null
+  }
+}
 
-function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage }) {
+function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage, params }) {
+  const platform = usePlatform()
+  console.log('Params', toJS(params))
+  const executeAndClose = async (fun) => {
+    await fun()
+    onClose()
+  }
   return useObserver(() => (
     <ModalRoot activeModal={activeModal}>
       <ModalCard
@@ -72,6 +106,91 @@ function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage })
           action: onClose
         }]}
       />
+      <ModalCard
+        id={'free_card_action'}
+        onClose={onClose}
+        icon={<DenyOutline56Icon />}
+        title={params.title || 'Выберите, что делать с полем'}
+        caption={'Вы можете купить поле или выставить его на аукцион'}
+        actions={[
+          {
+            title: 'Купить',
+            type: 'primary',
+            action: () => executeAndClose(params.onBuy)
+          },
+          {
+            title: 'На аукцион',
+            type: 'primary',
+            action: () => executeAndClose(params.onRejectBuy)
+          },
+        ]}
+      />
+      <ModalCard
+        id={'auction_action'}
+        onClose={onClose}
+        icon={<DenyOutline56Icon />}
+        title={params.title || 'Аукцион!'}
+        caption={'Поднимите ставку или откажитесь от аукциона'}
+        actions={[
+          {
+            title: 'Отказаться от участия в аукционе',
+            type: 'primary',
+            action: () => executeAndClose(params.onReject)
+          },
+          ...params.event ? [{
+            title: `Поднять ставку до ${params.event.amount}`,
+            type: 'primary',
+            action: () => executeAndClose(params.onBid)
+          }] : [],
+        ]}
+      />
+      <ModalPage
+        id={'field_actions'}
+        onClose={onClose}
+        settlingHeight={50}
+        header={
+          <ModalPageHeader
+            right={(
+              <HeaderButton
+                onClick={() => {
+                  onClose()
+                }}
+              >
+                {platform === IOS ? 'Готово' : <Icon24Done />}
+              </HeaderButton>
+            )}
+          >
+            {params.title || 'Поле'}
+          </ModalPageHeader>
+        }
+      >
+        {
+          params.card
+            ? (
+              <React.Fragment>
+                <Div>
+                  {cardInfo(params.card)}
+                  {
+                    params.isOwner
+                      ? (
+                        <Div>
+                          Это ваше поле
+                        </Div>
+                      )
+                      : (
+                        <Div>
+                          {!params.card.owner ? null : `Это поле занято ${params.card.owner}`}
+                        </Div>
+                      )
+                  }
+                </Div>
+              </React.Fragment>
+            )
+            : (
+              null
+            )
+        }
+      </ModalPage>
       <ModalPage
         id={'edit_event_cards'}
         onClose={onClose}
@@ -84,7 +203,7 @@ function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage })
                   onClose()
                 }}
               >
-                {IS_PLATFORM_IOS ? 'Готово' : <Icon24Done />}
+                {platform === IOS ? 'Готово' : <Icon24Done />}
               </HeaderButton>
             )}
           >
