@@ -441,6 +441,7 @@ defmodule Croc.Games.Monopoly do
 
   def get_default_cards do
     MonopolyCard.get_default_by_positions(@positions)
+    |> Enum.sort_by(fn c -> c.position end)
   end
 
   def get(game_id) when game_id != nil do
