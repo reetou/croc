@@ -29,6 +29,7 @@ defmodule Croc.Games.Monopoly.Card do
     :upgrade_level,
     :max_upgrade_level,
     :upgrade_level_multipliers,
+    :image_url,
     upgrade_level: 0
   ]
 

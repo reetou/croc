@@ -58,6 +58,7 @@ function Field(props) {
   }
   const spriteWidth = props.mobile ? getMobileWidth(props.form, props.stageWidth) : getWidth(props.form)
   const spriteHeight = props.mobile ? getMobileHeight(props.form) : getHeight(props.form)
+  const imagePlaceholder = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png'
   return useObserver(() => (
     <Container
       x={x}
@@ -67,7 +68,7 @@ function Field(props) {
       height={spriteHeight}
       ref={fieldRef}
       name={`card_${props.card.name}`}
-      interactive
+      interactive={props.interactive}
       {
         ...props.mobile ? {
           touchstart: () => {
@@ -86,7 +87,7 @@ function Field(props) {
       }
     >
       <Sprite
-        image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png"
+        image={process.env.NODE_ENV === 'production' ? props.card.image_url || imagePlaceholder : imagePlaceholder}
         width={spriteWidth}
         height={spriteHeight}
         anchor={0.5}

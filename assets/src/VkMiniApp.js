@@ -899,6 +899,7 @@ function VkMiniApp(props) {
   }
   const state = useLocalStore(() => ({
     history: [],
+    // activeStory: 'current_game',
     activeStory: 'find_game',
     activeModal: null,
     errorMessage: null,
@@ -1071,6 +1072,7 @@ function VkMiniApp(props) {
           <GameView
             id={'current_game'}
             game={state.game}
+            // game={mock_game}
             activePanel={state.gamePanel}
             user={state.user}
             onShowSnackbar={onShowSnackbar}

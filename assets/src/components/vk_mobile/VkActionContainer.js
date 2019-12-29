@@ -157,9 +157,7 @@ function VkActionContainer(props) {
     })
   }
   return useObserver(() => (
-    <Group
-      description={state.eventType ? "Кнопки выше - обязательные действия, необходимые для того, чтобы закончить ход" : null}
-    >
+    <Group>
       {
         state.playerInCharge && !state.myTurn
           ? (
