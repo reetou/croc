@@ -38,6 +38,7 @@ defmodule CrocWeb do
 
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML
+      import CrocWeb.InputHelpers
 
       import CrocWeb.ErrorHelpers
       import CrocWeb.Gettext

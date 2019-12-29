@@ -38,10 +38,26 @@ defmodule CrocWeb.AdminController do
     )
   end
 
-  def edit_card(conn, %{ "id" => id, "card" => card } = params) do
+  def edit_card(conn, %{ "id" => id, "card" => %{ "upgrade_level_multipliers" => [""] } = card } = params) do
+    card =
+      card
+      |> Map.put("upgrade_level_multipliers", nil)
+      |> Map.put("max_upgrade_level", 0)
+    edit_card(conn, %{ "id" => id, "card" => card })
+  end
+
+  def edit_card(conn, %{ "id" => id, "card" => %{ "upgrade_level_multipliers" => upgrade_level_multipliers } = card } = params) do
     %Card{} = Card.update!(Card.get_by_id(id), card)
     conn
     |> put_flash(:info, "Updated successfully")
     |> redirect(to: Routes.admin_path(conn, :show_card, id))
+  end
+
+  def edit_card(conn, %{ "id" => id, "card" => card } = params) do
+    card =
+      card
+      |> Map.put("upgrade_level_multipliers", nil)
+      |> Map.put("max_upgrade_level", 0)
+    edit_card(conn, %{ "id" => id, "card" => card })
   end
 end
