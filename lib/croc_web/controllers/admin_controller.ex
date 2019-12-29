@@ -7,6 +7,7 @@ defmodule CrocWeb.AdminController do
   alias Phauxth.Log
   alias Croc.Accounts
   alias Croc.Accounts.User
+  alias Croc.Games.Chat.Admin.Monopoly.Broadcaster
   alias Croc.Games.Monopoly.{
     Lobby,
   }
@@ -59,5 +60,10 @@ defmodule CrocWeb.AdminController do
       |> Map.put("upgrade_level_multipliers", nil)
       |> Map.put("max_upgrade_level", 0)
     edit_card(conn, %{ "id" => id, "card" => card })
+  end
+
+  def all_games_messages(conn, _params) do
+    conn
+    |> render(:game_messages, topic: Broadcaster.all_game_messages_topic())
   end
 end

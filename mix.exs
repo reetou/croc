@@ -54,7 +54,8 @@ defmodule Croc.MixProject do
       {:opus, "~> 0.6"},
       {:sentry, "~> 7.0"},
       {:distillery, "~> 2.0"},
-      {:decimal, "~> 1.0"}
+      {:decimal, "~> 1.0"},
+      {:gen_stage, "~> 0.14"}
     ]
   end
 

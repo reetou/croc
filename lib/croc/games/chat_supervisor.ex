@@ -15,8 +15,8 @@ defmodule Croc.Games.Chat.Supervisor do
     DynamicSupervisor.init(strategy: :one_for_one)
   end
 
-  def create_chat_process(id, chat_type, members) when is_atom(chat_type) do
-    state = Chat.new(id, chat_type, members)
+  def create_chat_process(id, chat_type, members, entity_id) when is_atom(chat_type) and entity_id != nil do
+    state = Chat.new(id, chat_type, members, entity_id)
     {:ok, pid} = DynamicSupervisor.start_child(__MODULE__, {Chat, state})
   end
 

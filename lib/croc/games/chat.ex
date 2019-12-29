@@ -17,14 +17,16 @@ defmodule Croc.Games.Chat do
     :id,
     :chat_type,
     :members,
+    :entity_id,
     muted_members_ids: [],
-    messages: []
+    messages: [],
   ]
 
-  def new(id, chat_type, members) do
+  def new(id, chat_type, members, entity_id) do
     %__MODULE__{
       id: id,
       chat_type: chat_type,
+      entity_id: entity_id,
       members: members,
       muted_members_ids: [],
       messages: []
@@ -51,6 +53,7 @@ defmodule Croc.Games.Chat do
       state =
         state
         |> Map.put(:messages, state.messages ++ [message])
+      Logger.debug("Received chat message for entity_id: #{state.entity_id} for chat_type: #{state.chat_type}")
       update_chat_state(state)
       {:reply, {:ok, state}, state}
     else

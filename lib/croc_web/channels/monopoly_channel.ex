@@ -6,6 +6,7 @@ defmodule CrocWeb.MonopolyChannel do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Chat.Message
   alias Croc.Games.Chat
+  alias Croc.Games.Chat.Admin.MessageProducer
   require Logger
 
   @prefix "game:monopoly:"
@@ -131,6 +132,9 @@ defmodule CrocWeb.MonopolyChannel do
         :ok = CrocWeb.Endpoint.broadcast("user:#{socket.assigns.user_id}", "message", message)
         :ok = CrocWeb.Endpoint.broadcast("user:#{message.to}", "message", message)
       end
+      Task.start(fn ->
+        MessageProducer.sync_message(message)
+      end)
       {:noreply, socket}
     else
       {:error, reason} ->

@@ -4,6 +4,7 @@ defmodule CrocWeb.UserSocket do
   channel "user:*", CrocWeb.UserChannel
   channel "lobby:*", CrocWeb.LobbyChannel
   channel "game:monopoly:*", CrocWeb.MonopolyChannel
+  channel "admin:*", CrocWeb.AdminChannel
 
   ## Channels
   # channel "room:*", CrocWeb.RoomChannel

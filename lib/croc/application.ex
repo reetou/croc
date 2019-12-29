@@ -14,6 +14,8 @@ defmodule Croc.Application do
       CrocWeb.Endpoint,
       # Starts a worker by calling: Croc.Worker.start_link(arg)
       # {Croc.Worker, arg},
+      Croc.Games.Chat.Admin.MessageProducer,
+      Croc.Games.Chat.Admin.Monopoly.Broadcaster,
       Croc.Games.Lobby.Supervisor,
       Croc.Games.Monopoly.Supervisor,
       Croc.Games.Chat.Supervisor,

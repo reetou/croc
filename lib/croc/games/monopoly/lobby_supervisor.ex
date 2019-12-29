@@ -20,7 +20,7 @@ defmodule Croc.Games.Lobby.Supervisor do
     {:ok, pid} = DynamicSupervisor.start_child(__MODULE__, {Lobby, state})
     Logger.debug("Supervisor start child result at create lobby process #{inspect(pid)}")
     Logger.debug("Created lobby process under name #{lobby_id}")
-    {:ok, _chat_pid} = ChatSupervisor.create_chat_process(lobby.chat_id, :lobby, lobby.players)
+    {:ok, _chat_pid} = ChatSupervisor.create_chat_process(lobby.chat_id, :lobby, lobby.players, lobby_id)
     {:ok, lobby}
   end
 

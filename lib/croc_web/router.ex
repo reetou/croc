@@ -53,6 +53,7 @@ defmodule CrocWeb.Router do
     get "/cards", AdminController, :cards
     put "/cards/:id", AdminController, :edit_card
     get "/cards/:id", AdminController, :show_card
+    get "/games/messages", AdminController, :all_games_messages
   end
 
   scope "/api", CrocWeb do

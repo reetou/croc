@@ -19,9 +19,13 @@ import "react-phoenix"
 import LobbyContainer from '../src/components/lobby/LobbyContainer'
 import Game from '../src/components/game/monopoly/Game'
 import GameTable from '../src/components/game/monopoly/GameTable'
+import GameMessages from '../src/components/admin/GameMessages'
 
 window.Components = {
   LobbyContainer,
   GameTable,
   Game,
+  Admin: {
+    GameMessages,
+  }
 }

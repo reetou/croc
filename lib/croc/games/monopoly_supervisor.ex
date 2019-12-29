@@ -21,7 +21,7 @@ defmodule Croc.Games.Monopoly.Supervisor do
     {:ok, pid} = DynamicSupervisor.start_child(__MODULE__, {Monopoly, state})
     Logger.debug("Supervisor start child result at create monopoly game process #{inspect(pid)}")
     Logger.debug("Created monopoly game process under name #{name}")
-    {:ok, _chat_pid} = ChatSupervisor.create_chat_process(game.chat_id, :monopoly, game.players)
+    {:ok, _chat_pid} = ChatSupervisor.create_chat_process(game.chat_id, :monopoly, game.players, game_id)
     {:ok, game}
   end
 
