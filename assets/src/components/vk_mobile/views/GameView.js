@@ -357,7 +357,9 @@ function GameView(props) {
         const itemHeight = getMobileHeight(form)
         const itemWidth = getMobileWidth(form, state.stageWidth)
         const x = (multiplier * itemWidth) + itemWidth / 2
-        let y = state.stageHeight - itemHeight / 2 - (itemHeight * columnIndex)
+        const y = state.stageHeight - itemHeight / 2 - (itemHeight * columnIndex)
+        // console.log(`Item height ${itemHeight}, item width: ${itemWidth} for position ${c.position}: multiplier: ${multiplier}, columnIndex: ${columnIndex}, regularIndex: ${i}`)
+        // console.log(`stageHeight: ${state.stageHeight}, width: ${state.stageWidth}. Y for ${c.position}: ${y}, x: ${x}`)
         return {
           position: c.position,
           form,
