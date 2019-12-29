@@ -1,0 +1,6 @@
+<div style="border: 1px solid black; margin: 10px 0; padding: 10px; border-radius: 10px;">
+  <div style="display: flex; justify-content: space-between;">
+    <%= @card.name %>
+    <a class="button button-outline" href="<%= Routes.admin_path(@conn, :edit_card, @card.id) %>">Edit</a>
+  </div>
+</div>

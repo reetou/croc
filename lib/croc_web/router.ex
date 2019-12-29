@@ -47,6 +47,14 @@ defmodule CrocWeb.Router do
     get "/profile", UserController, :index
   end
 
+  scope "/admin", CrocWeb do
+    pipe_through :browser
+    get "/", AdminController, :index
+    get "/cards", AdminController, :cards
+    put "/cards/:id", AdminController, :edit_card
+    get "/cards/:id", AdminController, :show_card
+  end
+
   scope "/api", CrocWeb do
     pipe_through :api
     post "/auth/vk", VkController, :auth

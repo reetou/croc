@@ -27,6 +27,29 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     timestamps()
   end
 
+  def types, do: [
+    :brand,
+    :random_event,
+    :start,
+    :prison,
+    :jail_cell,
+    :payment,
+    :teleport
+  ]
+
+  def monopoly_types, do: [
+    :perfume,
+    :clothing,
+    :cars,
+    :games,
+    :fastfood,
+    :hotels,
+    :phones,
+    :social_networks,
+    :drinks,
+    :airports
+  ]
+
   def changeset(%__MODULE__{} = card, %{type: :brand} = attrs) do
     monopoly_card =
       card
@@ -130,6 +153,13 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     |> Repo.get(id)
   end
 
+  def update!(%__MODULE__{} = card, attrs) do
+    IO.inspect(attrs, label: "Attrs at update")
+    card
+    |> changeset(attrs)
+    |> Repo.update!()
+  end
+
   def get_default_by_positions(positions) do
     __MODULE__
     |> where([c], c.position in ^positions)
@@ -139,4 +169,11 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     |> Enum.map(fn c -> Map.from_struct(c) end)
     |> Enum.map(fn c -> struct(Croc.Games.Monopoly.Card, c) end)
   end
+
+  def get_all() do
+    __MODULE__
+    |> Repo.all()
+    |> Enum.map(fn c -> Map.from_struct(c) end)
+  end
+
 end

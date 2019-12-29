@@ -1,0 +1,54 @@
+<a class="button button-outline" href="<%= Routes.admin_path(@conn, :cards) %>">To cards</a>
+
+
+<%= form_for @changeset, Routes.admin_path(@conn, :edit_card, @changeset.data.id), [as: :card, method: :put], fn f -> %>
+  <%= if f.errors != [] do %>
+    <div class="alert alert-danger">
+      <p>Something went wrong. Please check the errors below.</p>
+    </div>
+  <% end %>
+
+  <%= label f, :id %>
+  <%= text_input f, :id, [disabled: true] %>
+
+  <%= label f, :name %>
+  <%= text_input f, :name %>
+  <%= error_tag f, :name %>
+
+  <%= label f, "Тип" %>
+  <%= select f, :type, @types %>
+  <%= error_tag f, :type %>
+
+  <%= label f, "Тип монополии (оставьте пустым если нет)" %>
+  <%= select f, :monopoly_type, @monopoly_types ++ [nil] %>
+  <%= error_tag f, :monopoly_type %>
+
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <h2>Картинка</h2>
+    <img width="100" src="<%= f.data.image_url %>" />
+  </div>
+
+  <%= label f, "Ссылка" %>
+  <%= url_input f, :image_url %>
+  <%= error_tag f, :image_url %>
+
+  <%= label f, "Сумма налога" %>
+  <%= text_input f, :payment_amount %>
+  <%= error_tag f, :payment_amount %>
+
+  <%= label f, "Доход с залога" %>
+  <%= text_input f, :loan_amount %>
+  <%= error_tag f, :loan_amount %>
+
+  <%= label f, "Цена" %>
+  <%= text_input f, :cost %>
+  <%= error_tag f, :cost %>
+
+  <%= label f, "Цена выкупа" %>
+  <%= text_input f, :buyout_cost %>
+  <%= error_tag f, :buyout_cost %>
+
+  <div>
+    <%= submit "Edit" %>
+  </div>
+<% end %>
