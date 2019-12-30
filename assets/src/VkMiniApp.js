@@ -987,6 +987,7 @@ function VkMiniApp(props) {
   const onChangeStory = (story) => {
     if (state.banned) {
       onBan()
+      return
     }
     console.log('Changing story to', story)
     state.activeStory = story

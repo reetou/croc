@@ -18,6 +18,7 @@ import { getMobileHeight, getMobileWidth } from '../../../util'
 import useChannel from '../../../useChannel'
 import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
+import * as PIXI from 'pixi.js'
 
 const VkActionContainer = lazy(() => import('../VkActionContainer'))
 
