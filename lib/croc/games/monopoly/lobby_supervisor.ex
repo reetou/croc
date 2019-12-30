@@ -48,7 +48,9 @@ defmodule Croc.Games.Lobby.Supervisor do
         Process.sleep(100)
         :ok = stop_lobby_process(lobby_id)
       else
-        _ -> Logger.debug("Lobby #{lobby_id} was not removed because already destroyed")
+        _ ->
+          Logger.debug("Lobby #{lobby_id} was not removed because already destroyed")
+          {:error, :no_lobby}
       end
     end)
   end
