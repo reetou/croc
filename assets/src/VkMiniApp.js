@@ -21,6 +21,7 @@ import '@vkontakte/vkui/dist/vkui.css';
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
 import axios from './axios'
+import { at } from 'lodash-es'
 import SnackbarContainer from './components/vk_mobile/SnackbarContainer'
 
 const Modals = lazy(() => import('./components/vk_mobile/Modals'))
@@ -901,6 +902,7 @@ function VkMiniApp(props) {
     history: [],
     // activeStory: 'current_game',
     activeStory: 'find_game',
+    profilePanel: 'main',
     activeModal: null,
     errorMessage: null,
     game: null,
@@ -910,7 +912,10 @@ function VkMiniApp(props) {
     snackbar: null,
     modalParams: {},
     loading: false,
+    banned: false,
+    ban_id: null,
     user: process.env.NODE_ENV === 'production' ? null : mock,
+    // user: null,
   }))
   useEffect(() => {
     const handler = (e) => {
@@ -924,6 +929,14 @@ function VkMiniApp(props) {
       connect.unsubscribe(handler)
     }
   }, [])
+  const onBan = (ban_id) => {
+    if (ban_id) {
+      state.ban_id = ban_id
+    }
+    state.banned = true
+    state.profilePanel = 'banned'
+    state.activeStory = 'profile'
+  }
   const getUserData = async () => {
     if (process.env.NODE_ENV === 'production') {
       state.loading = true
@@ -939,10 +952,20 @@ function VkMiniApp(props) {
       state.token = res.data.token
     } catch (e) {
       console.log('User error', e)
-      state.activeModal = 'cannot_get_user_data'
+      if (at(e, 'response.data.error')[0] === 'banned') {
+        console.log('User was banned')
+        onBan(e.response.data.ban_id)
+      } else {
+        state.activeModal = 'cannot_get_user_data'
+      }
     }
     state.loading = false
   }
+  useEffect(() => {
+    if (state.banned) {
+      onBan()
+    }
+  }, [state.banned, state.activeStory, state.profilePanel])
   const getEmail = async () => {
     try {
       const data = await connect.sendPromise('VKWebAppGetEmail')
@@ -962,6 +985,9 @@ function VkMiniApp(props) {
     await getUserData()
   }
   const onChangeStory = (story) => {
+    if (state.banned) {
+      onBan()
+    }
     console.log('Changing story to', story)
     state.activeStory = story
   }
@@ -1009,7 +1035,16 @@ function VkMiniApp(props) {
           activeStory={state.activeStory}
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
-          <View id={'profile'} activePanel={'main'}>
+          <View id={'profile'} activePanel={state.profilePanel}>
+            <Panel id={'banned'}>
+              <PanelHeader>Бан</PanelHeader>
+              <Placeholder
+                icon={<User28Icon />}
+                header={`Номер бана: ${state.ban_id}`}
+              >
+                Вы были заблокированы. Для разбана напишите номер бана и ваше сообщение сюда: vk.com/zaeeee (ЧЕТЫРЕ буквы е)
+              </Placeholder>
+            </Panel>
             <Panel id={'main'}>
               <PanelHeader>Профиль</PanelHeader>
               {

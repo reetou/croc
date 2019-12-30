@@ -27,12 +27,20 @@ defmodule CrocWeb.VkController do
       |> Map.put("vk_id", vk_id)
       |> Map.put("image_url", image_url)
     user = Accounts.get_or_create_vk_user(vk_id, params)
-    user_token = Phoenix.Token.sign(conn, "user socket", user.id)
-    conn =
-      conn
-      |> assign(:current_user, user)
-      |> assign(:user_token, user_token)
-      |> json(%{ user: user, token: user_token })
+    with false <- user.banned == true do
+      user_token = Phoenix.Token.sign(conn, "user socket", user.id)
+      conn =
+        conn
+        |> assign(:current_user, user)
+        |> assign(:user_token, user_token)
+        |> json(%{ user: user, token: user_token })
+    else
+      _ ->
+        conn
+        |> assign(:banned, true)
+        |> put_status(:forbidden)
+        |> json(%{ error: :banned, ban_id: vk_id })
+    end
   end
 
   def auth(conn, _params) do
