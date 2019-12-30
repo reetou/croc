@@ -4,9 +4,17 @@ defmodule Croc.Application do
   @moduledoc false
 
   use Application
+  require Logger
 
   def start(_type, _args) do
     # List all child processes to be supervised
+    prod_children =
+      case Mix.env() do
+        :prod -> [{Cluster.Supervisor, [Application.get_env(:libcluster, :topologies), [name: Croc.ClusterSupervisor]]}]
+        :dev -> [{Cluster.Supervisor, [Application.get_env(:libcluster, :topologies, []), [name: Croc.ClusterSupervisor]]}]
+        _ -> []
+      end
+    Logger.info("Production children length: #{length prod_children}")
     children = [
       # Start the Ecto repository
       Croc.Repo,
@@ -29,7 +37,7 @@ defmodule Croc.Application do
     opts = [strategy: :one_for_one, name: Croc.Supervisor]
     Memento.Table.create!(Croc.Games.Monopoly.Lobby.Player)
     Memento.Table.create!(Croc.Games.Monopoly.Player)
-    Supervisor.start_link(children, opts)
+    Supervisor.start_link(prod_children ++ children, opts)
   end
 
   # Tell Phoenix to update the endpoint configuration

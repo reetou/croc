@@ -56,7 +56,8 @@ defmodule Croc.MixProject do
       {:distillery, "~> 2.0"},
       {:decimal, "~> 1.0"},
       {:gen_stage, "~> 0.14"},
-      {:appsignal, "~> 1.0"}
+      {:appsignal, "~> 1.0"},
+      {:libcluster, "~> 3.0"}
     ]
   end
 
