@@ -13,6 +13,7 @@ defmodule Croc.Repo.Migrations.CreateUsers do
       add :confirmed_at, :utc_datetime
       add :reset_sent_at, :utc_datetime
       add :is_admin, :boolean
+      add :banned, :boolean
 
       timestamps()
     end
