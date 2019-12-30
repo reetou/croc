@@ -13,6 +13,7 @@
         <nav role="navigation">
           <ul>
             <li><a href="/">Go to main page</a></li>
+            <li><a href="/profile">Go to games</a></li>
           </ul>
         </nav>
         <a href="http://phoenixframework.org/" class="phx-logo">
