@@ -7,6 +7,15 @@ defmodule CrocWeb.LobbyChannel do
   alias Croc.Games.Monopoly
   use Appsignal.Instrumentation.Decorators
 
+  def join_all_response(lobby_id, user_id, error_reason \\ nil) do
+    %{
+      lobby_id: lobby_id,
+      user_id: user_id,
+      lobbies: Lobby.get_all(),
+      reason: error_reason,
+    }
+  end
+
   def join("lobby:all", %{ "token" => token }, socket) when token != nil do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
       {:ok, user_id} ->
@@ -18,14 +27,14 @@ defmodule CrocWeb.LobbyChannel do
             |> assign(:user_id, user_id)
             |> assign(:topics, [])
             |> put_new_topics([topic])
-          {:ok, %{lobby_id: lobby_id, user_id: user_id}, updated_socket}
+          {:ok, join_all_response(lobby_id, user_id), updated_socket}
         else
           _ ->
             updated_socket = assign(socket, :user_id, user_id)
-            {:ok, %{lobby_id: nil, user_id: user_id}, updated_socket}
+            {:ok, join_all_response(nil, user_id), updated_socket}
         end
       {:error, reason} ->
-        {:ok, %{lobby_id: nil, user_id: nil, error: reason}, socket}
+        {:ok, join_all_response(nil, nil, reason), socket}
     end
   end
 
@@ -36,11 +45,11 @@ defmodule CrocWeb.LobbyChannel do
       updated_socket = socket
                        |> assign(:topics, [])
                        |> put_new_topics([topic])
-      {:ok, %{lobby_id: lobby_id, user_id: socket.assigns.user_id}, updated_socket}
+      {:ok, join_all_response(lobby_id, socket.assigns.user_id), updated_socket}
     else
       _ ->
         Logger.debug("No current lobby data found for user")
-        {:ok, %{lobby_id: nil, user_id: socket.assigns.user_id}, socket}
+        {:ok, join_all_response(nil, socket.assigns.user_id), socket}
     end
   end
 
