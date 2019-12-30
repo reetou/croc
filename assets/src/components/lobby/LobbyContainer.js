@@ -48,6 +48,9 @@ function LobbyContainer(props) {
       state.game_id = payload.game.game_id
       window.location.href = `${props.game_path}${state.game_id}`
     })
+    chan.on('left', (payload) => {
+      onLeave(payload)
+    })
     chan.join().receive('ok', () => {
       console.log(`Joined topic ${topic}`)
     })
