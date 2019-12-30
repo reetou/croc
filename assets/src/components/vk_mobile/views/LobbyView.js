@@ -48,7 +48,11 @@ function LobbyView(props) {
   }))
   const { token } = useContext(PhoenixSocketContext)
   const onJoin = (payload, socket) => {
-    const { lobby_id } = payload
+    const { lobby_id, lobbies } = payload
+    if (lobbies) {
+      console.log('Setting lobbies to state')
+      state.lobbies = lobbies
+    }
     if (!lobby_id) {
       console.log('No lobby_id')
       return
@@ -65,6 +69,12 @@ function LobbyView(props) {
       console.log('Game is gonna start!!!!', payload)
       state.game_id = payload.game.game_id
       props.onGameStart(payload.game)
+    })
+    chan.on('left', (payload) => {
+      if (payload.force) {
+        props.setActiveModal('lobby_error', payload.reason)
+      }
+      onLeave(payload)
     })
     chan.join()
       .receive('ok', () => {
@@ -108,6 +118,7 @@ function LobbyView(props) {
   }
   const onLeave = (payload) => {
     console.log('Received left', payload)
+    if (!state.joined_lobby_id !== payload.lobby_id)
     if (state.joinedLobbyChannel) {
       state.joinedLobbyChannel.leave()
       state.joinedLobbyChannel = null
