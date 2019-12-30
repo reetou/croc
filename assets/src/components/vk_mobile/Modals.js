@@ -23,6 +23,8 @@ function getErrorMessage(errorMessage) {
   switch (errorMessage) {
     case 'already_in_lobby': return 'Вы уже находитесь в лобби'
     case 'authenticate_first': return 'Вход не был завершен полностью. Попробуйте перезапустить приложение'
+    case 'lobby_timeout': return 'Истек срок ожидания начала игры. Лобби было закрыто.'
+    case 'lobby_closed': return 'Ваше лобби было закрыто администратором.'
     default: return 'Неизвестная ошибка'
   }
 }
