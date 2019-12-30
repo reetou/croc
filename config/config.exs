@@ -23,6 +23,10 @@ config :phauxth,
   crypto_module: Argon2,
   token_module: CrocWeb.Auth.Token
 
+config :torch,
+  otp_app: :croc,
+  template_format: "eex"
+
 # Mailer configuration
 config :croc, CrocWeb.Mailer,
   adapter: Bamboo.SendGridAdapter,
