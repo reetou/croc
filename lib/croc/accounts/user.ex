@@ -5,6 +5,8 @@ defmodule Croc.Accounts.User do
 
   alias Croc.Repo
   alias Croc.Sessions.Session
+  alias Croc.Repo.Games.Monopoly.{UserCard, UserEventCard}
+
 
   @type t :: %__MODULE__{
           id: integer,
@@ -33,9 +35,13 @@ defmodule Croc.Accounts.User do
     field :banned, :boolean
     has_many :sessions, Session, on_delete: :delete_all
 
-    has_many :user_monopoly_cards, Croc.Repo.Games.Monopoly.UserCard
+    has_many :user_monopoly_cards, UserCard
+
+    has_many :user_monopoly_event_cards, UserEventCard
 
     has_many :monopoly_cards, through: [:user_monopoly_cards, :monopoly_card]
+
+    has_many :monopoly_event_cards, through: [:user_monopoly_event_cards, :monopoly_event_card]
 
     timestamps()
   end
