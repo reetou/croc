@@ -18,7 +18,7 @@ defmodule CrocWeb.VkController do
       user: User.get_public_fields(user),
       token: conn.assigns.user_token,
       from_token: true
-    })
+    } |> format_response())
   end
 
   def auth(conn, %{"id" => vk_id, "first_name" => first_name, "last_name" => last_name, "photo_200" => image_url} = params) do
@@ -33,7 +33,7 @@ defmodule CrocWeb.VkController do
         conn
         |> assign(:current_user, user)
         |> assign(:user_token, user_token)
-        |> json(%{ user: user, token: user_token })
+        |> json(%{ user: user, token: user_token } |> format_response())
     else
       _ ->
         conn
@@ -48,5 +48,9 @@ defmodule CrocWeb.VkController do
     |> put_view(CrocWeb.AuthView)
     |> render("403.json", [])
     |> halt()
+  end
+
+  def format_response(params) do
+    Map.put(params, :lobbies, Lobby.get_all())
   end
 end
