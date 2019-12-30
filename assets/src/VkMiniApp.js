@@ -919,7 +919,9 @@ function VkMiniApp(props) {
   }))
   useEffect(() => {
     const handler = (e) => {
-      // console.log('Received VK event', e)
+      if (process.env.NODE_ENV === 'production') {
+        console.log('Received VK event', e)
+      }
     }
     connect.subscribe(handler)
     connect.send('VKWebAppInit')
