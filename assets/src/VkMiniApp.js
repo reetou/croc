@@ -917,9 +917,13 @@ function VkMiniApp(props) {
     user: process.env.NODE_ENV === 'production' ? null : mock,
     // user: null,
   }))
+  const setActiveModal = (modal_id, errorMessage = null) => {
+    state.activeModal = modal_id
+    state.errorMessage = errorMessage
+  }
   useEffect(() => {
     const handler = (e) => {
-      // console.log('Received VK event', e)
+      console.log('Received VK event', e)
     }
     connect.subscribe(handler)
     connect.send('VKWebAppInit')
@@ -996,10 +1000,6 @@ function VkMiniApp(props) {
     state.game = game
     state.activeStory = 'current_game'
     state.gamePanel = 'game'
-  }
-  const setActiveModal = (modal_id, errorMessage = null) => {
-    state.activeModal = modal_id
-    state.errorMessage = errorMessage
   }
   const setActiveOptionsModal = (modal_id, modalParams) => {
     state.modalParams = modalParams
