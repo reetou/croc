@@ -12,4 +12,8 @@ defmodule CrocWeb.UserChannel do
       _ -> {:error, %{ reason: :unauthorized }}
     end
   end
+
+  def handle_in(_action, _params, socket) do
+    {:noreply, socket}
+  end
 end

@@ -5,6 +5,7 @@ defmodule CrocWeb.LobbyChannel do
   alias Croc.Games.Monopoly.Lobby
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Games.Monopoly
+  use Appsignal.Instrumentation.Decorators
 
   def join("lobby:all", %{ "token" => token }, socket) when token != nil do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
@@ -71,11 +72,13 @@ defmodule CrocWeb.LobbyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in(action, _params, %{ assigns: %{ user_id: nil } } = socket) when action in ["create", "join", "leave", "start"] do
     send_error(socket, {:error, :authenticate_first})
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("create", %{"options" => options} = params, socket) do
     case Lobby.create(socket.assigns.user_id, options) do
       {:ok, %Lobby{} = lobby} ->
@@ -98,6 +101,7 @@ defmodule CrocWeb.LobbyChannel do
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("leave", %{"lobby_id" => lobby_id}, socket) do
     with {:ok, %Lobby{} = lobby} <- Lobby.leave(lobby_id, socket.assigns.user_id) do
       topic = "lobby:" <> lobby_id
@@ -117,11 +121,12 @@ defmodule CrocWeb.LobbyChannel do
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("start", %{"lobby_id" => lobby_id}, socket) do
     with {:ok, %Lobby{} = lobby, _pid} <- Lobby.get(lobby_id),
          true <- LobbyPlayer.in_lobby?(socket.assigns.user_id, lobby),
          {:ok, %Monopoly{} = game} <- Monopoly.start(lobby) do
-      Logger.debug("Starting game from lobby #{lobby_id}")
+      Logger.debug("Starting game from lobby #{lobby_id} for user #{socket.assigns.user_id}")
     else
       e ->
         send_error(socket, e)
@@ -129,6 +134,7 @@ defmodule CrocWeb.LobbyChannel do
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("join", %{"lobby_id" => lobby_id}, socket) do
     with {:ok, %Lobby{} = lobby} <- Lobby.join(lobby_id, socket.assigns.user_id) do
       Logger.debug("Joined successfully")
@@ -146,12 +152,14 @@ defmodule CrocWeb.LobbyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in("kick", %{user_id: user_id}, socket) do
     broadcast!(socket, "kick", %{user_id: user_id})
     {:noreply, socket}
   end
 
-  def handle_in(_, _params, socket) do
+  @decorate channel_action()
+  def handle_in(action, params, socket) do
     {:noreply, socket}
   end
 

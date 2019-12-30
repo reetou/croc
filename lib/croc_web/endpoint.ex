@@ -1,6 +1,7 @@
 defmodule CrocWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :croc
   use Sentry.Phoenix.Endpoint
+  use Appsignal.Phoenix
 
   socket "/socket", CrocWeb.UserSocket,
     websocket: true,

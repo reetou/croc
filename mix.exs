@@ -55,7 +55,8 @@ defmodule Croc.MixProject do
       {:sentry, "~> 7.0"},
       {:distillery, "~> 2.0"},
       {:decimal, "~> 1.0"},
-      {:gen_stage, "~> 0.14"}
+      {:gen_stage, "~> 0.14"},
+      {:appsignal, "~> 1.0"}
     ]
   end
 
