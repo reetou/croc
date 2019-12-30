@@ -4,8 +4,13 @@ defmodule Croc.Accounts do
   """
 
   import Ecto.Query, warn: false
+  import Ecto.Changeset
 
   alias Croc.{Accounts.User, Repo, Sessions, Sessions.Session}
+  alias Croc.Repo.Games.Monopoly.{
+    EventCard,
+    UserEventCard,
+  }
 
   @type changeset_error :: {:error, Ecto.Changeset.t()}
 
@@ -109,8 +114,13 @@ defmodule Croc.Accounts do
   end
 
   def create_vk_user(%User{} = user, attrs) do
+    event_cards =
+      EventCard
+      |> Repo.all()
+      |> UserEventCard.cast_from_parent()
     user
     |> User.vk_changeset(attrs)
+    |> put_assoc(:user_monopoly_event_cards, event_cards)
     |> Repo.insert!()
   end
 
