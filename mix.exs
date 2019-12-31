@@ -58,7 +58,8 @@ defmodule Croc.MixProject do
       {:gen_stage, "~> 0.14"},
       {:appsignal, "~> 1.0"},
       {:libcluster, "~> 3.0"},
-      {:ex_admin, github: "sublimecoder/ex_admin"},
+      # Change github source when pull-request is merged
+      {:ex_admin, github: "reetou/ex_admin", branch: "array-float-support"},
       {:poison, "~> 3.1"}
     ]
   end

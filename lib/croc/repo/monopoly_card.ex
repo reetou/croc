@@ -176,4 +176,24 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     |> Enum.map(fn c -> Map.from_struct(c) end)
   end
 
+  def changeset_update(%__MODULE__{} = card, attrs) do
+    card
+    |> cast(attrs, [
+      :name,
+      :type,
+      :monopoly_type,
+      :image_url,
+      :upgrade_level_multipliers,
+      :max_upgrade_level,
+      :rarity,
+      :cost,
+      :buyout_cost,
+      :loan_amount,
+      :position,
+      :payment_amount,
+      :disabled,
+      :is_default
+    ])
+  end
+
 end
