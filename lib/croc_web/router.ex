@@ -2,6 +2,8 @@ defmodule CrocWeb.Router do
   use CrocWeb, :router
   use Plug.ErrorHandler
   use Sentry.Plug
+  use ExAdmin.Router
+  import CrocWeb.Authorize
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -22,6 +24,10 @@ defmodule CrocWeb.Router do
     plug :put_secure_browser_headers
     plug :put_frame_settings
     plug :put_layout, {CrocWeb.VkMobileView, "layout.html"}
+  end
+
+  pipeline :admin do
+    plug :admin_check
   end
 
   pipeline :api do
@@ -49,11 +55,16 @@ defmodule CrocWeb.Router do
 
   scope "/admin", CrocWeb do
     pipe_through :browser
+    pipe_through :admin
     get "/", AdminController, :index
-    get "/cards", AdminController, :cards
-    put "/cards/:id", AdminController, :edit_card
-    get "/cards/:id", AdminController, :show_card
     get "/games/messages", AdminController, :all_games_messages
+  end
+
+  # setup the ExAdmin routes on /admin
+  scope "/exadmin", ExAdmin do
+    pipe_through :browser
+    pipe_through :admin
+    admin_routes()
   end
 
   scope "/api", CrocWeb do

@@ -65,6 +65,21 @@ defmodule Croc.Accounts.User do
     |> unique_email
   end
 
+  def changeset_update(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:email, :first_name, :last_name, :image_url, :banned, :username])
+    |> validate_required([:email])
+    |> unique_email
+  end
+
+  def changeset_create(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:email, :first_name, :last_name, :image_url, :username, :vk_id])
+    |> validate_required([:email])
+    |> unique_email
+    |> cast_assoc(:monopoly_cards, required: false)
+  end
+
   def create_changeset(%__MODULE__{} = user, attrs) do
     user
     |> cast(attrs, [:email, :password, :username])

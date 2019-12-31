@@ -7,8 +7,8 @@ defmodule Croc.Repo.Games.Monopoly.UserEventCard do
   alias Croc.Repo.Games.Monopoly.EventCard
 
   schema "user_monopoly_event_cards" do
-    field :user_id, :id
     belongs_to :monopoly_event_card, Croc.Repo.Games.Monopoly.EventCard, foreign_key: :monopoly_event_card_id
+    belongs_to :user, Croc.Accounts.User, foreign_key: :user_id
 
     timestamps()
   end

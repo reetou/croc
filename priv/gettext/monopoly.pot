@@ -1,0 +1,18 @@
+msgid "pay_for_neighbor"
+msgstr "%{name} узнает о том, что его родственник задолжал банкам. Он должен выплатить %{amount}."
+
+msgid "pay_for_birthday"
+msgstr "%{name} заболевает. Он должен заплатить %{amount}k за лечение."
+
+msgid "pay_for_debt"
+msgstr "Кто-то поцарапал машину %{name}. Он должен заплатить %{amount}k за ремонт."
+
+msgid "receive_wallet"
+msgstr "%{name} находит кошелек на улице. Он получает %{amount}k."
+
+msgid "receive_salary"
+msgstr "%{name} вспоминает, что на сберкнижке остались деньги. Он получает %{amount}k."
+
+msgid "pay_for_stars"
+msgstr "%{name} должен заплатить по 250k за каждую звезду и по 1000k за каждую большую звезду. Всего: %{amount}"
+
