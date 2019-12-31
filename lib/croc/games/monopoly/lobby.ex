@@ -10,6 +10,7 @@ defmodule Croc.Games.Monopoly.Lobby do
     :lobby_id,
     :players,
     :options,
+    :created_at,
     :chat_id
   ]
 
@@ -72,6 +73,7 @@ defmodule Croc.Games.Monopoly.Lobby do
       lobby = %__MODULE__{
         lobby_id: Ecto.UUID.generate(),
         players: [],
+        created_at: DateTime.utc_now() |> DateTime.truncate(:second),
         chat_id: Ecto.UUID.generate(),
         options: options
       }
