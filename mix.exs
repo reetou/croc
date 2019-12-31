@@ -59,7 +59,7 @@ defmodule Croc.MixProject do
       {:appsignal, "~> 1.0"},
       {:libcluster, "~> 3.0"},
       # Change github source when pull-request is merged
-      {:ex_admin, github: "reetou/ex_admin"},
+      {:ex_admin, github: "reetou/ex_admin", branch: "array-float-support"},
       {:poison, "~> 3.1"},
       {:timex, "~> 3.0"}
     ]
