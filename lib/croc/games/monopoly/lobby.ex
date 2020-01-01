@@ -2,6 +2,8 @@ defmodule Croc.Games.Monopoly.Lobby do
   alias Croc.Games.Monopoly.{Player, Card}
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Games.Lobby.Supervisor
+  alias Croc.Pipelines.Lobby.SetEventCards
+  alias Croc.Repo.Games.Monopoly.{UserCard, UserEventCard}
   require Logger
   use GenServer
 
@@ -76,6 +78,19 @@ defmodule Croc.Games.Monopoly.Lobby do
   end
 
   @impl true
+  def handle_call({:set_event_cards, player_id, event_cards_ids}, _from, %{ lobby: lobby } = state) do
+    event_cards = Enum.map(event_cards_ids, fn id -> %UserEventCard{id: id} end)
+    case SetEventCards.call(%{ lobby: lobby, player_id: player_id, event_cards: event_cards }) do
+      {:ok, %{lobby: lobby}} ->
+        state = Map.put(state, :lobby, lobby)
+        update_lobby_state(lobby, state)
+        {:reply, {:ok, lobby}, state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
   def handle_call({:get}, from, %{lobby: lobby} = state) do
     {:reply, {:ok, lobby}, state}
   end
@@ -100,6 +115,14 @@ defmodule Croc.Games.Monopoly.Lobby do
   def join(lobby_id, player_id) do
     with {:ok, lobby, pid} <- get(lobby_id) do
       GenServer.call(pid, {:join, player_id})
+    else
+      e -> e
+    end
+  end
+
+  def set_event_cards(lobby_id, player_id, event_cards_ids) do
+    with {:ok, lobby, pid} <- get(lobby_id) do
+      GenServer.call(pid, {:set_event_cards, player_id, event_cards_ids})
     else
       e -> e
     end
