@@ -6,6 +6,7 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
   alias Croc.Repo
   alias Croc.Sessions.Session
 
+  @derive {Jason.Encoder, except: [:__meta__, :user]}
   schema "user_monopoly_cards" do
     field :equipped_position, :integer
     belongs_to :monopoly_card, Croc.Repo.Games.Monopoly.Card, foreign_key: :monopoly_card_id

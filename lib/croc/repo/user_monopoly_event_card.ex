@@ -5,10 +5,12 @@ defmodule Croc.Repo.Games.Monopoly.UserEventCard do
 
   alias Croc.Repo
   alias Croc.Repo.Games.Monopoly.EventCard
+  alias Croc.Accounts.User
 
+  @derive {Jason.Encoder, except: [:__meta__, :user]}
   schema "user_monopoly_event_cards" do
-    belongs_to :monopoly_event_card, Croc.Repo.Games.Monopoly.EventCard, foreign_key: :monopoly_event_card_id
-    belongs_to :user, Croc.Accounts.User, foreign_key: :user_id
+    belongs_to :monopoly_event_card, EventCard, foreign_key: :monopoly_event_card_id
+    belongs_to :user, User, foreign_key: :user_id
 
     timestamps()
   end
