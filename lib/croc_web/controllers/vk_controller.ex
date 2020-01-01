@@ -29,11 +29,13 @@ defmodule CrocWeb.VkController do
     user = Accounts.get_or_create_vk_user(vk_id, params)
     with false <- user.banned == true do
       user_token = Phoenix.Token.sign(conn, "user socket", user.id)
+      access_token = CrocWeb.Auth.Token.sign(%{ "id" => user.id })
       conn =
         conn
+        |> assign(:access_token, access_token)
         |> assign(:current_user, user)
         |> assign(:user_token, user_token)
-        |> json(%{ user: user, token: user_token } |> format_response())
+        |> json(%{ user: user, token: user_token, access_token: access_token } |> format_response())
     else
       _ ->
         conn
