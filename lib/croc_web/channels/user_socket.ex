@@ -4,6 +4,7 @@ defmodule CrocWeb.UserSocket do
   channel "user:*", CrocWeb.UserChannel
   channel "lobby:*", CrocWeb.LobbyChannel
   channel "game:monopoly:*", CrocWeb.MonopolyChannel
+  channel "admin:*", CrocWeb.AdminChannel
 
   ## Channels
   # channel "room:*", CrocWeb.RoomChannel
@@ -44,5 +45,6 @@ defmodule CrocWeb.UserSocket do
   #     CrocWeb.Endpoint.broadcast("user_socket:#{user.id}", "disconnect", %{})
   #
   # Returning `nil` makes this socket anonymous.
+  def id(%{ assigns: %{ user_id: nil } }), do: nil
   def id(socket), do: "user_socket:#{socket.assigns.user_id}"
 end

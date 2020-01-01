@@ -6,23 +6,36 @@ defmodule CrocWeb.MonopolyChannel do
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Chat.Message
   alias Croc.Games.Chat
+  alias Croc.Games.Chat.Admin.MessageProducer
+
+  use Appsignal.Instrumentation.Decorators
   require Logger
 
   @prefix "game:monopoly:"
 
+  def join(@prefix <> game_id = topic, %{ "token" => token }, socket) do
+    IO.inspect(game_id, label: "Someone is joining")
+    with {:ok, user_id} <- Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600),
+         {:ok, %Monopoly{} = game, _pid} <- Monopoly.get(game_id) do
+      socket =
+        socket
+        |> assign(:user_id, user_id)
+      {:ok, %{ game: game, user_id: user_id }, socket}
+    else
+      {:error, reason} -> {:error, %{ reason: reason }}
+    end
+  end
+
   def join(@prefix <> game_id = topic, _message, socket) do
     IO.inspect(game_id, label: "Someone is joining")
     with {:ok, %Monopoly{} = game, _pid} <- Monopoly.get(game_id) do
-      topics = [topic <> ":#{socket.assigns.user_id}"]
-      socket = socket
-               |> assign(:topics, [])
-               |> put_new_topics(topics)
       {:ok, %{ game: game }, socket}
     else
       _ -> {:error, %{ reason: :no_game }}
     end
   end
 
+  @decorate channel_action()
   def handle_in("action", %{ "type" => type, "event_id" => event_id }, socket) when type == "roll" do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} game id: #{game_id}")
@@ -36,6 +49,7 @@ defmodule CrocWeb.MonopolyChannel do
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("action", %{ "type" => type, "event_id" => event_id }, socket) when type == "pay" do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} with event_id #{event_id} game id: #{game_id}")
@@ -51,6 +65,7 @@ defmodule CrocWeb.MonopolyChannel do
     {:noreply, socket}
   end
 
+  @decorate channel_action()
   def handle_in("action", %{ "type" => type, "event_id" => event_id }, socket) when type in ["buy", "reject_buy", "auction_bid", "auction_reject"] do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} in game id: #{game_id}")
@@ -69,6 +84,7 @@ defmodule CrocWeb.MonopolyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in("action", %{ "type" => type, "position" => position }, socket) when type in ["put_on_loan", "buyout", "downgrade", "upgrade"] do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} in game id: #{game_id}")
@@ -87,6 +103,7 @@ defmodule CrocWeb.MonopolyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in("action", %{ "type" => type }, socket) when type in ["surrender"] do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} in game id: #{game_id}")
@@ -105,11 +122,13 @@ defmodule CrocWeb.MonopolyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in("action", _params, socket) do
     send_error(socket, {:error, :invalid_action_type})
     {:reply, {:error, %{ reason: :invalid_request_format }}, socket}
   end
 
+  @decorate channel_action()
   def handle_in("chat_message", %{ "chat_id" => chat_id, "text" => text, "to" => to }, socket) do
     with {:ok, chat, pid} <- Chat.get(chat_id),
          %Message{} = message <- Message.new(chat_id, text, socket.assigns.user_id, to, :message),
@@ -122,6 +141,9 @@ defmodule CrocWeb.MonopolyChannel do
         :ok = CrocWeb.Endpoint.broadcast("user:#{socket.assigns.user_id}", "message", message)
         :ok = CrocWeb.Endpoint.broadcast("user:#{message.to}", "message", message)
       end
+      Task.start(fn ->
+        MessageProducer.sync_message(message)
+      end)
       {:noreply, socket}
     else
       {:error, reason} ->
@@ -134,6 +156,7 @@ defmodule CrocWeb.MonopolyChannel do
     end
   end
 
+  @decorate channel_action()
   def handle_in("chat_message", params, socket) do
     Logger.error("Unhandled message with params #{inspect params}")
     {:noreply, socket}

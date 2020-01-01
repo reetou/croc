@@ -5,6 +5,8 @@ defmodule Croc.Accounts.User do
 
   alias Croc.Repo
   alias Croc.Sessions.Session
+  alias Croc.Repo.Games.Monopoly.{UserCard, UserEventCard}
+
 
   @type t :: %__MODULE__{
           id: integer,
@@ -19,17 +21,27 @@ defmodule Croc.Accounts.User do
         }
 
   schema "users" do
-    field :username, :string, null: false, unique: true
-    field :email, :string, unique: true
+    field :username, :string
+    field :first_name, :string
+    field :last_name, :string
+    field :vk_id, :integer
+    field :image_url, :string
+    field :email, :string
     field :password, :string, virtual: true
     field :password_hash, :string
     field :confirmed_at, :utc_datetime
     field :reset_sent_at, :utc_datetime
+    field :is_admin, :boolean
+    field :banned, :boolean
     has_many :sessions, Session, on_delete: :delete_all
 
-    has_many :user_monopoly_cards, Croc.Repo.Games.Monopoly.UserCard
+    has_many :user_monopoly_cards, UserCard
+
+    has_many :user_monopoly_event_cards, UserEventCard
 
     has_many :monopoly_cards, through: [:user_monopoly_cards, :monopoly_card]
+
+    has_many :monopoly_event_cards, through: [:user_monopoly_event_cards, :monopoly_event_card]
 
     timestamps()
   end
@@ -39,11 +51,33 @@ defmodule Croc.Accounts.User do
     |> Repo.get(id)
   end
 
+  def vk_changeset(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:first_name, :vk_id, :last_name, :image_url])
+    |> validate_required([:vk_id])
+    |> unique_constraint(:vk_id)
+  end
+
   def changeset(%__MODULE__{} = user, attrs) do
     user
     |> cast(attrs, [:email])
     |> validate_required([:email])
     |> unique_email
+  end
+
+  def changeset_update(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:email, :first_name, :last_name, :image_url, :banned, :username])
+    |> validate_required([:email])
+    |> unique_email
+  end
+
+  def changeset_create(%__MODULE__{} = user, attrs) do
+    user
+    |> cast(attrs, [:email, :first_name, :last_name, :image_url, :username, :vk_id])
+    |> validate_required([:email])
+    |> unique_email
+    |> cast_assoc(:monopoly_cards, required: false)
   end
 
   def create_changeset(%__MODULE__{} = user, attrs) do
@@ -115,6 +149,10 @@ defmodule Croc.Accounts.User do
     |> Map.put(:email, user.email)
     |> Map.put(:id, user.id)
     |> Map.put(:username, user.username)
+    |> Map.put(:first_name, user.first_name)
+    |> Map.put(:image_url, user.image_url)
+    |> Map.put(:last_name, user.last_name)
     |> Map.put(:user_monopoly_cards, user.user_monopoly_cards)
+    |> Map.put(:banned, user.banned)
   end
 end

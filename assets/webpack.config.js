@@ -10,7 +10,26 @@ module.exports = (env, options) => ({
     minimizer: [
       new TerserPlugin({ cache: true, parallel: true, sourceMap: false }),
       new OptimizeCSSAssetsPlugin({})
-    ]
+    ],
+    splitChunks: {
+      chunks: 'async',
+      minSize: 30000,
+      minChunks: 1,
+      maxAsyncRequests: 6,
+      maxInitialRequests: 4,
+      automaticNameDelimiter: '~',
+      cacheGroups: {
+        vendors: {
+          test: /[\\/]node_modules[\\/]/,
+          priority: -10
+        },
+        default: {
+          minChunks: 2,
+          priority: -20,
+          reuseExistingChunk: true
+        }
+      }
+    }
   },
   entry: {
     'app': glob.sync('./vendor/**/*.js').concat(['./js/app.js']),
@@ -18,7 +37,9 @@ module.exports = (env, options) => ({
   },
   output: {
     filename: '[name].js',
-    path: path.resolve(__dirname, '../priv/static/js')
+    chunkFilename: '[name].[id].chunk.js',
+    path: path.resolve(__dirname, '../priv/static/js'),
+    publicPath: "/js/"
   },
   module: {
     rules: [

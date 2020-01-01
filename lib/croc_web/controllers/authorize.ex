@@ -35,6 +35,23 @@ defmodule CrocWeb.Authorize do
     |> halt()
   end
 
+  def admin_check(%Plug.Conn{assigns: %{current_user: nil}} = conn, _opts) do
+    error(conn, :forbidden, 403)
+  end
+
+  def admin_check(%Plug.Conn{assigns: %{current_user: current_user}} = conn, _opts) do
+    unless current_user.is_admin == true do
+      error(conn, :forbidden, 403)
+    else
+      IO.inspect(current_user, label: "Allowing to admin")
+      conn
+    end
+  end
+
+  def admin_check(conn, _opts) do
+    error(conn, :forbidden, 403)
+  end
+
   @doc """
   Plug to only allow authenticated users with the correct id to access the resource.
 

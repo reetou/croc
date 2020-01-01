@@ -67,6 +67,7 @@ defmodule Croc.Games.Monopoly do
     :player_turn,
     :cards,
     :turn_timeout_at,
+    :turn_started_at,
     :on_timeout,
     :chat_id,
     round: 1,
@@ -285,7 +286,7 @@ defmodule Croc.Games.Monopoly do
   def positions, do: @positions
 
   def start(%Lobby{lobby_id: lobby_id, options: options}) do
-    with {:ok, lobby_players} when length(lobby_players) > 0 <- Lobby.get_players(lobby_id) do
+    with {:ok, lobby_players} when length(lobby_players) > 1 <- Lobby.get_players(lobby_id) do
       {:ok, game} =
         Memento.transaction(fn ->
           started_at = DateTime.utc_now() |> DateTime.truncate(:second)
@@ -323,7 +324,7 @@ defmodule Croc.Games.Monopoly do
           }
 
           {:ok, %__MODULE__{} = game} = MonopolySupervisor.create_game_process(game.game_id, %{game: game})
-          :ok = CrocWeb.Endpoint.broadcast("lobby:" <> lobby_id, "left", %{ lobby_id: lobby_id })
+#          :ok = CrocWeb.Endpoint.broadcast("lobby:" <> lobby_id, "left", %{ lobby_id: lobby_id })
           :ok = CrocWeb.Endpoint.broadcast("lobby:" <> lobby_id, "game_start", %{ game: game })
           :ok = LobbySupervisor.stop_lobby_process(lobby_id)
           game
@@ -340,6 +341,8 @@ defmodule Croc.Games.Monopoly do
       e ->
         e
         |> case do
+          {:ok, _lobby_players} ->
+            {:error, :not_enough_players}
           {:ok, []} ->
             Logger.error("No lobby or no players")
             {:error, :no_players_in_lobby}
@@ -440,6 +443,7 @@ defmodule Croc.Games.Monopoly do
 
   def get_default_cards do
     MonopolyCard.get_default_by_positions(@positions)
+    |> Enum.sort_by(fn c -> c.position end)
   end
 
   def get(game_id) when game_id != nil do

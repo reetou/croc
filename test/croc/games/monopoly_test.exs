@@ -15,7 +15,7 @@ defmodule Croc.GamesTest.MonopolyTest do
       Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
     end
 
-    players_ids = Enum.take_random(1..999_999, 5)
+    players_ids = Enum.take_random(10..999_999, 5)
     {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
     Enum.slice(players_ids, 1, 100)
@@ -30,6 +30,11 @@ defmodule Croc.GamesTest.MonopolyTest do
       lobby_players: lobby_players,
       players_ids: players_ids
     }
+  end
+
+  test "should throw error if starting game with only 1 player in lobby", %{ lobby: lobby } do
+    {:ok, lobby} = Lobby.create(Enum.random(1..5), [])
+    {:error, :not_enough_players} = Monopoly.start(lobby)
   end
 
   test "should start game for lobby and write game data to mnesia", context do
@@ -59,7 +64,7 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "roll event" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(10..999_999, 5)
       {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
       Enum.slice(players_ids, 1, 100)
@@ -129,7 +134,7 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "process position change" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(10..999_999, 5)
       {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
       Enum.slice(players_ids, 1, 100)
@@ -263,7 +268,7 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "process player turn" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(10..999_999, 5)
       {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
       Enum.slice(players_ids, 1, 100)
@@ -359,7 +364,7 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "get new position" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(10..999_999, 5)
       {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
       Enum.slice(players_ids, 1, 100)

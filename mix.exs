@@ -20,7 +20,7 @@ defmodule Croc.MixProject do
   def application do
     [
       mod: {Croc.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :timex]
     ]
   end
 
@@ -54,7 +54,14 @@ defmodule Croc.MixProject do
       {:opus, "~> 0.6"},
       {:sentry, "~> 7.0"},
       {:distillery, "~> 2.0"},
-      {:decimal, "~> 1.0"}
+      {:decimal, "~> 1.0"},
+      {:gen_stage, "~> 0.14"},
+      {:appsignal, "~> 1.0"},
+      {:libcluster, "~> 3.0"},
+      # Change github source when pull-request is merged
+      {:ex_admin, github: "reetou/ex_admin", branch: "array-float-support"},
+      {:poison, "~> 3.1"},
+      {:timex, "~> 3.0"}
     ]
   end
 

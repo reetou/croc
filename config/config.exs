@@ -23,6 +23,19 @@ config :phauxth,
   crypto_module: Argon2,
   token_module: CrocWeb.Auth.Token
 
+config :ex_admin,
+       repo: Croc.Repo,
+       module: CrocWeb,
+       skin_color: :purple,
+       modules: [
+         CrocWeb.ExAdmin.Dashboard,
+         CrocWeb.ExAdmin.Accounts.User,
+         CrocWeb.ExAdmin.Repo.Games.Monopoly.Card,
+         CrocWeb.ExAdmin.Repo.Games.Monopoly.EventCard,
+         CrocWeb.ExAdmin.Repo.Games.Monopoly.UserCard,
+         CrocWeb.ExAdmin.Repo.Games.Monopoly.UserEventCard
+       ]
+
 # Mailer configuration
 config :croc, CrocWeb.Mailer,
   adapter: Bamboo.SendGridAdapter,
@@ -45,3 +58,6 @@ config :phoenix, :json_library, Jason
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{Mix.env()}.exs"
+
+config :xain, :after_callback, {Phoenix.HTML, :raw}
+

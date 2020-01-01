@@ -10,11 +10,24 @@ use Mix.Config
 # which you should run after static files are built and
 # before starting your production server.
 config :croc, CrocWeb.Endpoint,
+  instrumenters: [Appsignal.Phoenix.Instrumenter],
   http: [port: {:system, "PORT"}], # Possibly not needed, but doesn't hurt
   url: [host: System.get_env("APP_NAME") <> ".gigalixirapp.com", port: 80],
   server: true,
-  cache_static_manifest: "priv/static/cache_manifest.json"
+  cache_static_manifest: "priv/static/cache_manifest.json",
+  check_origin: ["//#{System.get_env("APP_NAME") <> ".gigalixirapp.com"}", "//*.vk.com"]
 
+config :libcluster,
+       topologies: [
+         k8s: [
+           strategy: Cluster.Strategy.Kubernetes,
+           config: [
+             # For Elixir Releases, use System.get_env instead of the distillery env vars below.
+             kubernetes_selector: System.get_env("LIBCLUSTER_KUBERNETES_SELECTOR"),
+             kubernetes_node_basename: System.get_env("LIBCLUSTER_KUBERNETES_NODE_BASENAME")
+           ]
+         ]
+       ]
 config :sentry,
        dsn: System.get_env("SENTRY_DSN"),
        environment_name: :prod,

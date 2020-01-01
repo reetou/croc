@@ -1,0 +1,122 @@
+<a class="button button-outline" href="<%= Routes.admin_path(@conn, :cards) %>">To cards</a>
+
+
+<%= form_for @changeset, Routes.admin_path(@conn, :edit_card, @changeset.data.id), [as: :card, method: :put], fn f -> %>
+  <%= if f.errors != [] do %>
+    <div class="alert alert-danger">
+      <p>Something went wrong. Please check the errors below.</p>
+    </div>
+  <% end %>
+
+  <%= label f, :id %>
+  <%= text_input f, :id, [disabled: true] %>
+
+  <%= label f, :name, "Название" %>
+  <%= text_input f, :name %>
+  <%= error_tag f, :name %>
+
+  <%= label f, :type, "Тип" %>
+  <%= select f, :type, @types %>
+  <%= error_tag f, :type %>
+
+  <%= label f, :monopoly_type, "Тип монополии (оставьте пустым если нет)" %>
+  <%= select f, :monopoly_type, @monopoly_types ++ [nil] %>
+  <%= error_tag f, :monopoly_type %>
+
+  <%= label f, :position, "Позиция" %>
+  <%= select f, :position, 0..39 %>
+  <%= error_tag f, :position %>
+
+  <div style="display: flex; flex-direction: column; align-items: center;">
+    <h2>Картинка</h2>
+    <img width="100" src="<%= f.data.image_url %>" />
+  </div>
+
+  <%= label f, :image_url, "Ссылка" %>
+  <%= url_input f, :image_url %>
+  <%= error_tag f, :image_url %>
+
+  <%= label f, :payment_amount, "Сумма налога" %>
+  <%= text_input f, :payment_amount %>
+  <%= error_tag f, :payment_amount %>
+
+  <%= label f, :loan_amount, "Доход с залога" %>
+  <%= text_input f, :loan_amount %>
+  <%= error_tag f, :loan_amount %>
+
+  <%= label f, :cost, "Цена" %>
+  <%= text_input f, :cost %>
+  <%= error_tag f, :cost %>
+
+  <%= label f, :buyout_cost, "Цена выкупа" %>
+  <%= text_input f, :buyout_cost %>
+  <%= error_tag f, :buyout_cost %>
+
+  <%= label f, :upgrade_cost, "Цена постройки филиала" %>
+  <%= text_input f, :upgrade_cost %>
+  <%= error_tag f, :upgrade_cost %>
+
+  <%= label f, :max_upgrade_level, "Максимальный уровень филиала (всегда 0 если нет множителей налога на уровень филиала)" %>
+  <%= select f, :max_upgrade_level, 0..6 %>
+  <%= error_tag f, :max_upgrade_level %>
+
+  <%= label f, :is_default, "Доступно по умолчанию" %>
+  <%= checkbox f, :is_default %>
+  <%= error_tag f, :is_default %>
+
+  <%= label f, :disabled, "Недоступно для игры" %>
+  <%= checkbox f, :disabled %>
+  <%= error_tag f, :disabled %>
+
+  <%= label f, "Редкость" %>
+  <%= select f, :rarity, [
+    [key: "Обычный", value: 0],
+    [key: "Необычный", value: 1],
+    [key: "Редкий", value: 3],
+    [key: "Невероятный", value: 4],
+    [key: "Легендарный", value: 5],
+    [key: "Секретный", value: 6],
+  ] %>
+  <%= error_tag f, :rarity %>
+
+  <%= label f, "Множители налога на уровень филиала (должно соответствовать максимальному уровню филиала)" %>
+  <%= array_input f, :upgrade_level_multipliers %>
+  <%= array_add_button f, :upgrade_level_multipliers %>
+  <%= error_tag f, :upgrade_level_multipliers %>
+
+
+  <div>
+    <%= submit "Edit" %>
+  </div>
+<% end %>
+
+<script type="text/javascript">
+window.onload = () => {
+  const removeElement = ({target}) => {
+    let el = document.getElementById(target.dataset.id);
+    let li = el.parentNode;
+    li.parentNode.removeChild(li);
+  }
+  Array.from(document.querySelectorAll(".remove-form-field"))
+    .forEach(el => {
+      el.onclick = (e) => {
+        removeElement(e);
+      }
+    });
+  Array.from(document.querySelectorAll(".add-form-field"))
+    .forEach(el => {
+      el.onclick = ({target}) => {
+        let container = document.getElementById(target.dataset.container);
+        let index = container.dataset.index;
+        let newRow = target.dataset.prototype;
+        container.insertAdjacentHTML('beforeend', newRow.replace(/__name__/g, index));
+        container.dataset.index = parseInt(container.dataset.index) + 1;
+        container.querySelectorAll('a.remove-form-field').forEach(el => {
+          el.onclick = (e) => {
+            removeElement(e);
+          }
+        })
+      }
+    });
+}
+</script>

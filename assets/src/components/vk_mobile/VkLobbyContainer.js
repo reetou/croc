@@ -43,29 +43,43 @@ function VkLobbyContainer(props) {
       <Group title="Игры">
         <List>
           {
-            props.lobbies.map(l => {
-              console.log('Lobby', toJS(l))
-              const canJoin = !l.closed
-              const { players } = l
-              const owner = players.length && props.user && players[0].player_id == props.user.id
+            props.lobbies
+              .sort((a, b) => {
+                const member = a.players.find(p => p.player_id === props.user.id)
+                if (member) {
+                  return 9999
+                }
+                return a.players.length - b.players.length
+              })
+              .map(l => {
+                console.log('Lobby', toJS(l))
+                const member = l.players.find(p => p.player_id === props.user.id)
+                const canJoin = !l.closed && !member
+                const { players } = l
+                const owner = players.length && props.user && players[0].player_id == props.user.id
 
-              return (
-                <VkLobby
-                  key={l.lobby_id}
-                  onJoin={() => {
-                    if (props.user) {
-                      joinLobby(l.lobby_id)
-                    } else {
-                      props.signIn()
-                    }
-                  }}
-                  canJoin={canJoin}
-                  owner={owner}
-                  lobby={l}
-                  user={props.user}
-                />
-              )
-            })
+                return (
+                  <VkLobby
+                    key={l.lobby_id}
+                    member={member}
+                    onJoin={() => {
+                      if (props.user) {
+                        props.joinLobby(l.lobby_id)
+                      } else {
+                        props.signIn()
+                      }
+                    }}
+                    canJoin={canJoin}
+                    onGoToLobby={() => {props.onGoToLobby(l)}}
+                    leaveLobby={() => {
+                      props.leaveLobby(l.lobby_id)
+                    }}
+                    owner={owner}
+                    lobby={l}
+                    user={props.user}
+                  />
+                )
+              })
           }
         </List>
       </Group>

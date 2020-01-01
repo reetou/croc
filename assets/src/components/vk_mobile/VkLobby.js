@@ -7,13 +7,16 @@ function VkLobby(props) {
     lobby,
     onJoin,
     canJoin,
+    member,
+    onGoToLobby,
+    leaveLobby,
   } = props
   return useObserver(() => (
     <React.Fragment>
       <Div>
         <div style={{
           backgroundImage: 'linear-gradient(135deg, #f24973 0%, #3948e6 100%)',
-          height: 100,
+          height: 120,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -22,21 +25,49 @@ function VkLobby(props) {
           borderRadius: 12
         }}>
           <UsersStack
-            photos={[
-              'https://sun9-19.userapi.com/c851232/v851232757/fb949/4rDdDHqGglQ.jpg?ava=1',
-              'https://sun9-3.userapi.com/c851536/v851536176/a9b1d/xdPOltpVQRI.jpg?ava=1',
-              'https://sun9-21.userapi.com/c851416/v851416327/be840/bnUHAblZoBY.jpg?ava=1'
-            ]}
+            photos={lobby.players.map(p => p.image_url)}
             size="m"
+            layout="vertical"
+            visibleCount={5}
             style={{ color: "#fff" }}
-          />
-          <Button
-            level="outline"
-            disabled={!canJoin}
-            onClick={onJoin}
           >
-            Присоединиться
-          </Button>
+            {lobby.players.length} игроков в лобби{member && lobby.players.length > 1 ? ', включая вас' : null}
+          </UsersStack>
+          {
+            member
+              ? (
+                <Div style={{display: 'flex'}}>
+                  <Button
+                    onClick={onGoToLobby}
+                    disabled={!member}
+                    mode={'primary'}
+                    stretched
+                    style={{ marginRight: 8 }}
+                  >
+                    Перейти
+                  </Button>
+                  <Button
+                    stretched
+                    mode="overlay_secondary"
+                    disabled={!member}
+                    onClick={leaveLobby}
+                  >
+                    Выйти
+                  </Button>
+                </Div>
+              )
+              : (
+                <Div>
+                  <Button
+                    level="outline"
+                    disabled={!canJoin}
+                    onClick={onJoin}
+                  >
+                    Присоединиться
+                  </Button>
+                </Div>
+              )
+          }
         </div>
       </Div>
     </React.Fragment>

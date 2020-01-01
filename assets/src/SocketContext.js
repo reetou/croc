@@ -2,10 +2,13 @@ import React, { createContext, useEffect, useState } from 'react'
 import { Socket } from 'phoenix'
 import socketClient from '../js/socket'
 
-const PhoenixSocketContext = createContext({ socket: socketClient })
+const PhoenixSocketContext = createContext({
+  socket: socketClient,
+  token: null,
+})
 
-const PhoenixSocketProvider = ({ children }) => {
-  const [socket, setSocket] = useState()
+const PhoenixSocketProvider = ({ children, userToken, wsUrl }) => {
+  const [socket, setSocket] = useState(null)
 
   useEffect(() => {
     setSocket(socketClient)
@@ -14,7 +17,7 @@ const PhoenixSocketProvider = ({ children }) => {
   if (!socket) return null
 
   return (
-    <PhoenixSocketContext.Provider value={{ socket }}>
+    <PhoenixSocketContext.Provider value={{ socket, token: userToken }}>
       {children}
     </PhoenixSocketContext.Provider>
   )

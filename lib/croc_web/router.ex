@@ -2,6 +2,8 @@ defmodule CrocWeb.Router do
   use CrocWeb, :router
   use Plug.ErrorHandler
   use Sentry.Plug
+  use ExAdmin.Router
+  import CrocWeb.Authorize
 
   pipeline :browser do
     plug :accepts, ["html"]
@@ -24,11 +26,16 @@ defmodule CrocWeb.Router do
     plug :put_layout, {CrocWeb.VkMobileView, "layout.html"}
   end
 
+  pipeline :admin do
+    plug :admin_check
+  end
+
   pipeline :api do
     plug :accepts, ["json"]
     plug :fetch_session
     plug :fetch_flash
     plug Phauxth.AuthenticateToken
+    plug :put_user_token
   end
 
   scope "/", CrocWeb do
@@ -46,8 +53,23 @@ defmodule CrocWeb.Router do
     get "/profile", UserController, :index
   end
 
+  scope "/admin", CrocWeb do
+    pipe_through :browser
+    pipe_through :admin
+    get "/", AdminController, :index
+    get "/games/messages", AdminController, :all_games_messages
+  end
+
+  # setup the ExAdmin routes on /admin
+  scope "/exadmin", ExAdmin do
+    pipe_through :browser
+    pipe_through :admin
+    admin_routes()
+  end
+
   scope "/api", CrocWeb do
     pipe_through :api
+    post "/auth/vk", VkController, :auth
     resources "/users", UserController, except: [:new, :index]
     resources "/sessions", SessionController, only: [:create, :delete]
   end
