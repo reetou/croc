@@ -19,6 +19,7 @@ defmodule Croc.Pipelines.Lobby.SetEventCards do
 
   check :in_lobby?, error_message: :not_in_lobby
   check :valid_cards_count?, error_message: :too_many_cards
+  step :set_actual_user_event_cards
   check :has_event_cards?, error_message: :no_such_user_cards
   step :set_event_cards
 
@@ -30,16 +31,24 @@ defmodule Croc.Pipelines.Lobby.SetEventCards do
     length(event_cards) <= @event_cards_limit
   end
 
-  def has_event_cards?(%{event_cards: event_cards, player_id: player_id}) do
-    user_event_cards_id =
-      MonopolyUser.get_event_cards(player_id)
-      |> Enum.map(fn x -> x |> Map.fetch!(:id) end)
-    event_cards
-    |> Enum.all?(fn c -> Enum.member?(user_event_cards_id, c.monopoly_event_card_id) end)
+  def set_actual_user_event_cards(%{ player_id: player_id } = args) do
+    Map.put(args, :user_event_cards, MonopolyUser.get_event_cards(player_id))
   end
 
-  def set_event_cards(%{ event_cards: event_cards, player_id: player_id, lobby: lobby } = args) do
-    lobby = LobbyPlayer.put(lobby, player_id, :event_cards, event_cards)
+  def has_event_cards?(%{event_cards: event_cards, user_event_cards: user_event_cards, player_id: player_id}) do
+    user_event_cards_id =
+      user_event_cards
+      |> Enum.map(fn x ->
+        x
+        |> Map.fetch!(:id)
+      end)
+    event_cards
+    |> Enum.all?(fn c -> Enum.member?(user_event_cards_id, c.id) end)
+  end
+
+  def set_event_cards(%{ event_cards: event_cards, player_id: player_id, lobby: lobby, user_event_cards: user_event_cards } = args) do
+    event_cards_ids = Enum.map(event_cards, fn c -> c.id end)
+    lobby = LobbyPlayer.put(lobby, player_id, :event_cards, user_event_cards |> Enum.filter(fn c -> c.id in event_cards_ids end))
     Map.put(args, :lobby, lobby)
   end
 

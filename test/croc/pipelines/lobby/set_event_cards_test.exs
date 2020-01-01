@@ -97,12 +97,12 @@ defmodule Croc.PipelinesTest.Lobby.SetEventCardsTest do
 
     test "should throw error when has cards that not exist at user", %{ lobby: lobby, user_event_cards: user_event_cards } do
       %LobbyPlayer{} = player = List.first(lobby.players)
-      not_existing_card_id = 999999
-      assert Enum.all?(user_event_cards, fn c -> c.monopoly_event_card_id != not_existing_card_id end)
+      not_existing_user_card_id = 999999
+      assert Enum.all?(user_event_cards, fn c -> c.id != not_existing_user_card_id end)
       {:error, pipeline_error} = SetEventCards.call(%{
         lobby: lobby,
         player_id: player.player_id,
-        event_cards: Enum.slice(user_event_cards, 1, 5) ++ [%UserEventCard{user_id: player.player_id, monopoly_event_card_id: not_existing_card_id}]
+        event_cards: Enum.slice(user_event_cards, 1, 5) ++ [%UserEventCard{List.first(user_event_cards) | id: not_existing_user_card_id}]
       })
       assert pipeline_error.error == :no_such_user_cards
     end
