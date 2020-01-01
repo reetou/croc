@@ -44,6 +44,7 @@ function VkLobbyContainer(props) {
         <List>
           {
             props.lobbies
+              .slice()
               .sort((a, b) => {
                 const member = a.players.find(p => p.player_id === props.user.id)
                 if (member) {

@@ -953,6 +953,7 @@ function VkMiniApp(props) {
       console.log('User data', userData)
       const res = await axios.post('/auth/vk', userData)
       state.user = res.data.user
+      state.user.access_token = res.data.access_token
       state.token = res.data.token
     } catch (e) {
       console.log('User error', e)
@@ -1102,6 +1103,7 @@ function VkMiniApp(props) {
                   id={'find_game'}
                   onGameStart={onGameStart}
                   setActiveModal={setActiveModal}
+                  setActiveOptionsModal={setActiveOptionsModal}
                 />
               )
           }
