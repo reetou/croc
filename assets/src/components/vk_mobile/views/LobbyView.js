@@ -46,9 +46,6 @@ function LobbyView(props) {
         }
         return l
       })
-      if (this.lobby && this.lobby.lobby_id === payload.lobby_id) {
-        this.lobby = payload
-      }
     }
   }))
   const { token } = useContext(PhoenixSocketContext)
