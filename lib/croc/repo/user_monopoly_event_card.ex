@@ -30,14 +30,15 @@ defmodule Croc.Repo.Games.Monopoly.UserEventCard do
   end
 
   def changeset(module, attrs) do
-    IO.inspect(attrs, label: "Casting attrs")
     module
-    |> cast(attrs, [:monopoly_event_card_id])
+    |> cast(attrs, [:monopoly_event_card_id, :user_id])
+    |> foreign_key_constraint(:monopoly_event_card_id)
+    |> foreign_key_constraint(:user_id)
   end
 
   def create(attrs) do
     event_card =
-      __MODULE__
+      %__MODULE__{}
       |> changeset(attrs)
       |> Repo.insert!()
 

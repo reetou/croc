@@ -152,7 +152,8 @@ defmodule Croc.Accounts.User do
     |> Map.put(:first_name, user.first_name)
     |> Map.put(:image_url, user.image_url)
     |> Map.put(:last_name, user.last_name)
-    |> Map.put(:user_monopoly_cards, user.user_monopoly_cards)
+    |> Map.put(:monopoly_event_cards, user.monopoly_event_cards)
+    |> Map.put(:monopoly_cards, user.monopoly_cards)
     |> Map.put(:banned, user.banned)
   end
 end

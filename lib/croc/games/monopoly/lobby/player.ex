@@ -1,5 +1,6 @@
 defmodule Croc.Games.Monopoly.Lobby.Player do
   alias Croc.Games.Monopoly.Lobby
+  alias Croc.Repo
   require Logger
 
   @enforce_keys [
@@ -12,7 +13,8 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     attributes: [
       :id,
       :player_id,
-      :lobby_id
+      :lobby_id,
+      :event_cards
     ],
     index: [:player_id, :lobby_id],
     autoincrement: true,
@@ -90,5 +92,13 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
           nil
         end
       end)
+  end
+
+  def put(%Lobby{} = lobby, player_id, key, value) when is_atom(key) do
+    player_index = Enum.find_index(lobby.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(lobby.players, player_index)
+             |> Map.put(key, value)
+    players = List.replace_at(lobby.players, player_index, player)
+    Map.put(lobby, :players, players)
   end
 end
