@@ -16,7 +16,7 @@ defmodule CrocWeb.LobbyChannel do
     }
   end
 
-  def join("lobby:all", %{ "token" => token }, socket) when token != nil do
+  def join("lobby:all", %{ "token" => token }, socket) when token != nil and token != "" do
     case Phoenix.Token.verify(socket, "user socket", token, max_age: 1209600) do
       {:ok, user_id} ->
         with {:ok, %LobbyPlayer{lobby_id: lobby_id}} <- LobbyPlayer.get_current_lobby_data(user_id) do
@@ -36,6 +36,11 @@ defmodule CrocWeb.LobbyChannel do
       {:error, reason} ->
         {:ok, join_all_response(nil, nil, reason), socket}
     end
+  end
+
+  def join("lobby:all", _params, %{ assigns: %{ user_id: nil } } = socket) do
+    Logger.error("Unknown user joined")
+    {:ok, join_all_response(nil, nil), socket}
   end
 
   def join("lobby:all", _message, socket) do
@@ -58,6 +63,9 @@ defmodule CrocWeb.LobbyChannel do
          {:ok, %Lobby{} = lobby, _pid} <- Lobby.get(lobby_id),
          true <- LobbyPlayer.in_lobby?(user_id, lobby) do
       Logger.debug("Joined to personal lobby #{lobby_id}")
+      socket =
+        socket
+        |> assign(:user_id, user_id)
       {:ok, socket}
     else
       {:error, reason} ->
