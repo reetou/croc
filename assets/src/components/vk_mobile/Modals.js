@@ -25,6 +25,8 @@ function getErrorMessage(errorMessage) {
     case 'authenticate_first': return 'Вход не был завершен полностью. Попробуйте перезапустить приложение'
     case 'lobby_timeout': return 'Истек срок ожидания начала игры. Лобби было закрыто.'
     case 'lobby_closed': return 'Ваше лобби было закрыто администратором.'
+    case 'not_enough_players': return 'Недостаточно игроков для старта игры'
+    case 'maximum_players': return 'Достигнуто максимальное количество игроков в лобби'
     default: return 'Неизвестная ошибка'
   }
 }

@@ -25,7 +25,7 @@ function CurrentLobby(props) {
   return useObserver(() => (
     <Panel id={props.id}>
       <PanelHeader
-        left={<HeaderButton disabled={state.loading} onClick={props.onGoBack}><Icon24Back/></HeaderButton>}
+        left={<HeaderButton disabled={props.loading} onClick={props.onGoBack}><Icon24Back/></HeaderButton>}
       >
         Ваше лобби
       </PanelHeader>
@@ -77,10 +77,10 @@ function CurrentLobby(props) {
                 <Button
                   stretched
                   size={'l'}
-                  disabled={state.loading}
+                  disabled={props.loading}
                   mode={'primary'}
                   onClick={() => {
-                    state.loading = true
+                    props.onTriggerLoading(true)
                     props.startGame(props.lobby.lobby_id)
                   }}
                 >
@@ -94,10 +94,10 @@ function CurrentLobby(props) {
           <Button
             stretched
             size={'l'}
-            disabled={state.loading}
+            disabled={props.loading}
             mode={'destructive'}
             onClick={() => {
-              state.loading = true
+              props.onTriggerLoading(true)
               props.leaveLobby(props.lobby.lobby_id)
             }}
           >

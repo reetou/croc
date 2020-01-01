@@ -11,9 +11,10 @@ function LobbyView(props) {
   const state = useLocalStore(() => ({
     activePanel: 'main',
     game_id: null,
-    lobbies: props.lobbies || [],
+    lobbies: [],
     errors: [],
     popout: null,
+    loading: false,
     joined_lobby_id: null,
     get lobby() {
       if (!this.joined_lobby_id) return null
@@ -32,6 +33,7 @@ function LobbyView(props) {
         if (state.popout) {
           state.popout = null
         }
+        state.loading = false
       }
     },
     lobbyUpdate(payload) {
@@ -72,6 +74,7 @@ function LobbyView(props) {
       console.log('Game is gonna start!!!!', payload)
       state.game_id = payload.game.game_id
       props.onGameStart(payload.game)
+      state.loading = false
     })
     chan.on('left', (payload) => {
       if (payload.force) {
@@ -107,6 +110,7 @@ function LobbyView(props) {
     if (state.joinedLobbyChannel) {
       state.joinedLobbyChannel.leave()
     }
+    state.loading = false
   }
   const joinLobby = (lobby_id) => {
     lobbyChannel.push('join', {
@@ -186,6 +190,10 @@ function LobbyView(props) {
         id="in_lobby"
         lobby={state.lobby}
         leaveLobby={leaveLobby}
+        loading={state.loading}
+        onTriggerLoading={(prop) => {
+          state.loading = prop
+        }}
         startGame={startGame}
       />
     </View>
