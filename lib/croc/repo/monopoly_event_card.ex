@@ -27,6 +27,12 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
     ])
   end
 
+  def create(attrs) do
+    %__MODULE__{}
+    |> changeset(attrs)
+    |> Repo.insert!()
+  end
+
   def get_by_id(id) do
     __MODULE__
     |> Repo.get(id)
