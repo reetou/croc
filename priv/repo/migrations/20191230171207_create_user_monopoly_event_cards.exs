@@ -1,4 +1,4 @@
-defmodule Croc.Repo.Migrations.CreateUserMonopolyCards do
+defmodule Croc.Repo.Migrations.CreateUserMonopolyEventCards do
   use Ecto.Migration
 
   def change do

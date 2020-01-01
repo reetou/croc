@@ -8,7 +8,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
 
   test "should throw error if player limit reached" do
-    players_ids = Enum.take_random(1..5, 5)
+    players_ids = Enum.take_random(1_000_000..1_000_008, 5)
     {:ok, %Lobby{} = lobby} = Lobby.create(List.first(players_ids), [])
     Enum.each(players_ids, fn p_id ->
       cond do
