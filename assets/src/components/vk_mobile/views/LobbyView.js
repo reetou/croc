@@ -29,6 +29,9 @@ function LobbyView(props) {
       this.errors = [...this.errors, payload]
       if (props.setActiveModal) {
         props.setActiveModal('lobby_error', payload.reason)
+        if (state.popout) {
+          state.popout = null
+        }
       }
     },
     lobbyUpdate(payload) {
