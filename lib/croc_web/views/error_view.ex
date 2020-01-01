@@ -13,4 +13,15 @@ defmodule CrocWeb.ErrorView do
   def template_not_found(template, _assigns) do
     Phoenix.Controller.status_message_from_template(template)
   end
+
+  def render("400.json", %{ reason: reason }) do
+    %{
+      error: :bad_request,
+      reason: reason,
+    }
+  end
+
+  def render("400.json", _assigns) do
+    %{error: :bad_request}
+  end
 end
