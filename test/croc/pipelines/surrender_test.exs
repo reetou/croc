@@ -1,4 +1,4 @@
-defmodule Croc.PipelinesTest.Games.Monopoly.AuctionBid do
+defmodule Croc.PipelinesTest.Games.Monopoly.Surrender do
 
   use ExUnit.Case
   alias Croc.Games.Monopoly.{Event, Player, Lobby, Card}
