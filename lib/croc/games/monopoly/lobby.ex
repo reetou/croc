@@ -16,6 +16,8 @@ defmodule Croc.Games.Monopoly.Lobby do
 
   @registry :lobby_registry
 
+  @player_limit 5
+
   def start_link(state) do
     name = state.lobby.lobby_id
     {:ok, pid} = GenServer.start_link(__MODULE__, state, id: name)
@@ -33,9 +35,18 @@ defmodule Croc.Games.Monopoly.Lobby do
     :ok = CrocWeb.Endpoint.broadcast("lobby:all", "lobby_update", lobby)
   end
 
+  def check_joinable(%__MODULE__{players: players}) do
+    case length(players) do
+      x when x >= @player_limit -> {:error, :maximum_players}
+      x when is_integer(x) ->
+        :ok
+    end
+  end
+
   @impl true
   def handle_call({:join, player_id}, from, %{lobby: lobby} = state) do
-    with false <- LobbyPlayer.already_in_lobby?(player_id) do
+    with false <- LobbyPlayer.already_in_lobby?(player_id),
+         :ok <- check_joinable(lobby) do
       {:ok, player} = LobbyPlayer.create(player_id, lobby.lobby_id)
 
       updated_lobby = Map.put(lobby, :players, lobby.players ++ [player])
@@ -43,7 +54,8 @@ defmodule Croc.Games.Monopoly.Lobby do
       update_lobby_state(updated_lobby, updated_state)
       {:reply, {:ok, updated_lobby}, updated_state}
     else
-      e -> {:reply, {:error, :already_in_lobby}, state}
+      true -> {:reply, {:error, :already_in_lobby}, state}
+      {:error, reason} -> {:reply, {:error, reason}, state}
     end
   end
 

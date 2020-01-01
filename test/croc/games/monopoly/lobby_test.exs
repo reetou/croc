@@ -7,9 +7,23 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
 
+  test "should throw error if player limit reached" do
+    players_ids = Enum.take_random(1..5, 5)
+    {:ok, %Lobby{} = lobby} = Lobby.create(List.first(players_ids), [])
+    Enum.each(players_ids, fn p_id ->
+      cond do
+        p_id == List.first(players_ids) -> {:error, :already_in_lobby} = Lobby.join(lobby.lobby_id, p_id)
+        true -> {:ok, %Lobby{}} = Lobby.join(lobby.lobby_id, p_id)
+      end
+    end)
+    {:ok, lobby, _pid} = Lobby.get(lobby.lobby_id)
+    joiner = Enum.random(7..9)
+    {:error, :maximum_players} = Lobby.join(lobby.lobby_id, joiner)
+  end
+
   describe "create lobby" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(20..999_999, 5)
 
       %{
         players_ids: players_ids
@@ -39,7 +53,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   describe "join lobby" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(35..999_999, 5)
       player_id = Enum.at(players_ids, 0)
       {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
 
@@ -74,7 +88,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   describe "leave lobby" do
     setup do
-      players_ids = Enum.take_random(1..999_999, 5)
+      players_ids = Enum.take_random(40..999_999, 5)
       player_id = Enum.at(players_ids, 0)
       {:ok, %Lobby{} = lobby} = Lobby.create(player_id, [])
 
