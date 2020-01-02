@@ -29,6 +29,7 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
       Memento.Query.write(%__MODULE__{
         player_id: player_id,
         lobby_id: lobby_id,
+        event_cards: [],
         name: MonopolyUser.get_name(player_id) |> Map.fetch!(:name)
       })
     end)

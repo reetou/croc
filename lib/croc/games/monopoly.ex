@@ -8,6 +8,9 @@ defmodule Croc.Games.Monopoly do
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Repo.Games.Monopoly.Card, as: MonopolyCard
+  alias Croc.Repo.Games.Monopoly.UserEventCard
+  alias Croc.Repo
+  import Ecto.Query
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
   import CrocWeb.Gettext
@@ -313,7 +316,22 @@ defmodule Croc.Games.Monopoly do
             end)
 
           Enum.each(players, fn p -> Memento.Query.write(p) end)
-
+          event_cards = Enum.flat_map(lobby_players, fn p -> Enum.map(p.event_cards, fn c -> c.monopoly_event_card end) end)
+          # Если ивент-карточек в игре нет, не запускаем транзакцию и не удаляем юзер карточки
+          unless Enum.empty?(event_cards) do
+            event_cards_ids = Enum.flat_map(lobby_players, fn p -> Enum.map(p.event_cards, fn c -> c.id end) end)
+            {:ok, _} = Repo.transaction(fn ->
+              {deleted_user_cards, _} =
+                from(uec in UserEventCard, where: uec.id in ^event_cards_ids)
+                |> Repo.delete_all()
+              # Если случился какой-то рейс кондишн то отменяем транзакцию и пушим ошибку,
+              # чтобы игра не запустилась
+              if deleted_user_cards != length(event_cards_ids) do
+                Repo.rollback(:deleted_cards_not_match_user_cards)
+                raise "Deleted cards not match user cards, aborting start"
+              end
+            end)
+          end
           game = %__MODULE__{
             game_id: game_id,
             players: players,
@@ -321,6 +339,7 @@ defmodule Croc.Games.Monopoly do
             winners: [],
             player_turn: first_player_id,
             chat_id: Ecto.UUID.generate(),
+            event_cards: event_cards,
             cards: get_default_cards
           }
 

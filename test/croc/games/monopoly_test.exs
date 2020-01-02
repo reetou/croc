@@ -5,8 +5,16 @@ defmodule Croc.GamesTest.MonopolyTest do
     Monopoly,
     Monopoly.Player,
     Monopoly.Lobby,
-    Monopoly.Event
+    Monopoly.Event,
+    Monopoly.EventCard
   }
+  alias Croc.Repo.Games.Monopoly.{
+    EventCard,
+    UserEventCard
+  }
+  alias Croc.Repo.Games.Monopoly.UserEventCard
+  alias Croc.Accounts
+  alias Croc.Repo
 
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Croc.Repo)
@@ -39,6 +47,8 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   test "should start game for lobby and write game data to mnesia", context do
     {:ok, %Monopoly{} = game} = Monopoly.start(context.lobby)
+
+    assert Enum.empty?(game.event_cards)
 
     assert context.lobby.lobby_id != game.game_id
     assert length(context.players_ids) == length(game.players)
@@ -436,5 +446,93 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert new_position == (move_value + expected_position) - max_position - 1
     end
 
+  end
+
+  describe "passing event cards from lobby to game" do
+    setup do
+      players_ids =
+        Enum.take_random(1_000_000..1_000_050, 5)
+        |> Enum.map(fn x ->
+          {:ok, user} = Accounts.create_user(%{ email: "s#{x}@zkkzk.codes", username: "pab", password: "somepassword" })
+          user
+        end)
+        |> Enum.map(fn x -> x |> Map.fetch!(:id) end)
+      {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
+
+      Enum.slice(players_ids, 1, 100)
+      |> Enum.each(fn player_id ->
+        {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
+      end)
+      event_cards = [
+        EventCard.create(%{
+          name: "Sell loan",
+          description: "Desc",
+          rarity: 0,
+          type: :force_sell_loan,
+          image_url: "Some image"
+        }),
+        EventCard.create(%{
+          name: "Auction",
+          description: "Desc",
+          rarity: 0,
+          type: :force_auction,
+          image_url: "Some image"
+        }),
+        EventCard.create(%{
+          name: "Teleportation",
+          description: "Desc",
+          rarity: 0,
+          type: :force_teleportation,
+          image_url: "Some image"
+        })
+      ]
+      first_user_event_cards = Enum.map(event_cards, fn c ->
+        {:ok, card} = UserEventCard.create(%{ monopoly_event_card_id: c.id, user_id: List.first(players_ids) })
+        card
+      end)
+      second_user_event_cards = Enum.map(event_cards, fn c ->
+        {:ok, card} = UserEventCard.create(%{ monopoly_event_card_id: c.id, user_id: Enum.at(players_ids, 1) })
+        card
+      end)
+      %{ lobby: lobby, first_user_cards: first_user_event_cards, second_user_cards: second_user_event_cards }
+    end
+
+    test "should have all cards from all lobby players summed up", context do
+      %{
+        lobby: lobby,
+        first_user_cards: first_user_cards,
+        second_user_cards: second_user_cards
+      } = context
+      first_player_id = List.first(first_user_cards) |> Map.fetch!(:user_id)
+      second_player_id = List.first(second_user_cards) |> Map.fetch!(:user_id)
+      assert first_player_id != second_player_id
+      {:ok, _args} = Lobby.set_event_cards(lobby.lobby_id, first_player_id, Enum.map(first_user_cards, fn c -> c.id end))
+      {:ok, _args} = Lobby.set_event_cards(lobby.lobby_id, second_player_id, Enum.map(second_user_cards, fn c -> c.id end))
+      {:ok, lobby, _pid} = Lobby.get(lobby.lobby_id)
+      lobby_event_cards = Enum.map(lobby.players, fn p -> p.event_cards end) |> List.flatten()
+      lobby_cards_by_type =
+        Enum.map(lobby_event_cards, fn c -> c.monopoly_event_card.type end)
+        |> Enum.sort()
+      assert length(first_user_cards ++ second_user_cards) == length(lobby_event_cards)
+      {:ok, %Monopoly{} = game} = Monopoly.start(lobby)
+      game_cards_by_type =
+        Enum.map(game.event_cards, fn %EventCard{} = c -> c.type end)
+        |> Enum.sort()
+      assert length(lobby_event_cards) == length(game.event_cards)
+      assert lobby_cards_by_type == game_cards_by_type
+      first_player =
+        Accounts.get_user!(first_player_id)
+        |> Repo.preload(:monopoly_event_cards)
+
+      second_player =
+        Accounts.get_user!(first_player_id)
+        |> Repo.preload(:monopoly_event_cards)
+
+      assert Enum.empty?(first_player.monopoly_event_cards)
+      assert Enum.empty?(first_player.user_monopoly_event_cards)
+
+      assert Enum.empty?(second_player.monopoly_event_cards)
+      assert Enum.empty?(second_player.user_monopoly_event_cards)
+    end
   end
 end
