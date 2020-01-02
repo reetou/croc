@@ -7,6 +7,14 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
 
+  setup tags do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Croc.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
+    end
+  end
+
   test "should throw error if player limit reached" do
     players_ids = Enum.take_random(1_000_000..1_000_008, 5)
     {:ok, %Lobby{} = lobby} = Lobby.create(List.first(players_ids), [])
@@ -68,6 +76,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
       {:ok, %Lobby{} = updated_lobby} = Lobby.join(lobby.lobby_id, player_id)
       assert length(updated_lobby.players) == 2
       assert Enum.find(updated_lobby.players, fn p -> p.player_id == player_id end) != nil
+      assert Enum.all?(updated_lobby.players, fn p -> is_binary(p.name) end) == true
     end
 
     test "should throw if already in this lobby", %{lobby: lobby, players_ids: players_ids} do

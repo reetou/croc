@@ -8,10 +8,11 @@ defmodule Croc.Games.Monopoly.Player do
     :game_id
   ]
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, except: [:__meta__]}
   use Memento.Table,
     attributes: [
       :id,
+      :name,
       :player_id,
       :game_id,
       :balance,

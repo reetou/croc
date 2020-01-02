@@ -1,6 +1,7 @@
 defmodule Croc.Games.Monopoly.Lobby.Player do
   alias Croc.Games.Monopoly.Lobby
   alias Croc.Repo
+  alias Croc.Accounts.{MonopolyUser}
   require Logger
 
   @enforce_keys [
@@ -8,13 +9,14 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     :lobby_id
   ]
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, except: [:__meta__]}
   use Memento.Table,
     attributes: [
       :id,
       :player_id,
       :lobby_id,
-      :event_cards
+      :name,
+      :event_cards,
     ],
     index: [:player_id, :lobby_id],
     autoincrement: true,
@@ -26,7 +28,8 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     {:ok, player} = Memento.transaction(fn ->
       Memento.Query.write(%__MODULE__{
         player_id: player_id,
-        lobby_id: lobby_id
+        lobby_id: lobby_id,
+        name: MonopolyUser.get_name(player_id) |> Map.fetch!(:name)
       })
     end)
   end

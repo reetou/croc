@@ -50,6 +50,8 @@ defmodule Croc.GamesTest.MonopolyTest do
 
     assert length(game.cards) > 0
 
+    assert Enum.all?(game.players, fn p -> is_binary(p.name) end) == true
+
     {:ok, _result} =
       Memento.transaction(fn ->
         players = Memento.Query.select(Player, {:==, :game_id, game.game_id})

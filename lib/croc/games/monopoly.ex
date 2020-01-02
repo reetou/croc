@@ -300,6 +300,7 @@ defmodule Croc.Games.Monopoly do
                 if p.player_id == first_player_id, do: [Event.roll(first_player_id)], else: []
               index = Enum.find_index(lobby_players_ids, fn id -> id == p.player_id end)
               %Player{
+                name: p.name,
                 player_id: p.player_id,
                 game_id: game_id,
                 balance: 10000,
