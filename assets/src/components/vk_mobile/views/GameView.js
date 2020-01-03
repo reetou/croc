@@ -355,7 +355,7 @@ const mockFieldSettings = [
 ]
 
 const getStageHeight = () => {
-  return window.innerHeight - 170
+  return window.innerHeight - 220
 }
 
 function GameView(props) {
