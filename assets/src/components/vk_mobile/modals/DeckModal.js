@@ -49,8 +49,7 @@ function DeckModal(props) {
                 .map(z => z.monopoly_type)
                 .includes(c.monopoly_type)
             )
-          console.log('Result', result.map(x => toJS(x)))
-          return params.cards
+          return result
         case 'force_sell_loan':
           return params.cards.filter(c => c.on_loan && c.owner)
         case 'force_teleportation':
