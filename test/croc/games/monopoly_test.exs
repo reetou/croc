@@ -9,9 +9,9 @@ defmodule Croc.GamesTest.MonopolyTest do
     Monopoly.EventCard
   }
   alias Croc.Repo.Games.Monopoly.{
-    EventCard,
     UserEventCard
   }
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
   alias Croc.Repo.Games.Monopoly.UserEventCard
   alias Croc.Accounts
   alias Croc.Repo
@@ -464,21 +464,21 @@ defmodule Croc.GamesTest.MonopolyTest do
         {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
       end)
       event_cards = [
-        EventCard.create(%{
+        RepoEventCard.create(%{
           name: "Sell loan",
           description: "Desc",
           rarity: 0,
           type: :force_sell_loan,
           image_url: "Some image"
         }),
-        EventCard.create(%{
+        RepoEventCard.create(%{
           name: "Auction",
           description: "Desc",
           rarity: 0,
           type: :force_auction,
           image_url: "Some image"
         }),
-        EventCard.create(%{
+        RepoEventCard.create(%{
           name: "Teleportation",
           description: "Desc",
           rarity: 0,

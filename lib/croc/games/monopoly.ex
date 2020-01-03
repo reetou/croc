@@ -3,7 +3,8 @@ defmodule Croc.Games.Monopoly do
     Player,
     Lobby,
     Card,
-    Event
+    Event,
+    EventCard
   }
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
@@ -25,7 +26,10 @@ defmodule Croc.Games.Monopoly do
     Downgrade,
     PutOnLoan,
     Buyout,
-    Surrender
+    Surrender,
+    EventCards.ForceAuction,
+    EventCards.ForceSellLoan,
+    EventCards.ForceTeleportation
   }
   alias Croc.Pipelines.Games.Monopoly.Events.{
     CreatePlayerTimeout
@@ -98,6 +102,42 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
     case Roll.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_auction = type, player_id, position}, _from, %{game: game} = state) do
+    case ForceAuction.call(%{ game: game, player_id: player_id, type: type, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_teleportation = type, player_id, position}, _from, %{game: game} = state) do
+    case ForceTeleportation.call(%{ game: game, player_id: player_id, type: type, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_sell_loan = type, player_id}, _from, %{game: game} = state) do
+    case ForceSellLoan.call(%{ game: game, player_id: player_id, type: type }) do
       {:ok, %{game: game}} ->
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
@@ -316,7 +356,13 @@ defmodule Croc.Games.Monopoly do
             end)
 
           Enum.each(players, fn p -> Memento.Query.write(p) end)
-          event_cards = Enum.flat_map(lobby_players, fn p -> Enum.map(p.event_cards, fn c -> c.monopoly_event_card end) end)
+          event_cards =
+            lobby_players
+            |> Enum.flat_map(fn p ->
+              Enum.map(p.event_cards, fn c ->
+                struct(EventCard, Map.from_struct(c.monopoly_event_card))
+              end)
+            end)
           # Если ивент-карточек в игре нет, не запускаем транзакцию и не удаляем юзер карточки
           unless Enum.empty?(event_cards) do
             event_cards_ids = Enum.flat_map(lobby_players, fn p -> Enum.map(p.event_cards, fn c -> c.id end) end)

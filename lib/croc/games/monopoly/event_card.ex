@@ -6,11 +6,13 @@ defmodule Croc.Games.Monopoly.EventCard do
 
   @event_cards_types [:force_auction, :force_sell_loan, :force_teleportation]
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, except: [:__meta__]}
   defstruct [
     :name,
+    :description,
     :type,
     :caller,
+    :image_url,
     rarity: 0,
   ]
 
