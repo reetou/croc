@@ -6,23 +6,17 @@ import {
   View,
   Panel,
   Epic,
-  Placeholder,
-  Button,
-  Group,
-  Cell,
   Div,
-  Avatar,
   PanelSpinner,
   ScreenSpinner,
   Snackbar,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import '@vkontakte/vkui/dist/vkui.css';
-import User28Icon from '@vkontakte/icons/dist/28/user'
-import User24Icon from '@vkontakte/icons/dist/24/user'
 import axios from './axios'
 import { at } from 'lodash-es'
 import SnackbarContainer from './components/vk_mobile/SnackbarContainer'
+import ProfileView from './components/vk_mobile/views/ProfileView'
 
 const Modals = lazy(() => import('./components/vk_mobile/Modals'))
 const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
@@ -940,6 +934,7 @@ function VkMiniApp(props) {
     game: null,
     endedGame: null,
     gamePanel: null,
+    messages: [],
     token: null,
     snackbar: null,
     modalParams: {},
@@ -1047,6 +1042,9 @@ function VkMiniApp(props) {
       {text}
     </Snackbar>
   }
+  const onChatMessage = (message) => {
+    state.messages.push(message)
+  }
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
@@ -1070,56 +1068,13 @@ function VkMiniApp(props) {
           activeStory={state.activeStory}
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
-          <View id={'profile'} activePanel={state.profilePanel}>
-            <Panel id={'banned'}>
-              <PanelHeader>Бан</PanelHeader>
-              <Placeholder
-                icon={<User28Icon />}
-                header={`Номер бана: ${state.ban_id}`}
-              >
-                Вы были заблокированы. Для разбана напишите номер бана и ваше сообщение сюда: vk.com/zaeeee (ЧЕТЫРЕ буквы е)
-              </Placeholder>
-            </Panel>
-            <Panel id={'main'}>
-              <PanelHeader>Профиль</PanelHeader>
-              {
-                state.user
-                  ? (
-                    <React.Fragment>
-                      <Group title="Big avatar (80px)">
-                        <Cell
-                          photo={state.user.image_url}
-                          description="Игрок"
-                          before={<Avatar src={state.user.image_url} size={80}/>}
-                          size="l"
-                        >
-                          {state.user.first_name} {state.user.last_name}
-                        </Cell>
-                      </Group>
-                    </React.Fragment>
-                  )
-                  : (
-                    <Placeholder
-                      icon={<User28Icon />}
-                      title="Вы еще не вошли в Монополию"
-                      action={
-                        (
-                          <Button
-                            size="xl"
-                            onClick={signIn}
-                            before={<User24Icon />}
-                          >
-                            Войти
-                          </Button>
-                        )
-                      }
-                    >
-                      После входа вы сможете играть в игру, зарабатывать баллы и многое другое
-                    </Placeholder>
-                  )
-              }
-            </Panel>
-          </View>
+          <ProfileView
+            id={'profile'}
+            ban_id={state.ban_id}
+            signIn={signIn}
+            activePanel={state.profilePanel}
+            user={state.user}
+          />
           {
             state.loading
               ? (
@@ -1156,6 +1111,8 @@ function VkMiniApp(props) {
             onChangeStory={onChangeStory}
             setActiveOptionsModal={setActiveOptionsModal}
             setActiveModal={setActiveModal}
+            messages={state.messages}
+            onChatMessage={onChatMessage}
           />
           <View
             id={'ended_game'}

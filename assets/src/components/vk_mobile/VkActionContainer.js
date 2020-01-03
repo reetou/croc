@@ -172,7 +172,7 @@ function VkActionContainer(props) {
         state.playerInCharge && !state.myTurn
           ? (
             <Div>
-              <InfoRow header={`${state.playerInCharge.player_id} ${state.firstEventTurn.text}`}>
+              <InfoRow header={`${state.playerInCharge.name} ${state.firstEventTurn.text}`}>
                 <Progress value={state.timeLeftProgress} />
               </InfoRow>
             </Div>
