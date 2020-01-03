@@ -451,6 +451,10 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "passing event cards from lobby to game" do
     setup do
+      1..100
+      |> Enum.each(fn x ->
+        Accounts.create_user(%{ email: "fake_user#{x}@zkkzk.codes", username: "pab#{x}", password: "somepassword" })
+      end)
       players_ids =
         Enum.take_random(2_000_100..2_000_150, 5)
         |> Enum.map(fn x ->
