@@ -31,7 +31,7 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyTest do
 
   describe "create lobby" do
     setup do
-      players_ids = Enum.take_random(20..999_999, 5)
+      players_ids = Enum.take_random(120_000..120_100, 5)
 
       %{
         players_ids: players_ids
