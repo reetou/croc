@@ -6,6 +6,14 @@ defmodule Croc.GamesTest.MonopolyTest.LobbyPlayerTest do
     }
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
+  
+  setup tags do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Croc.Repo)
+
+    unless tags[:async] do
+      Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
+    end
+  end
 
   describe "create lobby" do
     setup do

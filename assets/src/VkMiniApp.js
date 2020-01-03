@@ -6,30 +6,24 @@ import {
   View,
   Panel,
   Epic,
-  Placeholder,
-  Button,
-  Group,
-  Cell,
   Div,
-  Avatar,
   PanelSpinner,
   ScreenSpinner,
   Snackbar,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import '@vkontakte/vkui/dist/vkui.css';
-import User28Icon from '@vkontakte/icons/dist/28/user'
-import User24Icon from '@vkontakte/icons/dist/24/user'
 import axios from './axios'
 import { at } from 'lodash-es'
 import SnackbarContainer from './components/vk_mobile/SnackbarContainer'
+import ProfileView from './components/vk_mobile/views/ProfileView'
 
 const Modals = lazy(() => import('./components/vk_mobile/Modals'))
 const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
 const AppTabbar = lazy(() => import('./components/vk_mobile/AppTabbar'))
 const LobbyView = lazy(() => import('./components/vk_mobile/views/LobbyView'))
 
-const mock_game = {
+let mock_game = {
   "cards": [
     {
       "buyout_cost": 1200,
@@ -849,10 +843,35 @@ const mock_game = {
     }
   ],
   "ended_at": null,
-  "event_cards": [],
+  "event_cards": [
+    {
+      description: "Desc",
+      id: 1,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Аукционка",
+      rarity: 1,
+      type: "force_auction",
+    },
+    {
+      description: "Desc",
+      id: 2,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Селл лоан",
+      rarity: 1,
+      type: "force_sell_loan",
+    },
+    {
+      description: "Desc",
+      id: 3,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Принудительная телепортация",
+      rarity: 1,
+      type: "force_teleportation",
+    },
+  ],
   "props.game_id": "59979686-8ae0-4e41-a4e9-72b94b4c5259",
   "on_timeout": null,
-  "player_turn": 16,
+  "player_turn": 66,
   "players": [
     {
       "__meta__": "Elixir.Memento.Table",
@@ -875,7 +894,7 @@ const mock_game = {
       "props.game_id": "59979686-8ae0-4e41-a4e9-72b94b4c5259",
       "id": null,
       "player_cards": [],
-      "player_id": 16,
+      "player_id": 66,
       "position": 0,
       "surrender": false
     }
@@ -884,6 +903,13 @@ const mock_game = {
   "started_at": "2019-12-24T00:18:08Z",
   "turn_timeout_at": null,
   "winners": []
+}
+mock_game = {
+  ...mock_game,
+  cards: mock_game.cards.map(c => ({
+    ...c,
+    image_url: 'https://croc-images.fra1.digitaloceanspaces.com/card_horizontal.png',
+  }))
 }
 
 function VkMiniApp(props) {
@@ -908,6 +934,7 @@ function VkMiniApp(props) {
     game: null,
     endedGame: null,
     gamePanel: null,
+    messages: [],
     token: null,
     snackbar: null,
     modalParams: {},
@@ -953,6 +980,7 @@ function VkMiniApp(props) {
       console.log('User data', userData)
       const res = await axios.post('/auth/vk', userData)
       state.user = res.data.user
+      state.user.access_token = res.data.access_token
       state.token = res.data.token
     } catch (e) {
       console.log('User error', e)
@@ -1014,6 +1042,9 @@ function VkMiniApp(props) {
       {text}
     </Snackbar>
   }
+  const onChatMessage = (message) => {
+    state.messages.push(message)
+  }
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
@@ -1030,62 +1061,20 @@ function VkMiniApp(props) {
           onGetUserData={getUserData}
           errorMessage={state.errorMessage}
           activeModal={state.activeModal}
+          setActiveModal={setActiveModal}
           params={state.modalParams}
         />
         <Epic
           activeStory={state.activeStory}
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
-          <View id={'profile'} activePanel={state.profilePanel}>
-            <Panel id={'banned'}>
-              <PanelHeader>Бан</PanelHeader>
-              <Placeholder
-                icon={<User28Icon />}
-                header={`Номер бана: ${state.ban_id}`}
-              >
-                Вы были заблокированы. Для разбана напишите номер бана и ваше сообщение сюда: vk.com/zaeeee (ЧЕТЫРЕ буквы е)
-              </Placeholder>
-            </Panel>
-            <Panel id={'main'}>
-              <PanelHeader>Профиль</PanelHeader>
-              {
-                state.user
-                  ? (
-                    <React.Fragment>
-                      <Group title="Big avatar (80px)">
-                        <Cell
-                          photo={state.user.image_url}
-                          description="Игрок"
-                          before={<Avatar src={state.user.image_url} size={80}/>}
-                          size="l"
-                        >
-                          {state.user.first_name} {state.user.last_name}
-                        </Cell>
-                      </Group>
-                    </React.Fragment>
-                  )
-                  : (
-                    <Placeholder
-                      icon={<User28Icon />}
-                      title="Вы еще не вошли в Монополию"
-                      action={
-                        (
-                          <Button
-                            size="xl"
-                            onClick={signIn}
-                            before={<User24Icon />}
-                          >
-                            Войти
-                          </Button>
-                        )
-                      }
-                    >
-                      После входа вы сможете играть в игру, зарабатывать баллы и многое другое
-                    </Placeholder>
-                  )
-              }
-            </Panel>
-          </View>
+          <ProfileView
+            id={'profile'}
+            ban_id={state.ban_id}
+            signIn={signIn}
+            activePanel={state.profilePanel}
+            user={state.user}
+          />
           {
             state.loading
               ? (
@@ -1102,6 +1091,7 @@ function VkMiniApp(props) {
                   id={'find_game'}
                   onGameStart={onGameStart}
                   setActiveModal={setActiveModal}
+                  setActiveOptionsModal={setActiveOptionsModal}
                 />
               )
           }
@@ -1120,6 +1110,9 @@ function VkMiniApp(props) {
             }}
             onChangeStory={onChangeStory}
             setActiveOptionsModal={setActiveOptionsModal}
+            setActiveModal={setActiveModal}
+            messages={state.messages}
+            onChatMessage={onChatMessage}
           />
           <View
             id={'ended_game'}

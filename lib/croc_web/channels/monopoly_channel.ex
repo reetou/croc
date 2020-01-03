@@ -85,7 +85,7 @@ defmodule CrocWeb.MonopolyChannel do
   end
 
   @decorate channel_action()
-  def handle_in("action", %{ "type" => type, "position" => position }, socket) when type in ["put_on_loan", "buyout", "downgrade", "upgrade"] do
+  def handle_in("action", %{ "type" => type, "position" => position }, socket) when type in ["put_on_loan", "buyout", "downgrade", "upgrade", "force_auction", "force_teleportation"] do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} in game id: #{game_id}")
     action_type = String.to_atom(type)
@@ -95,7 +95,6 @@ defmodule CrocWeb.MonopolyChannel do
       broadcast!(socket, "game_update", %{ game: game })
       {:noreply, socket}
     else
-      {:ok, %{game: game }} -> Logger.error("No event in result")
       {:error, _reason} = r ->
         Logger.error("Cannot handle #{type} event #{inspect(r)}")
         send_error(socket, r)
@@ -104,7 +103,7 @@ defmodule CrocWeb.MonopolyChannel do
   end
 
   @decorate channel_action()
-  def handle_in("action", %{ "type" => type }, socket) when type in ["surrender"] do
+  def handle_in("action", %{ "type" => type }, socket) when type in ["surrender", "force_sell_loan"] do
     @prefix <> game_id = socket.topic
     Logger.debug("Received action type #{type} in game id: #{game_id}")
     action_type = String.to_atom(type)
@@ -114,7 +113,6 @@ defmodule CrocWeb.MonopolyChannel do
       broadcast!(socket, "game_update", %{ game: game })
       {:noreply, socket}
     else
-      {:ok, %{game: game }} -> Logger.error("No event in result")
       {:error, _reason} = r ->
         Logger.error("Cannot handle #{type} event #{inspect(r)}")
         send_error(socket, r)

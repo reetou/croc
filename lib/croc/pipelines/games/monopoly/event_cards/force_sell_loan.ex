@@ -21,7 +21,14 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceSellLoan do
   step :mark_used, with: &EventCard.mark_used/1
   step :take_money_from_caller
   step :update_cards
+  tee :send_event
   # Отправить ивент о том что карточки из :updated_cards были сброшены
+
+  def send_event(%{ game: game, player_id: player_id, card: card }) do
+    %Player{name: name} = Player.get(game, player_id)
+    message = "#{name} вытягивает карту и заставляет всех продать заложенные карты, не состоящие в монополии"
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored(message) })
+  end
 
   def has_cards_on_loan?(%{ game: game }) do
     game.cards

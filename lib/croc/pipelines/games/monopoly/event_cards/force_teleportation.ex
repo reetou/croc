@@ -22,8 +22,15 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceTeleportation do
   step :mark_used, with: &EventCard.mark_used/1
   step :take_money_from_caller
   step :update_players
+  tee :send_event
   # Отправить ивент о том что все игроки были перенесены на позицию
   # И что они не платят за наступление на карточку
+
+  def send_event(%{ game: game, player_id: player_id, card: card }) do
+    %Player{name: name} = Player.get(game, player_id)
+    message = "#{name} переносит всех на #{card.name}. Телепортированные ничего не платят за попадание"
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored(message) })
+  end
 
   def update_players(%{ game: game, position: position } = args) do
     players =

@@ -12,30 +12,72 @@ import {
   Div,
   Button,
   InfoRow,
+  HorizontalScroll,
 } from '@vkontakte/vkui'
 import Icon24Back from '@vkontakte/icons/dist/24/back';
+import { toJS } from 'mobx'
+import axios from '../../axios'
+import { flatten } from 'lodash-es'
+import VkEventCardThumb from './VkEventCardThumb'
 
 function CurrentLobby(props) {
   if (!props.lobby) return null
-  const state = useLocalStore(() => ({
-    loading: false
-  }))
-  const firstPlayer = props.lobby.players.find((p, i) => p.player_id && i === 0)
+  const state = useLocalStore((source) => ({
+    lobby: source.lobby,
+    loading: false,
+    popout: null,
+    get player() {
+      return this.lobby.players.find((p => p.player_id === props.user.id))
+    },
+    get allEventCards() {
+      return flatten(this.lobby.players.map(p => p.event_cards || []))
+    }
+  }), props)
+  useEffect(() => {
+    state.lobby = props.lobby
+  }, [props.lobby])
+  const firstPlayer = state.lobby.players.find((p, i) => p.player_id && i === 0)
   const isOwner = firstPlayer.player_id === props.user.id
+  const changeEventCards = () => {
+    props.setActiveOptionsModal('edit_event_cards', {
+      ...props.user,
+      selected_event_cards: state.player.event_cards,
+      onSubmit: async (selectedCardsIds) => {
+        try {
+          await axios({
+            method: 'POST',
+            url: '/lobby/set-event-cards',
+            headers: {
+              Authorization: `Bearer ${props.user.access_token}`
+            },
+            data: {
+              lobby_id: props.lobby.lobby_id,
+              event_cards_ids: selectedCardsIds,
+            }
+          })
+        } catch (e) {
+          console.log('Error at update deck', e)
+          // Модалки не умеют открываться пока закрываются другие,
+          // поэтому ждем пока промисы зарезолвятся
+          setTimeout(() => {
+            props.setActiveModal('lobby_error', 'Не получилось')
+          }, 0)
+        }
+      }
+    })
+  }
   return useObserver(() => (
     <Panel id={props.id}>
       <PanelHeader
-        left={<HeaderButton disabled={state.loading} onClick={props.onGoBack}><Icon24Back/></HeaderButton>}
+        left={<HeaderButton disabled={props.loading} onClick={props.onGoBack}><Icon24Back/></HeaderButton>}
       >
         Ваше лобби
       </PanelHeader>
       <Group>
-        <InfoRow>
-          {props.lobby.lobby_id}
-        </InfoRow>
         <List>
           {
-            props.lobby.players
+            state.lobby.players
+              .slice()
               .sort((a, b) => {
                 const owner = a.player_id === firstPlayer.player_id
                 if (owner) {
@@ -51,7 +93,7 @@ function CurrentLobby(props) {
                     before={<Avatar src={p.image_url} />}
                     description={owner ? 'Создатель' : 'Игрок'}
                   >
-                    {p.player_id}
+                    {p.name}
                   </Cell>
                 )
               })
@@ -62,12 +104,9 @@ function CurrentLobby(props) {
             stretched
             size={'l'}
             mode={'secondary'}
-            onClick={() => {
-              props.setActiveModal('edit_event_cards')
-            }}
-            disabled
+            onClick={changeEventCards}
           >
-            Изменить колоду (В разработке)
+            Изменить колоду
           </Button>
         </Div>
         {
@@ -77,10 +116,10 @@ function CurrentLobby(props) {
                 <Button
                   stretched
                   size={'l'}
-                  disabled={state.loading}
+                  disabled={props.loading}
                   mode={'primary'}
                   onClick={() => {
-                    state.loading = true
+                    props.onTriggerLoading(true)
                     props.startGame(props.lobby.lobby_id)
                   }}
                 >
@@ -94,10 +133,10 @@ function CurrentLobby(props) {
           <Button
             stretched
             size={'l'}
-            disabled={state.loading}
+            disabled={props.loading}
             mode={'destructive'}
             onClick={() => {
-              state.loading = true
+              props.onTriggerLoading(true)
               props.leaveLobby(props.lobby.lobby_id)
             }}
           >
@@ -105,6 +144,27 @@ function CurrentLobby(props) {
           </Button>
         </Div>
       </Group>
+      {
+        state.allEventCards && state.allEventCards.length
+          ? (
+            <Group header="Колода игры">
+              <HorizontalScroll>
+                <div style={{ display: 'flex' }}>
+                  {
+                    state.allEventCards.map(({ monopoly_event_card: c, id }) => (
+                      <VkEventCardThumb
+                        key={id}
+                        src={c.image_url}
+                      />
+                    ))
+                  }
+                </div>
+              </HorizontalScroll>
+              <Footer>Колода игры состоит из всех колод всех игроков вашего лобби. Карты колоды расходуются после старта игры.</Footer>
+            </Group>
+          )
+          : null
+      }
       <Footer>Игра начнется, когда создатель нажмет на кнопку "Начать игру"</Footer>
     </Panel>
   ))

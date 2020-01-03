@@ -5,10 +5,12 @@ defmodule Croc.Repo.Games.Monopoly.UserEventCard do
 
   alias Croc.Repo
   alias Croc.Repo.Games.Monopoly.EventCard
+  alias Croc.Accounts.User
 
+  @derive {Jason.Encoder, except: [:__meta__, :user]}
   schema "user_monopoly_event_cards" do
-    belongs_to :monopoly_event_card, Croc.Repo.Games.Monopoly.EventCard, foreign_key: :monopoly_event_card_id
-    belongs_to :user, Croc.Accounts.User, foreign_key: :user_id
+    belongs_to :monopoly_event_card, EventCard, foreign_key: :monopoly_event_card_id
+    belongs_to :user, User, foreign_key: :user_id
 
     timestamps()
   end
@@ -30,14 +32,15 @@ defmodule Croc.Repo.Games.Monopoly.UserEventCard do
   end
 
   def changeset(module, attrs) do
-    IO.inspect(attrs, label: "Casting attrs")
     module
-    |> cast(attrs, [:monopoly_event_card_id])
+    |> cast(attrs, [:monopoly_event_card_id, :user_id])
+    |> foreign_key_constraint(:monopoly_event_card_id)
+    |> foreign_key_constraint(:user_id)
   end
 
   def create(attrs) do
     event_card =
-      __MODULE__
+      %__MODULE__{}
       |> changeset(attrs)
       |> Repo.insert!()
 

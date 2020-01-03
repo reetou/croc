@@ -71,7 +71,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
     end
-    players_ids = Enum.take_random(1..999_999, 5)
+    players_ids = Enum.take_random(5000..7000, 5)
     {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
     Enum.slice(players_ids, 1, 100)

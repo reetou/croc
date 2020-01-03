@@ -6,7 +6,10 @@ defmodule Croc.Repo.Games.Monopoly.Card do
 
   alias Croc.Repo
   alias Croc.Sessions.Session
+  alias Croc.Repo.Games.Monopoly.{UserCard}
+  alias Croc.Accounts.User
 
+  @derive {Jason.Encoder, except: [:disabled, :__meta__, :users, :user_monopoly_cards]}
   schema "monopoly_cards" do
     field :name, :string, null: false
     field :payment_amount, :integer
@@ -23,6 +26,9 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     field :rarity, :integer, default: 0, null: false
     field :image_url, :string
     field :is_default, :boolean, null: false
+
+    has_many :user_monopoly_cards, UserCard
+    has_many :users, through: [:user_monopoly_cards, :user]
 
     timestamps()
   end

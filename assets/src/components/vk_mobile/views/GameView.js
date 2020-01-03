@@ -4,9 +4,11 @@ import {
   Button,
   FixedLayout,
   Panel,
+  PanelHeader,
   Placeholder,
   ScreenSpinner,
   Spinner,
+  HeaderButton,
   View,
 } from '@vkontakte/vkui'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
@@ -21,6 +23,7 @@ import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
 
 const VkActionContainer = lazy(() => import('../VkActionContainer'))
+const Chat = lazy(() => import('../Chat'))
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -352,7 +355,7 @@ const mockFieldSettings = [
 ]
 
 const getStageHeight = () => {
-  return window.innerHeight - 170
+  return window.innerHeight - 220
 }
 
 function GameView(props) {
@@ -360,17 +363,16 @@ function GameView(props) {
   const enabled = false
   const [active, setActive] = useState(null)
   const [old, setOld] = useState(0)
-  const state = useLocalStore(() => ({
-    activePanel: props.activePanel || 'no_game',
+  const state = useLocalStore((source) => ({
+    activePanel: source.game ? 'game' : source.activePanel || 'no_game',
     fieldsInteractive: true,
-    game: props.game,
+    game: source.game,
     fieldSettings: mockFieldSettings,
-    messages: [],
     stageWidth: window.innerWidth,
     app: null,
     stageHeight: getStageHeight(),
     popout: <ScreenSpinner />
-  }))
+  }), props)
   useEffect(() => {
     if (props.game) {
       state.game = props.game
@@ -448,6 +450,9 @@ function GameView(props) {
     //the LOAD_SCREENSHOT_MESSAGE is a message defined by the server
     gameChannel.on('error', payload => {
       console.log('GAME ERROR at vk game view', payload)
+      setTimeout(() => {
+        props.setActiveModal('lobby_error', payload.reason)
+      }, 0)
     })
 
     gameChannel.on('event', payload => {
@@ -457,7 +462,7 @@ function GameView(props) {
     gameChannel.on('message', payload => {
       console.log('Message happened', payload)
       props.onShowSnackbar(payload.text)
-      state.messages.push(payload)
+      props.onChatMessage(payload)
     })
 
     // stop listening to this message before the component unmounts
@@ -471,8 +476,18 @@ function GameView(props) {
   const enableFieldInteraction = () => {
     state.fieldsInteractive = true
   }
+  useEffect(() => {
+    if (!userChannel) return
+    userChannel.on('message', payload => {
+      console.log('Payload at chat messaage', payload)
+      props.onChatMessage(payload)
+    })
+    return () => {
+      userChannel.off(userChannelName, userChannel)
+    }
+  }, [userChannel])
   return useObserver(() => (
-    <View id={props.id} activePanel={state.activePanel} header={false}>
+    <View id={props.id} activePanel={state.activePanel}>
       <Panel id="no_game">
         <Placeholder
           icon={<Game28Icon />}
@@ -490,6 +505,11 @@ function GameView(props) {
         </Placeholder>
       </Panel>
       <Panel id={'game'}>
+        <PanelHeader
+          left={<HeaderButton onClick={() => state.activePanel = 'chat'}>{'Чат'}</HeaderButton>}
+        >
+          Игра
+        </PanelHeader>
         <FixedLayout vertical="top">
           <Suspense fallback={<Spinner size="large"/>}>
             <VkActionContainer
@@ -590,6 +610,23 @@ function GameView(props) {
             }
           </Stage>
         </FixedLayout>
+      </Panel>
+      <Panel id={'chat'}>
+        <Suspense fallback={<ScreenSpinner size="large" />}>
+          <Chat
+            onGoBack={() => {
+              state.activePanel = 'game'
+            }}
+            messages={props.messages}
+            sendMessage={(to, text) => {
+              gameChannel.push('chat_message', {
+                text,
+                to,
+                chat_id: state.game.chat_id
+              })
+            }}
+          />
+        </Suspense>
       </Panel>
     </View>
   ))

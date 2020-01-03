@@ -5,7 +5,7 @@ defmodule Croc.Accounts.User do
 
   alias Croc.Repo
   alias Croc.Sessions.Session
-  alias Croc.Repo.Games.Monopoly.{UserCard, UserEventCard}
+  alias Croc.Repo.Games.Monopoly.{UserCard, UserEventCard, EventCard, Card}
 
 
   @type t :: %__MODULE__{
@@ -20,6 +20,7 @@ defmodule Croc.Accounts.User do
           updated_at: DateTime.t()
         }
 
+  @derive {Jason.Encoder, only: [:id, :username, :first_name, :last_name, :vk_id, :image_url, :email, :banned, :monopoly_cards, :user_monopoly_cards, :user_monopoly_event_cards, :monopoly_event_cards, :is_admin]}
   schema "users" do
     field :username, :string
     field :first_name, :string
@@ -35,13 +36,14 @@ defmodule Croc.Accounts.User do
     field :banned, :boolean
     has_many :sessions, Session, on_delete: :delete_all
 
+    has_many :user_monopoly_event_cards, UserEventCard
+
     has_many :user_monopoly_cards, UserCard
 
-    has_many :user_monopoly_event_cards, UserEventCard
+    has_many :monopoly_event_cards, through: [:user_monopoly_event_cards, :monopoly_event_card]
 
     has_many :monopoly_cards, through: [:user_monopoly_cards, :monopoly_card]
 
-    has_many :monopoly_event_cards, through: [:user_monopoly_event_cards, :monopoly_event_card]
 
     timestamps()
   end
@@ -143,16 +145,9 @@ defmodule Croc.Accounts.User do
   defp strong_password?(_), do: {:error, "The password is too short"}
 
   def get_public_fields(%__MODULE__{} = user) do
-    assoc = Repo.all(Ecto.assoc(user, :monopoly_cards))
-    user = Map.put(user, :user_monopoly_cards, assoc)
-    %{}
-    |> Map.put(:email, user.email)
-    |> Map.put(:id, user.id)
-    |> Map.put(:username, user.username)
-    |> Map.put(:first_name, user.first_name)
-    |> Map.put(:image_url, user.image_url)
-    |> Map.put(:last_name, user.last_name)
-    |> Map.put(:user_monopoly_cards, user.user_monopoly_cards)
-    |> Map.put(:banned, user.banned)
+    user =
+      user
+      |> Repo.preload(:monopoly_cards)
+      |> Repo.preload(:monopoly_event_cards)
   end
 end

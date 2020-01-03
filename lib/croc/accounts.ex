@@ -43,6 +43,10 @@ defmodule Croc.Accounts do
     Repo.get_by(User, email: email)
   end
 
+  def get_by(%{"id" => id}) do
+    Repo.get_by(User, id: id)
+  end
+
   @doc """
   Creates a user.
   """

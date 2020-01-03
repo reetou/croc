@@ -5,7 +5,10 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
   import Ecto.Query
 
   alias Croc.Repo
+  alias Croc.Repo.Games.Monopoly.{UserEventCard}
+  alias Croc.Accounts.User
 
+  @derive {Jason.Encoder, except: [:disabled, :__meta__, :user_monopoly_event_cards, :users]}
   schema "monopoly_event_cards" do
     field :name, :string, null: false
     field :description, :string, null: false
@@ -13,6 +16,9 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
     field :disabled, :boolean, default: false, null: false
     field :rarity, :integer, default: 0, null: false
     field :image_url, :string
+
+    has_many :user_monopoly_event_cards, UserEventCard
+    has_many :users, through: [:user_monopoly_event_cards, :user]
   end
 
   def changeset(%__MODULE__{} = event_card, attrs) do
@@ -25,6 +31,12 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
       :rarity,
       :image_url,
     ])
+  end
+
+  def create(attrs) do
+    %__MODULE__{}
+    |> changeset(attrs)
+    |> Repo.insert!()
   end
 
   def get_by_id(id) do

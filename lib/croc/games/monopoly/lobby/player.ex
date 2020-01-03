@@ -1,5 +1,7 @@
 defmodule Croc.Games.Monopoly.Lobby.Player do
   alias Croc.Games.Monopoly.Lobby
+  alias Croc.Repo
+  alias Croc.Accounts.{MonopolyUser}
   require Logger
 
   @enforce_keys [
@@ -7,12 +9,14 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     :lobby_id
   ]
 
-  @derive Jason.Encoder
+  @derive {Jason.Encoder, except: [:__meta__]}
   use Memento.Table,
     attributes: [
       :id,
       :player_id,
-      :lobby_id
+      :lobby_id,
+      :name,
+      :event_cards,
     ],
     index: [:player_id, :lobby_id],
     autoincrement: true,
@@ -24,7 +28,9 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
     {:ok, player} = Memento.transaction(fn ->
       Memento.Query.write(%__MODULE__{
         player_id: player_id,
-        lobby_id: lobby_id
+        lobby_id: lobby_id,
+        event_cards: [],
+        name: MonopolyUser.get_name(player_id) |> Map.fetch!(:name)
       })
     end)
   end
@@ -90,5 +96,13 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
           nil
         end
       end)
+  end
+
+  def put(%Lobby{} = lobby, player_id, key, value) when is_atom(key) do
+    player_index = Enum.find_index(lobby.players, fn p -> p.player_id == player_id end)
+    player = Enum.at(lobby.players, player_index)
+             |> Map.put(key, value)
+    players = List.replace_at(lobby.players, player_index, player)
+    Map.put(lobby, :players, players)
   end
 end

@@ -74,6 +74,11 @@ defmodule CrocWeb.Router do
     resources "/sessions", SessionController, only: [:create, :delete]
   end
 
+  scope "/api", CrocWeb do
+    pipe_through :api
+    post "/lobby/set-event-cards", LobbyController, :set_event_cards
+  end
+
   scope "/vk", CrocWeb do
     pipe_through :vk
     get "/", VkController, :index

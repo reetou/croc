@@ -3,11 +3,15 @@ defmodule Croc.Games.Monopoly do
     Player,
     Lobby,
     Card,
-    Event
+    Event,
+    EventCard
   }
 
   alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Repo.Games.Monopoly.Card, as: MonopolyCard
+  alias Croc.Repo.Games.Monopoly.UserEventCard
+  alias Croc.Repo
+  import Ecto.Query
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   alias Croc.Games.Lobby.Supervisor, as: LobbySupervisor
   import CrocWeb.Gettext
@@ -22,7 +26,10 @@ defmodule Croc.Games.Monopoly do
     Downgrade,
     PutOnLoan,
     Buyout,
-    Surrender
+    Surrender,
+    EventCards.ForceAuction,
+    EventCards.ForceSellLoan,
+    EventCards.ForceTeleportation
   }
   alias Croc.Pipelines.Games.Monopoly.Events.{
     CreatePlayerTimeout
@@ -95,6 +102,42 @@ defmodule Croc.Games.Monopoly do
   @impl true
   def handle_call({:roll, player_id, event_id}, _from, %{game: game} = state) do
     case Roll.call(%{ game: game, player_id: player_id, event_id: event_id }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_auction = type, player_id, position}, _from, %{game: game} = state) do
+    case ForceAuction.call(%{ game: game, player_id: player_id, type: type, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_teleportation = type, player_id, position}, _from, %{game: game} = state) do
+    case ForceTeleportation.call(%{ game: game, player_id: player_id, type: type, position: position }) do
+      {:ok, %{game: game}} ->
+        new_state = Map.put(state, :game, game)
+        update_game_state(game, new_state)
+        {:reply, {:ok, %{game: game}}, new_state}
+      {:error, pipeline_error} ->
+        {:reply, {:error, pipeline_error.error}, state}
+    end
+  end
+
+  @impl true
+  def handle_call({:force_sell_loan = type, player_id}, _from, %{game: game} = state) do
+    case ForceSellLoan.call(%{ game: game, player_id: player_id, type: type }) do
       {:ok, %{game: game}} ->
         new_state = Map.put(state, :game, game)
         update_game_state(game, new_state)
@@ -300,6 +343,7 @@ defmodule Croc.Games.Monopoly do
                 if p.player_id == first_player_id, do: [Event.roll(first_player_id)], else: []
               index = Enum.find_index(lobby_players_ids, fn id -> id == p.player_id end)
               %Player{
+                name: p.name,
                 player_id: p.player_id,
                 game_id: game_id,
                 balance: 10000,
@@ -312,7 +356,28 @@ defmodule Croc.Games.Monopoly do
             end)
 
           Enum.each(players, fn p -> Memento.Query.write(p) end)
-
+          event_cards =
+            lobby_players
+            |> Enum.flat_map(fn p ->
+              Enum.map(p.event_cards, fn c ->
+                struct(EventCard, Map.from_struct(c.monopoly_event_card))
+              end)
+            end)
+          # Если ивент-карточек в игре нет, не запускаем транзакцию и не удаляем юзер карточки
+          unless Enum.empty?(event_cards) do
+            event_cards_ids = Enum.flat_map(lobby_players, fn p -> Enum.map(p.event_cards, fn c -> c.id end) end)
+            {:ok, _} = Repo.transaction(fn ->
+              {deleted_user_cards, _} =
+                from(uec in UserEventCard, where: uec.id in ^event_cards_ids)
+                |> Repo.delete_all()
+              # Если случился какой-то рейс кондишн то отменяем транзакцию и пушим ошибку,
+              # чтобы игра не запустилась
+              if deleted_user_cards != length(event_cards_ids) do
+                Repo.rollback(:deleted_cards_not_match_user_cards)
+                raise "Deleted cards not match user cards, aborting start"
+              end
+            end)
+          end
           game = %__MODULE__{
             game_id: game_id,
             players: players,
@@ -320,6 +385,7 @@ defmodule Croc.Games.Monopoly do
             winners: [],
             player_turn: first_player_id,
             chat_id: Ecto.UUID.generate(),
+            event_cards: event_cards,
             cards: get_default_cards
           }
 
