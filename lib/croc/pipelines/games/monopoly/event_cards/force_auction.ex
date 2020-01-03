@@ -27,6 +27,7 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceAuction do
   step :take_money_from_caller
   # Отправить ивент что коллер теряет деньги
   step :give_money_to_card_owner
+  tee :send_event
   # Отправить ивент что юзер получает деньги за ивент карточку + за саму карточку
   # И получает меньше денег, если карта была заложена до этого
   step :add_auction_event
@@ -36,6 +37,11 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceAuction do
     Map.put(args, :on_timeout, :auction_reject)
   end
 
+  def send_event(%{ game: game, player_id: player_id, card: card }) do
+    %Player{name: name} = Player.get(game, player_id)
+    message = "#{name} вытягивает карту и выставляет #{card.name} на аукцион"
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored(message) })
+  end
 
   def set_timeout_callback(args) do
     Map.put(args, :on_timeout, :auction_reject)
