@@ -360,17 +360,17 @@ function GameView(props) {
   const enabled = false
   const [active, setActive] = useState(null)
   const [old, setOld] = useState(0)
-  const state = useLocalStore(() => ({
-    activePanel: props.activePanel || 'no_game',
+  const state = useLocalStore((source) => ({
+    activePanel: source.activePanel || 'no_game',
     fieldsInteractive: true,
-    game: props.game,
+    game: source.game,
     fieldSettings: mockFieldSettings,
     messages: [],
     stageWidth: window.innerWidth,
     app: null,
     stageHeight: getStageHeight(),
     popout: <ScreenSpinner />
-  }))
+  }), props)
   useEffect(() => {
     if (props.game) {
       state.game = props.game
@@ -448,6 +448,9 @@ function GameView(props) {
     //the LOAD_SCREENSHOT_MESSAGE is a message defined by the server
     gameChannel.on('error', payload => {
       console.log('GAME ERROR at vk game view', payload)
+      setTimeout(() => {
+        props.setActiveModal('lobby_error', payload.reason)
+      }, 0)
     })
 
     gameChannel.on('event', payload => {

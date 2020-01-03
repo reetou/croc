@@ -19,6 +19,7 @@ import Start from './cards_info/Start'
 import Payment from './cards_info/Payment'
 import CardInDevelopment from './cards_info/CardInDevelopment'
 import VkEventCardsForm from './VkEventCardsForm'
+import DeckModal from './modals/DeckModal'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -28,7 +29,8 @@ function getErrorMessage(errorMessage) {
     case 'lobby_closed': return 'Ваше лобби было закрыто администратором.'
     case 'not_enough_players': return 'Недостаточно игроков для старта игры'
     case 'maximum_players': return 'Достигнуто максимальное количество игроков в лобби'
-    default: return 'Неизвестная ошибка'
+    case 'too_early_to_use': return 'Это действие нельзя совершить в текущем раунде'
+    default: return `Неизвестная ошибка. Код: ${errorMessage}`
   }
 }
 const cardInfo = (card) => {
@@ -44,7 +46,7 @@ const cardInfo = (card) => {
   }
 }
 
-function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage, params }) {
+function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData, errorMessage, params }) {
   const platform = usePlatform()
   console.log('Params', toJS(params))
   const executeAndClose = async (fun) => {
@@ -227,6 +229,12 @@ function Modals({ activeModal, onClose, onSignIn, onGetUserData, errorMessage, p
             : null
         }
       </ModalPage>
+      <DeckModal
+        id={'pick_event_card'}
+        onClose={onClose}
+        setActiveModal={setActiveModal}
+        params={params}
+      />
     </ModalRoot>
   ))
 }

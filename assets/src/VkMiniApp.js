@@ -1063,6 +1063,7 @@ function VkMiniApp(props) {
           onGetUserData={getUserData}
           errorMessage={state.errorMessage}
           activeModal={state.activeModal}
+          setActiveModal={setActiveModal}
           params={state.modalParams}
         />
         <Epic
@@ -1154,6 +1155,7 @@ function VkMiniApp(props) {
             }}
             onChangeStory={onChangeStory}
             setActiveOptionsModal={setActiveOptionsModal}
+            setActiveModal={setActiveModal}
           />
           <View
             id={'ended_game'}

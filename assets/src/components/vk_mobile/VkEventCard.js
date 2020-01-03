@@ -1,6 +1,6 @@
 import React from 'react'
 import { useObserver } from 'mobx-react-lite'
-import { Button, Cell, Div, List } from '@vkontakte/vkui'
+import { Button, Cell, Div } from '@vkontakte/vkui'
 
 function VkEventCard(props) {
 
@@ -8,7 +8,7 @@ function VkEventCard(props) {
     <Cell
       description={props.description}
       multiline
-      bottomContent={<Button onClick={props.onClick}>Добавить</Button>}
+      bottomContent={<Button onClick={props.onClick}>{props.buttonText}</Button>}
       before={(
         <Div>
           <img src={props.src} width="90" />

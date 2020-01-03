@@ -61,6 +61,7 @@ function VkEventCardsForm(props) {
               name={c.name}
               description={c.description}
               src={c.image_url}
+              buttonText="Добавить"
               onClick={() => {
                 state.selectedCardsIds.push(id)
                 props.onSelect(state.selectedCardsIds)

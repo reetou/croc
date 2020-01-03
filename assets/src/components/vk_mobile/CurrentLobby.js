@@ -74,9 +74,6 @@ function CurrentLobby(props) {
         Ваше лобби
       </PanelHeader>
       <Group>
-        <InfoRow>
-          {state.lobby.lobby_id}
-        </InfoRow>
         <List>
           {
             state.lobby.players
@@ -96,7 +93,7 @@ function CurrentLobby(props) {
                     before={<Avatar src={p.image_url} />}
                     description={owner ? 'Создатель' : 'Игрок'}
                   >
-                    {p.player_id}
+                    {p.name}
                   </Cell>
                 )
               })

@@ -12,16 +12,16 @@ import {
 
 function VkActionContainer(props) {
   const { gameChannel, setActiveOptionsModal } = props
-  const state = useLocalStore(() => ({
-    game: props.game,
+  const state = useLocalStore((source) => ({
+    game: source.game,
     get myTurn() {
-      if (!props.user) return false
-      const isMyTurn = this.game.player_turn === props.user.id
+      if (!source.user) return false
+      const isMyTurn = this.game.player_turn === source.user.id
       console.log('Player turn is mine???', isMyTurn)
       return isMyTurn
     },
     get me() {
-      return this.game.players.find(p => p.player_id === props.user.id)
+      return this.game.players.find(p => p.player_id === source.user.id)
     },
     get playing() {
       return this.me && !this.me.surrender
@@ -74,7 +74,7 @@ function VkActionContainer(props) {
       const progress = this.timeLeft * 100 / totalTurnTime
       return progress
     }
-  }))
+  }), props)
   useEffect(() => {
     const interval = setInterval(() => {
       state.now = Date.now()
@@ -156,6 +156,16 @@ function VkActionContainer(props) {
       position,
     })
   }
+  const openGameDeck = () => {
+    console.log('State game', toJS(state.game))
+    props.setActiveOptionsModal('pick_event_card', {
+      ...state.game,
+      onSubmit: async (data) => {
+        console.log('Data at submit to event card action', data)
+        gameChannel.push('action', data)
+      }
+    })
+  }
   return useObserver(() => (
     <Group>
       {
@@ -184,9 +194,18 @@ function VkActionContainer(props) {
         {
           (state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn
             ? (
-              <Div>
-                <Button onClick={sendAction}>Send action {state.eventType}</Button>
-              </Div>
+              <React.Fragment>
+                <Div>
+                  <Button onClick={sendAction}>Send action {state.eventType}</Button>
+                </Div>
+                <Div>
+                  <Button
+                    onClick={openGameDeck}
+                  >
+                    Вытянуть карту из колоды
+                  </Button>
+                </Div>
+              </React.Fragment>
             )
             : null
         }
