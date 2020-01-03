@@ -29,7 +29,7 @@ const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
 const AppTabbar = lazy(() => import('./components/vk_mobile/AppTabbar'))
 const LobbyView = lazy(() => import('./components/vk_mobile/views/LobbyView'))
 
-const mock_game = {
+let mock_game = {
   "cards": [
     {
       "buyout_cost": 1200,
@@ -849,10 +849,35 @@ const mock_game = {
     }
   ],
   "ended_at": null,
-  "event_cards": [],
+  "event_cards": [
+    {
+      description: "Desc",
+      id: 1,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Аукционка",
+      rarity: 1,
+      type: "force_auction",
+    },
+    {
+      description: "Desc",
+      id: 2,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Селл лоан",
+      rarity: 1,
+      type: "force_sell_loan",
+    },
+    {
+      description: "Desc",
+      id: 3,
+      image_url: "https://croc-images.fra1.digitaloceanspaces.com/card_placeholder_vertical.png",
+      name: "Принудительная телепортация",
+      rarity: 1,
+      type: "force_teleportation",
+    },
+  ],
   "props.game_id": "59979686-8ae0-4e41-a4e9-72b94b4c5259",
   "on_timeout": null,
-  "player_turn": 16,
+  "player_turn": 66,
   "players": [
     {
       "__meta__": "Elixir.Memento.Table",
@@ -875,7 +900,7 @@ const mock_game = {
       "props.game_id": "59979686-8ae0-4e41-a4e9-72b94b4c5259",
       "id": null,
       "player_cards": [],
-      "player_id": 16,
+      "player_id": 66,
       "position": 0,
       "surrender": false
     }
@@ -884,6 +909,13 @@ const mock_game = {
   "started_at": "2019-12-24T00:18:08Z",
   "turn_timeout_at": null,
   "winners": []
+}
+mock_game = {
+  ...mock_game,
+  cards: mock_game.cards.map(c => ({
+    ...c,
+    image_url: 'https://croc-images.fra1.digitaloceanspaces.com/card_horizontal.png',
+  }))
 }
 
 function VkMiniApp(props) {
