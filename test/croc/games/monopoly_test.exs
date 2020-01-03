@@ -8,6 +8,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     Monopoly.Event,
     Monopoly.EventCard
   }
+  alias Croc.Games.Monopoly.Lobby.Player, as: LobbyPlayer
   alias Croc.Repo.Games.Monopoly.{
     UserEventCard
   }
@@ -461,6 +462,8 @@ defmodule Croc.GamesTest.MonopolyTest do
 
       Enum.slice(players_ids, 1, 100)
       |> Enum.each(fn player_id ->
+        LobbyPlayer.already_in_lobby?(player_id)
+        |> IO.inspect(label: "Player #{player_id} already in lobby?")
         {:ok, _lobby} = Lobby.join(lobby.lobby_id, player_id)
       end)
       event_cards = [
