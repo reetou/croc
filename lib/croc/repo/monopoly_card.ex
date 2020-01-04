@@ -27,7 +27,7 @@ defmodule Croc.Repo.Games.Monopoly.Card do
     field :image_url, :string
     field :is_default, :boolean, null: false
 
-    has_many :user_monopoly_cards, UserCard
+    has_many :user_monopoly_cards, UserCard, foreign_key: :monopoly_card_id
     has_many :users, through: [:user_monopoly_cards, :user]
 
     timestamps()
