@@ -4,9 +4,15 @@ defmodule Croc.Games.Monopoly.Shop do
     Card,
     UserEventCard
   }
+  @small_pack_amount 15
+  @large_pack_amount 100
   def get_products() do
     %{
-      event_cards: EventCard.get_all()
+      products: %{
+        event_cards: EventCard.get_all()
+      },
+      small_pack_amount: @small_pack_amount,
+      large_pack_amount: @large_pack_amount
     }
   end
 
@@ -62,13 +68,13 @@ defmodule Croc.Games.Monopoly.Shop do
   end
 
   def create_order(:small_pack = type) do
-    amount = 15
+    amount = @small_pack_amount
     order_data = get_order_data(amount, "Напишите Ваше предложение по игре")
     signature = sign(order_data)
   end
 
   def create_order(:large_pack = type) do
-    amount = 100
+    amount = @large_pack_amount
     order_data = get_order_data(amount, "Напишите Ваше предложение для нового поля или по игре")
     signature = sign(order_data)
   end
@@ -78,8 +84,18 @@ defmodule Croc.Games.Monopoly.Shop do
   def receive_products(user_id, type) do
     products = EventCard.get_all()
     |> Enum.map(fn c ->
-      {:ok, %UserEventCard{}} = UserEventCard.create(%{ monopoly_event_card_id: c.id, user_id: user_id })
+      {:ok, %UserEventCard{} = user_card} = UserEventCard.create(%{ monopoly_event_card_id: c.id, user_id: user_id })
+      user_card
     end)
     {:ok, products}
+  end
+
+  def product_type(amount) do
+    amount = amount / 1000
+    case amount do
+      x when x >= @large_pack_amount -> :large_pack
+      x when x >= @small_pack_amount -> :small_pack
+      x -> :no_pack
+    end
   end
 end

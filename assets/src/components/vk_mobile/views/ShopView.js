@@ -17,6 +17,8 @@ function ShopView(props) {
   const state = useLocalStore((source) => ({
     activePanel: 'main',
     event_cards: [],
+    small_pack_amount: 0,
+    large_pack_amount: 0,
     popout: <ScreenSpinner/>,
   }), props)
   const getProducts = async () => {
@@ -32,7 +34,9 @@ function ShopView(props) {
           Authorization: `Bearer ${props.user.access_token}`
         }
       })
-      state.event_cards = res.data.event_cards
+      state.event_cards = res.data.products.event_cards
+      state.small_pack_amount = res.data.small_pack_amount
+      state.large_pack_amount = res.data.large_pack_amount
     } catch (e) {
       console.error('Cannot get products', e)
       state.activePanel = 'loading_error'
@@ -74,7 +78,7 @@ function ShopView(props) {
       <Panel id={'main'}>
         <PanelHeader>Купить</PanelHeader>
         <Div>
-          При пожертвовании 15 рублей и более вы получаете все эти карточки:
+          При пожертвовании {state.small_pack_amount} рублей и более вы получаете все эти карточки:
         </Div>
         {
           state.event_cards.map(c => (

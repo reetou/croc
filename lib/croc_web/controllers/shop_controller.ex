@@ -13,13 +13,15 @@ defmodule CrocWeb.ShopController do
   plug :user_check when action not in [:verify_order]
 
   @group_id 190492517
+  @secret "EFV5gObQbpFe9TUEdZYQMQn3Ed5GmIAjd84H4dVmhUKTk"
+  @transaction_event_type "vkpay_transaction"
 
   def shop(%{ assigns: %{ current_user: user } } = conn, _params) do
     conn
     |> json(Shop.get_products())
   end
 
-  def verify_order(conn, %{ "type" => "confirmation", "group_id" => @group_id } = params) do
+  def verify_order(conn, %{ "type" => "confirmation", "group_id" => @group_id, "secret" => @secret } = params) do
     Logger.warn("Received confirmation")
     IO.inspect(params, label: "Params")
     string = "a1329d3b"
@@ -27,17 +29,9 @@ defmodule CrocWeb.ShopController do
     |> text(string)
   end
 
-  def verify_order(conn, %{ "type" => "vkpay_transaction", "group_id" => @group_id, "object" => %{ "from_id" => from, "amount" => amount } } = params) do
+  def verify_order(conn, %{ "type" => @transaction_event_type, "secret" => @secret, "group_id" => @group_id, "object" => %{ "from_id" => from, "amount" => amount } } = params) do
     IO.inspect(params, label: "Params")
-    amount = amount / 1000
-    type =
-      case amount do
-        x when x >= 100 -> :large_pack
-        x when x >= 15 -> :small_pack
-        x ->
-          IO.inspect(x, label: "Giving no pack because amount is")
-          :no_pack
-      end
+    type = Shop.product_type(amount)
     %User{} = user = Accounts.get_vk_user(from)
     {:ok, products} = Shop.receive_products(user.id, type)
     |> IO.inspect(label: "Giving products")
