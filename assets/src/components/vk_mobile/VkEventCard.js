@@ -8,7 +8,7 @@ function VkEventCard(props) {
     <Cell
       description={props.description}
       multiline
-      bottomContent={<Button onClick={props.onClick}>{props.buttonText}</Button>}
+      bottomContent={<Button mode={props.mode || 'primary'} onClick={props.onClick}>{props.buttonText}</Button>}
       before={(
         <Div>
           <img src={props.src} width="90" />
