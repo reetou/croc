@@ -75,6 +75,7 @@ defmodule CrocWeb.Router do
     post "/lobby/set-event-cards", LobbyController, :set_event_cards
     get "/shop", ShopController, :shop
     post "/shop/orders/create", ShopController, :create_order
+    post "/shop/orders/verify", ShopController, :verify_order
   end
 
   scope "/vk", CrocWeb do

@@ -1070,6 +1070,7 @@ function VkMiniApp(props) {
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
           <ProfileView
+            getUserData={getUserData}
             id={'profile'}
             ban_id={state.ban_id}
             signIn={signIn}

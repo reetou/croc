@@ -39,7 +39,7 @@ function ShopView(props) {
     }
     state.popout = null
   }
-  const onBuy = async ({ id }) => {
+  const onBuy = async (c) => {
     try {
       const res = await axios({
         url: '/shop/orders/create',
@@ -48,12 +48,12 @@ function ShopView(props) {
           Authorization: `Bearer ${props.user.access_token}`
         },
         data: {
-          product_id: id,
-          product_type: 'event_card'
+          product_type: 'small_pack'
         }
       })
       console.log('Data for signing is', res.data)
-      await connect.sendPromise('VKWebAppOpenPayForm', res.data)
+      const result = await connect.sendPromise('VKWebAppOpenPayForm', res.data)
+      console.log('Result', result)
     } catch (e) {
       console.log('Error at buy', e)
     }
@@ -73,6 +73,9 @@ function ShopView(props) {
     >
       <Panel id={'main'}>
         <PanelHeader>Купить</PanelHeader>
+        <Div>
+          При пожертвовании 15 рублей и более вы получаете все эти карточки:
+        </Div>
         {
           state.event_cards.map(c => (
             <VkEventCard
@@ -81,7 +84,7 @@ function ShopView(props) {
               description={c.description}
               src={c.image_url}
               mode="commerce"
-              buttonText={`Купить за ${c.price} р.`}
+              buttonText={`Купить`}
               onClick={() => {
                 console.log(`Gonna buy ${c.name}`, toJS(c))
                 onBuy(c)
