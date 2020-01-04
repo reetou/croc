@@ -6,6 +6,16 @@ defmodule Croc.Games.Monopoly.Shop do
   }
   @small_pack_amount 15
   @large_pack_amount 100
+  @secret "EFV5gObQbpFe9TUEdZYQMQn3Ed5GmIAjd84H4dVmhUKTk"
+  @vk_transaction_event_type "vkpay_transaction"
+
+  def vk_transaction_event_type, do: @vk_transaction_event_type
+  def secret, do: @secret
+  def small_pack_amount, do: @small_pack_amount
+  def large_pack_amount, do: @large_pack_amount
+
+  def vk_verify_callback_string, do: "a1329d3b"
+
   def get_products() do
     %{
       products: %{
@@ -25,7 +35,7 @@ defmodule Croc.Games.Monopoly.Shop do
     }
   end
 
-  def get_order_data(amount, description) do
+  def get_order_data(amount, description, type) do
     merchant_data = get_merchant_data(amount, 123)
     action = "pay-to-group"
     user_id = 536736851
@@ -37,7 +47,7 @@ defmodule Croc.Games.Monopoly.Shop do
         data: %{
           currency: merchant_data.currency,
           #product_id: id,
-          #product_type: type,
+          product_type: type,
           order_id: merchant_data.order_id,
           ts: merchant_data.ts,
           merchant_data: Jason.encode!(merchant_data)
@@ -69,13 +79,13 @@ defmodule Croc.Games.Monopoly.Shop do
 
   def create_order(:small_pack = type) do
     amount = @small_pack_amount
-    order_data = get_order_data(amount, "Напишите Ваше предложение по игре")
+    order_data = get_order_data(amount, "Напишите Ваше предложение по игре", type)
     signature = sign(order_data)
   end
 
   def create_order(:large_pack = type) do
     amount = @large_pack_amount
-    order_data = get_order_data(amount, "Напишите Ваше предложение для нового поля или по игре")
+    order_data = get_order_data(amount, "Напишите Ваше предложение для нового поля или по игре", type)
     signature = sign(order_data)
   end
 

@@ -13,8 +13,8 @@ defmodule CrocWeb.ShopController do
   plug :user_check when action not in [:verify_order]
 
   @group_id 190492517
-  @secret "EFV5gObQbpFe9TUEdZYQMQn3Ed5GmIAjd84H4dVmhUKTk"
-  @transaction_event_type "vkpay_transaction"
+  @secret Shop.secret()
+  @transaction_event_type Shop.vk_transaction_event_type()
 
   def shop(%{ assigns: %{ current_user: user } } = conn, _params) do
     conn
@@ -24,9 +24,8 @@ defmodule CrocWeb.ShopController do
   def verify_order(conn, %{ "type" => "confirmation", "group_id" => @group_id, "secret" => @secret } = params) do
     Logger.warn("Received confirmation")
     IO.inspect(params, label: "Params")
-    string = "a1329d3b"
     conn
-    |> text(string)
+    |> text(Shop.vk_verify_callback_string())
   end
 
   def verify_order(conn, %{ "type" => @transaction_event_type, "secret" => @secret, "group_id" => @group_id, "object" => %{ "from_id" => from, "amount" => amount } } = params) do
@@ -40,8 +39,29 @@ defmodule CrocWeb.ShopController do
     |> text("ok")
   end
 
+  def verify_order(conn, params) do
+    Logger.error("Invalid params at vk callback api #{inspect params}")
+    conn
+    |> put_status(:bad_request)
+    |> json(%{
+      errors: %{
+        detail: "Invalid params"
+      }
+    })
+  end
+
   def create_order(conn, %{ "product_type" => type }) when type in ["small_pack", "large_pack"] do
     conn
     |> json(Shop.create_order(String.to_atom(type)))
+  end
+
+  def create_order(conn, _params) do
+    conn
+    |> put_status(:bad_request)
+    |> json(%{
+      errors: %{
+        detail: "Invalid product type"
+      }
+    })
   end
 end
