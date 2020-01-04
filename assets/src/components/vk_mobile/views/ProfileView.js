@@ -17,6 +17,9 @@ import { toJS } from 'mobx'
 
 function ProfileView(props) {
   const state = useAsObservableSource(props)
+  useEffect(() => {
+    props.getUserData()
+  }, [])
   console.log('User', toJS(state.user))
   return useObserver(() => (
     <View id={props.id} activePanel={state.activePanel}>
@@ -48,8 +51,9 @@ function ProfileView(props) {
                 <Group header="Колода">
                   <List>
                     {
-                      state.user.monopoly_event_cards.map(c => (
+                      state.user.user_monopoly_event_cards.map(({ id, monopoly_event_card: c }) => (
                         <Cell
+                          key={id}
                           description={c.description}
                           before={<Avatar src={state.user.image_url} size={36}/>}
                           size="l"
