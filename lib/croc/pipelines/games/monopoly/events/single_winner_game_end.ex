@@ -3,6 +3,10 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
+  alias Croc.Repo
+  alias Croc.Accounts
+  alias Croc.Accounts.User
+  alias Croc.Accounts.MonopolyUser
   alias CrocWeb.MonopolyChannel
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   use Opus.Pipeline
@@ -15,6 +19,25 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   tee :send_win_event
   tee :broadcast_game_end_event
   step :end_game
+  step :add_exp_to_players
+
+  def add_exp_to_players(%{game: game, player_id: player_id} = args) do
+    Repo.transaction(fn ->
+      results = Enum.map(game.players, fn p ->
+        case Accounts.add_exp(p.player_id, Monopoly.game_end_exp_amount()) do
+          {x, results} when x > 0 and is_list(results) -> %User{} = List.first(results)
+          e -> Repo.rollback(e)
+        end
+      end)
+      {x, winner_results} = Accounts.add_exp(player_id, Monopoly.winner_exp_amount())
+      results ++ List.first(winner_results)
+    end)
+    |> case do
+         {:ok, _results} -> args
+         {:error, _reason} = r -> r
+       end
+    args
+  end
 
   def broadcast_game_end_event(args) do
     :ok = MonopolyChannel.send_game_end_event(args)

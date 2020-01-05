@@ -105,6 +105,11 @@ defmodule Croc.Accounts do
     end
   end
 
+  def add_exp(id, exp) when is_integer(exp) and exp > 0 do
+    from(u in User, where: u.id == ^id, update: [inc: [exp: ^exp]], select: u)
+    |> Repo.update_all([])
+  end
+
   @doc """
   Updates a user's password.
   """

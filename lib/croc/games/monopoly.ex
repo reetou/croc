@@ -83,9 +83,17 @@ defmodule Croc.Games.Monopoly do
     picked_event_cards: []
   ]
 
+  @game_end_exp_amount 50
+
+  @winner_exp_amount 100
+
   def turn_timeout(), do: 90000
 
   def auction_timeout(), do: 20000
+
+  def game_end_exp_amount(), do: @game_end_exp_amount
+
+  def winner_exp_amount(), do: @winner_exp_amount
 
   def start_link(state) do
     name = state.game.game_id
