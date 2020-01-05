@@ -22,6 +22,7 @@ const Modals = lazy(() => import('./components/vk_mobile/Modals'))
 const GameView = lazy(() => import('./components/vk_mobile/views/GameView'))
 const AppTabbar = lazy(() => import('./components/vk_mobile/AppTabbar'))
 const LobbyView = lazy(() => import('./components/vk_mobile/views/LobbyView'))
+const ShopView = lazy(() => import('./components/vk_mobile/views/ShopView'))
 
 let mock_game = {
   "cards": [
@@ -1069,6 +1070,7 @@ function VkMiniApp(props) {
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
           <ProfileView
+            getUserData={getUserData}
             id={'profile'}
             ban_id={state.ban_id}
             signIn={signIn}
@@ -1133,6 +1135,10 @@ function VkMiniApp(props) {
               }
             </Panel>
           </View>
+          <ShopView
+            user={state.user}
+            id={'shop'}
+          />
         </Epic>
       </Suspense>
     </PhoenixSocketProvider>

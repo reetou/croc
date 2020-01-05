@@ -8,6 +8,7 @@ import Game24Icon from '@vkontakte/icons/dist/24/game';
 import Video24Icon from '@vkontakte/icons/dist/24/video'
 import Users24Icon from '@vkontakte/icons/dist/24/users'
 import User24Icon from '@vkontakte/icons/dist/24/user'
+import Market24Icon from '@vkontakte/icons/dist/24/market'
 
 function AppTabbar(props) {
   const {
@@ -16,6 +17,14 @@ function AppTabbar(props) {
   } = props
   return useObserver(() => (
     <Tabbar>
+      <TabbarItem
+        onClick={() => onChangeStory('shop')}
+        selected={activeStory === 'shop'}
+        data-story="shop"
+        text={'Магазин'}
+      >
+        <Market24Icon />
+      </TabbarItem>
       <TabbarItem
         onClick={() => onChangeStory('profile')}
         selected={activeStory === 'profile'}

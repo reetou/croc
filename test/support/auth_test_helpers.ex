@@ -3,7 +3,12 @@ defmodule CrocWeb.AuthTestHelpers do
 
   import Ecto.Changeset
 
-  alias Croc.{Accounts, Repo, Sessions}
+  alias Croc.{
+    Accounts,
+    Repo,
+    Sessions,
+    Accounts.User
+  }
   alias CrocWeb.Auth.Token
   alias CrocWeb.Auth.Token
 
@@ -14,6 +19,12 @@ defmodule CrocWeb.AuthTestHelpers do
   end
 
   def gen_key(email), do: Token.sign(%{"email" => email})
+
+  def add_vk_user(vk_id) do
+    user = %{ first_name: "Вова", last_name: "Синицкий", vk_id: vk_id }
+    %User{} = user = Accounts.create_vk_user(%User{}, user)
+    user
+  end
 
   def add_user_confirmed(email) do
     email

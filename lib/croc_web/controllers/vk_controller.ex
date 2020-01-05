@@ -2,14 +2,29 @@ defmodule CrocWeb.VkController do
   require Logger
   alias Croc.Games.Monopoly
   alias Croc.Accounts.User
+  alias Croc.Accounts.VkUser
   alias Croc.Accounts
   alias Croc.Sessions
   alias CrocWeb.Auth.Token
   alias Croc.Games.Monopoly.Lobby
   use CrocWeb, :controller
 
-  def index(conn, _params) do
-    render(conn, "index.html", lobbies: Lobby.get_all())
+  def index(conn, %{ "sign" => sign } = params) when is_binary(sign) and sign != "" do
+    user_sign = VkUser.sign(params)
+    with true <- user_sign == sign do
+      render(conn, "index.html", lobbies: Lobby.get_all())
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> text("Invalid sign")
+    end
+  end
+
+  def index(conn, params) do
+    conn
+    |> put_status(:unauthorized)
+    |> text("Sign not found")
   end
 
   def auth(%{ assigns: %{ current_user: user } } = conn, _params) when user != nil do

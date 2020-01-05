@@ -15,9 +15,10 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
     field :type, Ecto.Atom, null: false
     field :disabled, :boolean, default: false, null: false
     field :rarity, :integer, default: 0, null: false
+    field :price, :integer, null: false
     field :image_url, :string
 
-    has_many :user_monopoly_event_cards, UserEventCard
+    has_many :user_monopoly_event_cards, UserEventCard, foreign_key: :monopoly_event_card_id
     has_many :users, through: [:user_monopoly_event_cards, :user]
   end
 
@@ -44,10 +45,14 @@ defmodule Croc.Repo.Games.Monopoly.EventCard do
     |> Repo.get(id)
   end
 
+  def get_by_id!(id) do
+    __MODULE__
+    |> Repo.get!(id)
+  end
+
   def get_all() do
     __MODULE__
     |> Repo.all()
-    |> Enum.map(fn c -> Map.from_struct(c) end)
   end
 
 end
