@@ -23,8 +23,15 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   tee :send_win_event
   tee :broadcast_game_end_event
   step :end_game
-  step :add_exp_to_players
-  step :add_card_reward
+  tee :add_exp_to_players
+  tee :add_card_reward
+  tee :update_users_stats
+
+  def update_users_stats(%{ game: game, player_id: player_id } = args) do
+    Enum.each(game.players, fn p ->
+      {1, nil} = MonopolyUser.update_user_stats(p.player_id, p.player_id == player_id)
+    end)
+  end
 
   def add_card_reward(%{ player_id: player_id } = args) do
     with %{id: id, position: position} <- Rewards.get_random_card() do
@@ -33,7 +40,6 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
       _ ->
         Logger.error("No available reward to give")
     end
-    args
   end
 
   def add_exp_to_players(%{game: game, player_id: player_id} = args) do
@@ -55,7 +61,6 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
          {:ok, _results} -> args
          {:error, _reason} = r -> r
        end
-    args
   end
 
   def broadcast_game_end_event(args) do

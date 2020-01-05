@@ -177,4 +177,50 @@ defmodule Croc.PipelinesTest.Games.Monopoly.SingleWinnerGameEnd do
       assert length(user.user_monopoly_cards) == 1
     end
   end
+
+  describe "Update user stats on game end" do
+    setup %{ game: game } do
+      winner_player = Enum.at(game.players, 3)
+      game =
+        game.players
+        |> Enum.filter(fn p -> p.player_id != game.player_turn end)
+        |> Enum.filter(fn p -> p.player_id != winner_player.player_id end)
+        |> Enum.reduce(game, fn p, acc ->
+          acc
+          |> Player.put(p.player_id, :surrender, true)
+        end)
+      actual_players = Enum.filter(game.players, fn p -> p.surrender != true end)
+      assert length(actual_players) == 2
+      assert length(game.players) == 5
+      %Player{} = player = Player.get(game, game.player_turn)
+      assert player.surrender != true
+      %{
+        game: game,
+        winner_player: winner_player,
+      }
+    end
+
+    test "should update user stats", %{ game: game, winner_player: winner_player } do
+      old_users = Enum.map(game.players, fn p ->
+        %User{} = user = Accounts.get_user!(p.player_id)
+        assert user.games == 0
+        assert user.games_won == 0
+        user
+      end)
+      {:ok, args} = Surrender.call(%{
+        game: game,
+        player_id: game.player_turn
+      })
+      game = args.game
+      winner_id = List.first(game.winners)
+      assert winner_id == winner_player.player_id
+      Enum.each(game.players, fn p ->
+        %User{} = user = Accounts.get_user!(p.player_id)
+        %User{} = old_user = Enum.find(old_users, fn u -> u.id == p.player_id end)
+        games_won = if p.player_id in game.winners, do: 1, else: 0
+        assert user.games == 1
+        assert user.games_won == games_won
+      end)
+    end
+  end
 end

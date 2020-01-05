@@ -35,6 +35,8 @@ defmodule Croc.Accounts.User do
     field :is_admin, :boolean
     field :banned, :boolean
     field :exp, :integer, null: false, default: 0
+    field :games, :integer, null: false, default: 0
+    field :games_won, :integer, null: false, default: 0
     has_many :sessions, Session, on_delete: :delete_all
 
     has_many :user_monopoly_event_cards, UserEventCard
