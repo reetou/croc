@@ -1,13 +1,17 @@
 defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
+  require Logger
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.Card
+  alias Croc.Repo.Games.Monopoly.Card, as: RepoCard
+  alias Croc.Repo.Games.Monopoly.UserCard
   alias Croc.Games.Monopoly
   alias Croc.Repo
   alias Croc.Accounts
   alias Croc.Accounts.User
   alias Croc.Accounts.MonopolyUser
   alias CrocWeb.MonopolyChannel
+  alias Croc.Games.Monopoly.Rewards
   alias Croc.Games.Monopoly.Supervisor, as: MonopolySupervisor
   use Opus.Pipeline
 
@@ -20,6 +24,17 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   tee :broadcast_game_end_event
   step :end_game
   step :add_exp_to_players
+  step :add_card_reward
+
+  def add_card_reward(%{ player_id: player_id } = args) do
+    with %{id: id, position: position} <- Rewards.get_random_card() do
+      UserCard.add_to_user(player_id, id, position)
+    else
+      _ ->
+        Logger.error("No available reward to give")
+    end
+    args
+  end
 
   def add_exp_to_players(%{game: game, player_id: player_id} = args) do
     Repo.transaction(fn ->

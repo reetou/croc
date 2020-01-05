@@ -17,12 +17,14 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
 
   def changeset(module, attrs) do
     module
-    |> cast(attrs, [:equipped_position])
+    |> cast(attrs, [:monopoly_card_id, :user_id, :equipped_position])
+    |> foreign_key_constraint(:monopoly_card_id)
+    |> foreign_key_constraint(:user_id)
   end
 
   def create(attrs) do
     monopoly_card =
-      __MODULE__
+      %__MODULE__{}
       |> changeset(attrs)
       |> Repo.insert!()
 
@@ -32,5 +34,9 @@ defmodule Croc.Repo.Games.Monopoly.UserCard do
   def get_by_id(id) do
     __MODULE__
     |> Repo.get_by!(id: id)
+  end
+
+  def add_to_user(user_id, card_id, position) do
+    create(%{ user_id: user_id, monopoly_card_id: card_id, equipped_position: position })
   end
 end
