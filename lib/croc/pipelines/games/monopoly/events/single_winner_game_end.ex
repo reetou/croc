@@ -24,13 +24,17 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   def add_exp_to_players(%{game: game, player_id: player_id} = args) do
     Repo.transaction(fn ->
       results = Enum.map(game.players, fn p ->
-        case Accounts.add_exp(p.player_id, Monopoly.game_end_exp_amount()) do
+        exp_amount =
+          case p.player_id == player_id do
+            true -> Monopoly.winner_exp_amount() + Monopoly.game_end_exp_amount()
+            false -> Monopoly.game_end_exp_amount()
+          end
+        case Accounts.add_exp(p.player_id, exp_amount) do
           {x, results} when x > 0 and is_list(results) -> %User{} = List.first(results)
           e -> Repo.rollback(e)
         end
       end)
-      {x, winner_results} = Accounts.add_exp(player_id, Monopoly.winner_exp_amount())
-      results ++ List.first(winner_results)
+      results
     end)
     |> case do
          {:ok, _results} -> args
