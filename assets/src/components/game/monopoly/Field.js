@@ -6,16 +6,16 @@ import colorString from 'color-string'
 import {
   getMobileWidth,
   getMobileHeight,
-  getWidth,
-  getHeight,
+  getSpriteWidth,
+  getSpriteHeight, getTagPoint,
 } from '../../../util'
 
 
 function Field(props) {
   const app = useApp()
   const [moving, setMoving] = useState(false)
-  const [x, setX] = useState(props.x || 100)
-  const [y, setY] = useState(props.y || 100)
+  const [x, setX] = useState(props.x || 0)
+  const [y, setY] = useState(props.y || 0)
   const fieldRef = useRef(null)
   useEffect(() => {
     if (!moving) {
@@ -56,16 +56,33 @@ function Field(props) {
     setX(e.data.global.x)
     setY(e.data.global.y)
   }
-  const spriteWidth = props.mobile ? getMobileWidth(props.form, props.stageWidth) : getWidth(props.form)
-  const spriteHeight = props.mobile ? getMobileHeight(props.form) : getHeight(props.form)
+  const spriteWidth = getSpriteWidth(props.form)
+  const spriteHeight = getSpriteHeight(props.form)
+  const getSpriteY = () => {
+    switch (props.form) {
+      case 'vertical': return 21
+      default: return 0
+    }
+  }
+  const getSpriteX = () => {
+    switch (props.form) {
+      case 'horizontal-flip': return 21
+      default: return 0
+    }
+  }
+  const spriteY = getSpriteY()
+  const spriteX = getSpriteX()
+  const width = getMobileWidth(props.form)
+  const height = getMobileHeight(props.form)
+  // console.log(`Sprite height for form ${props.form} ${getSpriteHeight(props.form)}`)
+  // console.log(`Sprite width for form ${props.form} ${getSpriteWidth(props.form)} while container width ${getMobileWidth(props.form)}`)
   const imagePlaceholder = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png'
   return useObserver(() => (
     <Container
       x={x}
       y={y}
-      anchor={0.5}
-      width={spriteWidth}
-      height={spriteHeight}
+      width={width}
+      height={height}
       ref={fieldRef}
       name={`card_${props.card.name}`}
       interactive={props.interactive}
@@ -87,16 +104,33 @@ function Field(props) {
       }
     >
       <Sprite
+        x={spriteX}
+        y={spriteY}
         image={process.env.NODE_ENV === 'production' ? props.card.image_url || imagePlaceholder : imagePlaceholder}
         width={spriteWidth}
         height={spriteHeight}
-        anchor={0.5}
         alpha={moving ? 0.6 : 1}
       />
       <Container
         anchor={1}
-        visible={Boolean(props.color)}
+        // visible={Boolean(props.color)}
+        visible={true}
       >
+        <Graphics
+          visible={props.form !== 'square'}
+          alpha={0.5}
+          draw={g => {
+            g.clear()
+            const color = colorString.to.hex(colorString.get.rgb(props.color || 'red'))
+            g.beginFill(Number(`0x${color.slice(1)}`))
+            const vertical = props.form === 'vertical' || props.form === 'vertical-flip'
+            const { x, y } = getTagPoint(props.form)
+            const width = 49
+            const height = 21
+            g.drawRect(x, y, vertical ? width : height, vertical ? height : width)
+            g.endFill()
+          }}
+        />
         <Graphics
           alpha={0.5}
           draw={g => {
@@ -105,17 +139,18 @@ function Field(props) {
             g.beginFill(Number(`0x${color.slice(1)}`))
             const width = spriteWidth
             const height = spriteHeight
-            g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
+            // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
+            g.drawRect(spriteX, spriteY, width, height)
             g.endFill()
           }}
         />
       </Container>
       <Text
         visible={props.enabled}
+        // visible={true}
         x={0}
         y={0}
-        anchor={0.5}
-        text={props.card.position}
+        text={spriteY}
         style={
           new PIXI.TextStyle({
             fill: [props.form === 'square' ? 'red' : 'grey'],
