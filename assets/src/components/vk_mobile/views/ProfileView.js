@@ -9,6 +9,7 @@ import {
   PanelHeader,
   Placeholder,
   View,
+  InfoRow,
   List,
 } from '@vkontakte/vkui'
 import User28Icon from '@vkontakte/icons/dist/28/user'
@@ -48,6 +49,9 @@ function ProfileView(props) {
                     {state.user.first_name} {state.user.last_name}
                   </Cell>
                 </Group>
+                <InfoRow header="Опыт">
+                  {state.user.exp}
+                </InfoRow>
                 <Group header="Колода">
                   <List>
                     {
