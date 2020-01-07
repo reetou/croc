@@ -29,7 +29,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 126,
+      "id": 1,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": null,
@@ -50,7 +51,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 127,
+      "id": 2,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "perfume",
@@ -64,14 +66,15 @@ let mock_game = {
       "upgrade_cost": 1200,
       "upgrade_level": 0,
       "upgrade_level_multipliers": [
-        1.5,
-        1.2
+        1.1,
+        1.5
       ]
     },
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 128,
+      "id": 3,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -89,7 +92,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 129,
+      "id": 4,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "perfume",
@@ -103,14 +107,15 @@ let mock_game = {
       "upgrade_cost": 1200,
       "upgrade_level": 0,
       "upgrade_level_multipliers": [
-        1.5,
+        1.1,
         1.2
       ]
     },
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 130,
+      "id": 5,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -123,12 +128,15 @@ let mock_game = {
       "type": "payment",
       "upgrade_cost": null,
       "upgrade_level": 0,
-      "upgrade_level_multipliers": null
+      "upgrade_level_multipliers": [
+        1.5
+      ]
     },
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 131,
+      "id": 6,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "cars",
@@ -149,7 +157,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 132,
+      "id": 7,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "clothing",
@@ -170,7 +179,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 133,
+      "id": 8,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -188,7 +198,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 134,
+      "id": 9,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "clothing",
@@ -209,7 +220,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 135,
+      "id": 10,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "clothing",
@@ -230,7 +242,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 136,
+      "id": 11,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": null,
@@ -238,7 +251,7 @@ let mock_game = {
       "on_loan": null,
       "owner": null,
       "payment_amount": 1000,
-      "position": 10,
+      "position": 13,
       "raw_payment_amount": 1000,
       "type": "jail_cell",
       "upgrade_cost": 1200,
@@ -251,7 +264,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 137,
+      "id": 12,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "social_networks",
@@ -272,7 +286,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 138,
+      "id": 13,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "games",
@@ -293,28 +308,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 139,
-      "loan_amount": 1000,
-      "max_upgrade_level": 2,
-      "monopoly_type": "social_networks",
-      "name": "Facebook",
-      "on_loan": null,
-      "owner": null,
-      "payment_amount": 1000,
-      "position": 13,
-      "raw_payment_amount": 1000,
-      "type": "brand",
-      "upgrade_cost": 1200,
-      "upgrade_level": 0,
-      "upgrade_level_multipliers": [
-        1.5,
-        1.2
-      ]
-    },
-    {
-      "buyout_cost": 1200,
-      "cost": 1500,
-      "id": 140,
+      "id": 15,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "social_networks",
@@ -335,7 +330,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 141,
+      "id": 16,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "cars",
@@ -356,7 +352,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 142,
+      "id": 17,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "drinks",
@@ -377,7 +374,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 143,
+      "id": 18,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -395,7 +393,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 144,
+      "id": 19,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "drinks",
@@ -416,7 +415,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 145,
+      "id": 20,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "drinks",
@@ -437,7 +437,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 146,
+      "id": 21,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": null,
@@ -445,7 +446,7 @@ let mock_game = {
       "on_loan": null,
       "owner": null,
       "payment_amount": 1000,
-      "position": 20,
+      "position": 22,
       "raw_payment_amount": 1000,
       "type": "teleport",
       "upgrade_cost": 1200,
@@ -458,7 +459,30 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 147,
+      "id": 21,
+      "image_url": "some_image",
+      "loan_amount": 1000,
+      "max_upgrade_level": 2,
+      "monopoly_type": null,
+      "name": "Prison",
+      "on_loan": null,
+      "owner": null,
+      "payment_amount": 1000,
+      "position": 35,
+      "raw_payment_amount": 1000,
+      "type": "prison",
+      "upgrade_cost": 1200,
+      "upgrade_level": 0,
+      "upgrade_level_multipliers": [
+        1.5,
+        1.2
+      ]
+    },
+    {
+      "buyout_cost": 1200,
+      "cost": 1500,
+      "id": 22,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "airports",
@@ -479,7 +503,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 148,
+      "id": 23,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -497,7 +522,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 149,
+      "id": 24,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "airports",
@@ -518,7 +544,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 150,
+      "id": 25,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "airports",
@@ -539,7 +566,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 151,
+      "id": 26,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "cars",
@@ -560,7 +588,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 152,
+      "id": 27,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "fastfood",
@@ -581,7 +610,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 153,
+      "id": 28,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "fastfood",
@@ -602,7 +632,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 154,
+      "id": 29,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "games",
@@ -623,7 +654,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 155,
+      "id": 30,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "fastfood",
@@ -644,28 +676,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 156,
-      "loan_amount": 1000,
-      "max_upgrade_level": 2,
-      "monopoly_type": null,
-      "name": "Prison",
-      "on_loan": null,
-      "owner": null,
-      "payment_amount": 1000,
-      "position": 30,
-      "raw_payment_amount": 1000,
-      "type": "prison",
-      "upgrade_cost": 1200,
-      "upgrade_level": 0,
-      "upgrade_level_multipliers": [
-        1.5,
-        1.2
-      ]
-    },
-    {
-      "buyout_cost": 1200,
-      "cost": 1500,
-      "id": 157,
+      "id": 32,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "hotels",
@@ -686,7 +698,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 158,
+      "id": 33,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "hotels",
@@ -707,7 +720,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 159,
+      "id": 34,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -725,7 +739,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 160,
+      "id": 35,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "hotels",
@@ -746,7 +761,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 161,
+      "id": 36,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "cars",
@@ -754,7 +770,7 @@ let mock_game = {
       "on_loan": null,
       "owner": null,
       "payment_amount": 1000,
-      "position": 35,
+      "position": 42,
       "raw_payment_amount": 1000,
       "type": "brand",
       "upgrade_cost": 1200,
@@ -767,7 +783,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 162,
+      "id": 37,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -785,7 +802,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 163,
+      "id": 38,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "phones",
@@ -806,7 +824,8 @@ let mock_game = {
     {
       "buyout_cost": null,
       "cost": null,
-      "id": 165,
+      "id": 40,
+      "image_url": "some_image",
       "loan_amount": null,
       "max_upgrade_level": null,
       "monopoly_type": null,
@@ -824,7 +843,8 @@ let mock_game = {
     {
       "buyout_cost": 1200,
       "cost": 1500,
-      "id": 166,
+      "id": 41,
+      "image_url": "some_image",
       "loan_amount": 1000,
       "max_upgrade_level": 2,
       "monopoly_type": "phones",
