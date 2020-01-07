@@ -16,6 +16,7 @@ defmodule Croc.Accounts.VkUser do
     |> Base.encode64()
     |> String.replace("=", "")
     |> String.replace("+", "-")
+    |> String.replace("/", "_")
     |> String.replace_suffix("=", "")
   end
 end
