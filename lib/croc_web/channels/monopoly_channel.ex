@@ -127,8 +127,9 @@ defmodule CrocWeb.MonopolyChannel do
   end
 
   @decorate channel_action()
-  def handle_in("chat_message", %{ "chat_id" => chat_id, "text" => text, "to" => to }, socket) do
-    with {:ok, chat, pid} <- Chat.get(chat_id),
+  def handle_in("chat_message", %{ "chat_id" => chat_id, "text" => text, "to" => to }, socket) when is_binary(text) do
+    with true <- String.trim(text) != "",
+         {:ok, chat, pid} <- Chat.get(chat_id),
          %Message{} = message <- Message.new(chat_id, text, socket.assigns.user_id, to, :message),
          {:ok, chat} <- GenServer.call(pid, {:message, message}) do
       unless message.to != nil do
@@ -147,6 +148,10 @@ defmodule CrocWeb.MonopolyChannel do
       {:error, reason} ->
         Logger.error("Error happened at chat message #{inspect reason}")
         send_error(socket, {:error, reason})
+        {:noreply, socket}
+      false ->
+        Logger.debug("Tried to send empty message")
+        send_error(socket, {:error, :empty_message})
         {:noreply, socket}
       e ->
         Logger.error("Error happened at chat message with unhandled error #{inspect e}")
