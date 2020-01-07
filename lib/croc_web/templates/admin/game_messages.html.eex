@@ -1,3 +1,3 @@
 <h1>Messages</h1>
 
-<%= react_component("Components.Admin.GameMessages", %{ topic: @conn.assigns.topic }) %>
+<%= react_component("Components.Admin.GameMessages", %{ topic: @topic, users_path: @users_path }) %>

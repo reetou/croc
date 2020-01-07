@@ -1,0 +1,6 @@
+<script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+<script type="text/javascript">
+
+  console.log("Token: <%= @conn.assigns.user_token %>")
+  window.userToken = "<%= @conn.assigns[:user_token] %>"
+</script>

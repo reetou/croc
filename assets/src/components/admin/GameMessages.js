@@ -16,7 +16,7 @@ function GameMessages(props) {
     messages: []
   }))
   console.log('Joining to topic', props.topic)
-  const [messageChannel] = useChannel(props.topic)
+  const [messageChannel] = useChannel(props.topic, null, window.userToken)
   useEffect(() => {
     if (!messageChannel) {
       console.log('No message channel')
@@ -39,7 +39,7 @@ function GameMessages(props) {
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <div>
                   <span style={{ marginRight: 8 }}>Кому: {m.to ? `Игроку ${m.to}` : 'Всем'}</span>
-                  <span>От: {m.from}</span>
+                  <span>От: <a href={`${props.users_path}/${m.from}`} target="_blank">{m.from}</a></span>
                 </div>
                 <span>{m.sent_at}</span>
               </div>

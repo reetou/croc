@@ -1,12 +1,13 @@
 import { useState, useContext, useEffect } from 'react'
 import { PhoenixSocketContext } from './SocketContext'
 
-const useChannel = (channelName, onReply) => {
+const useChannel = (channelName, onReply, explicitToken) => {
   const [channel, setChannel] = useState(null);
   const { socket, token } = useContext(PhoenixSocketContext)
 
   const setupChannel = () => {
-    const phoenixChannel = token ? socket.channel(channelName, { token }) : socket.channel(channelName)
+    const userToken = explicitToken || token || window.userToken
+    const phoenixChannel = userToken ? socket.channel(channelName, { token: userToken }) : socket.channel(channelName)
     console.log(`Joining with token ${token} to ${channelName}`)
     phoenixChannel
       .join()
