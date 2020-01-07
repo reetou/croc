@@ -44,7 +44,7 @@ export default PixiComponent("Viewport", {
   },
   applyProps: (instance, oldProps, newProps) => {
     // return init(newProps, instance)
-    return instance
+    // return instance
   },
   didMount: (instance, parent) => {
   },

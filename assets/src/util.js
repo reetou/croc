@@ -8,11 +8,16 @@ const getWidth = (form) => {
   }
 }
 
+const getAngle = (form) => {
+  switch (form) {
+    case 'vertical-flip': return -90
+    case 'vertical': return -90
+    default: return 0
+  }
+}
+
 const getMobileWidth = (form) => {
   switch (form) {
-    case 'vertical-flip':
-    case 'vertical':
-      return 55
     case 'square': return 116
     default: return 137
   }
@@ -20,15 +25,13 @@ const getMobileWidth = (form) => {
 
 const getMobileHeight = (form) => {
   switch (form) {
-    case 'vertical-flip':
-    case 'vertical':
-      return 137
     case 'square': return 116
     default: return 55
   }
 }
 
 const getSpriteWidth = (form) => {
+  return 116
   switch (form) {
     case 'vertical-flip':
     case 'vertical':
@@ -40,10 +43,10 @@ const getSpriteWidth = (form) => {
 
 const getSpriteHeight = (form) => {
   switch (form) {
+    case 'square': return 116
     case 'vertical-flip':
     case 'vertical':
-      return 108
-    case 'square': return 116
+      return 55
     default: return 55
   }
 }
@@ -62,23 +65,27 @@ const getTagPoint = (form) => {
   switch (form) {
     case 'vertical-flip':
       return {
-        x: 3,
-        y: getSpriteHeight(form)
+        x: 0,
+        y: 3,
+        angle: 90,
       }
     case 'vertical':
       return {
-        x: 3,
-        y: 0
+        x: getSpriteWidth(form) + 21,
+        y: 24,
+        angle: 90
       }
     case 'horizontal-flip':
       return {
         x: 0,
-        y: 3
+        y: 52,
+        angle: 270,
       }
     default:
       return {
-        x: getSpriteWidth(form),
-        y: 3
+        x: 137,
+        y: 3,
+        angle: 90
       }
   }
 }
@@ -90,5 +97,6 @@ export {
   getWidth,
   getSpriteWidth,
   getSpriteHeight,
-  getTagPoint
+  getTagPoint,
+  getAngle
 }

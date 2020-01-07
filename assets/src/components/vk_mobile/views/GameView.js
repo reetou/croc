@@ -44,96 +44,96 @@ const mockFieldSettings = [
     "position": 1,
     "form": "vertical",
     "point": {
-      "x": 148,
-      "y": 8
+      "x": 148 - 21,
+      "y": 145
     }
   },
   {
     "position": 2,
     "form": "vertical",
     "point": {
-      "x": 207,
-      "y": 8
+      "x": 207 - 21,
+      "y": 145
     }
   },
   {
     "position": 3,
     "form": "vertical",
     "point": {
-      "x": 266,
-      "y": 8
+      "x": 266 - 21,
+      "y": 145
     }
   },
   {
     "position": 4,
     "form": "vertical",
     "point": {
-      "x": 325,
-      "y": 8
+      "x": 325 - 21,
+      "y": 145
     }
   },
   {
     "position": 5,
     "form": "vertical",
     "point": {
-      "x": 384,
-      "y": 8
+      "x": 384 - 21,
+      "y": 145
     }
   },
   {
     "position": 6,
     "form": "vertical",
     "point": {
-      "x": 443,
-      "y": 8
+      "x": 443 - 21,
+      "y": 145
     }
   },
   {
     "position": 7,
     "form": "vertical",
     "point": {
-      "x": 502,
-      "y": 8
+      "x": 502 - 21,
+      "y": 145
     }
   },
   {
     "position": 8,
     "form": "vertical",
     "point": {
-      "x": 561,
-      "y": 8
+      "x": 561 - 21,
+      "y": 145
     }
   },
   {
     "position": 9,
     "form": "vertical",
     "point": {
-      "x": 620,
-      "y": 8
+      "x": 620 - 21,
+      "y": 145
     }
   },
   {
     "position": 10,
     "form": "vertical",
     "point": {
-      "x": 679,
-      "y": 8
+      "x": 679 - 21,
+      "y": 145
     }
   },
   {
     "position": 11,
     "form": "vertical",
     "point": {
-      "x": 738,
-      "y": 8
+      "x": 738 - 21,
+      "y": 145
     }
   },
   {
     "position": 12,
     "form": "vertical",
     "point": {
-      "x": 797,
-      "y": 8
+      "x": 797 - 21,
+      "y": 145
     }
   },
   {
@@ -221,7 +221,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 797,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -229,7 +229,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 738,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -237,7 +237,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 679,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -245,7 +245,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 620,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -253,7 +253,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 560,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -261,7 +261,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 502,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -269,7 +269,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 443,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -277,7 +277,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 384,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -285,7 +285,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 325,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -293,7 +293,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 266,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -301,7 +301,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 207,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -309,7 +309,7 @@ const mockFieldSettings = [
     "form": "vertical-flip",
     "point": {
       "x": 148,
-      "y": 621
+      "y": 621 + 116
     }
   },
   {
@@ -524,13 +524,13 @@ function GameView(props) {
               state.app = a
             }}
             options={{
-              backgroundColor: 0x10bb99,
+              backgroundColor: 0x4f4f4f,
               height: state.stageHeight,
               width: state.stageWidth
             }}
           >
             {
-              state.fieldSettings && state.fieldSettings.length
+              state.fieldSettings && state.fieldSettings.length && state.game
                 ? (
                   <ReactViewport
                     app={app}

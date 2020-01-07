@@ -7,7 +7,9 @@ import {
   getMobileWidth,
   getMobileHeight,
   getSpriteWidth,
-  getSpriteHeight, getTagPoint,
+  getSpriteHeight,
+  getTagPoint,
+  getAngle,
 } from '../../../util'
 
 
@@ -74,17 +76,20 @@ function Field(props) {
   const spriteX = getSpriteX()
   const width = getMobileWidth(props.form)
   const height = getMobileHeight(props.form)
+  const angle = getAngle(props.form)
   // console.log(`Sprite height for form ${props.form} ${getSpriteHeight(props.form)}`)
   // console.log(`Sprite width for form ${props.form} ${getSpriteWidth(props.form)} while container width ${getMobileWidth(props.form)}`)
   const imagePlaceholder = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png'
+  const tagPoint = getTagPoint(props.form)
   return useObserver(() => (
     <Container
       x={x}
       y={y}
-      width={width}
-      height={height}
+      angle={angle}
+      // width={width}
+      // height={height}
       ref={fieldRef}
-      name={`card_${props.card.name}`}
+      name={`card_${props.card.name}_height_${height}`}
       interactive={props.interactive}
       {
         ...props.mobile ? {
@@ -109,28 +114,47 @@ function Field(props) {
         image={process.env.NODE_ENV === 'production' ? props.card.image_url || imagePlaceholder : imagePlaceholder}
         width={spriteWidth}
         height={spriteHeight}
+        name={`sprite_width_${spriteWidth}_height_${spriteHeight}`}
         alpha={moving ? 0.6 : 1}
       />
       <Container
-        anchor={1}
-        // visible={Boolean(props.color)}
-        visible={true}
+        x={tagPoint.x}
+        y={tagPoint.y}
+        angle={tagPoint.angle || 0}
       >
         <Graphics
           visible={props.form !== 'square'}
-          alpha={0.5}
+          alpha={props.card.type === 'brand' ? 0.5 : 1}
           draw={g => {
             g.clear()
-            const color = colorString.to.hex(colorString.get.rgb(props.color || 'red'))
+            const colorStr = props.card.type === 'brand' ? (props.color || 'red') : '#4F4F4F'
+            const color = colorString.to.hex(colorString.get.rgb(colorStr))
             g.beginFill(Number(`0x${color.slice(1)}`))
-            const vertical = props.form === 'vertical' || props.form === 'vertical-flip'
-            const { x, y } = getTagPoint(props.form)
             const width = 49
             const height = 21
-            g.drawRect(x, y, vertical ? width : height, vertical ? height : width)
+            g.drawRect(0, 0, width, height)
             g.endFill()
           }}
         />
+        <Text
+          x={5}
+          y={4}
+          visible={props.card.type === 'brand'}
+          // visible={false}
+          text={`$ ${props.card.payment_amount}`}
+          style={
+            new PIXI.TextStyle({
+              fontSize: 12,
+              fill: '#4F4F4F'
+            })
+          }
+        />
+      </Container>
+      <Container
+        visible={props.card.type === 'brand'}
+        // visible={true}
+        width={width}
+      >
         <Graphics
           alpha={0.5}
           draw={g => {
