@@ -31,7 +31,7 @@ defmodule Croc.Pipelines.Games.Monopoly.Roll do
     {x, y} = dice
     %Player{} = player = Player.get(game, player_id)
     %Card{} = card = Card.get_by_position(game, player.position)
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} выбрасывает #{x}:#{y} и попадает на #{card.name}") })
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player.name} выбрасывает #{x}:#{y} и попадает на #{card.name}") })
   end
 
   def set_event_type(args) do

@@ -1064,7 +1064,12 @@ function VkMiniApp(props) {
     </Snackbar>
   }
   const onChatMessage = (message) => {
-    state.messages.push(message)
+    const sender = state.game && message.from > 0 ? state.game.players.find(p => p.player_id === message.from) : { name: 'Game' }
+    console.log('MESSAGE', message)
+    state.messages.push({
+      ...message,
+      name: sender.name
+    })
   }
   useEffect(() => {
     console.log('Token ADDED', state.token)
