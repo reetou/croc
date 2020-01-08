@@ -87,8 +87,6 @@ function PlayerSprite(props) {
     <Container
       x={x}
       y={y}
-      width={30}
-      height={30}
       anchor={0.5}
       ref={ref}
       name={`player_${props.player_id}`}
@@ -101,7 +99,7 @@ function PlayerSprite(props) {
           g.clear()
           const color = colorString.to.hex(colorString.get.rgb(props.color || 'red'))
           g.beginFill(Number(`0x${color.slice(1)}`))
-          g.drawCircle(0, 0, 20)
+          g.drawCircle(0, 0, 12)
           g.endFill()
         }}
       />

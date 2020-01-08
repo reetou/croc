@@ -90,6 +90,71 @@ const getTagPoint = (form) => {
   }
 }
 
+const getHorizontalPlayerPosition = (ind) => {
+  switch (ind) {
+    case 0: return [25, 15]
+    case 1: return [55, 15]
+    case 2: return [85, 15]
+    case 3: return [25, 40]
+    case 4: return [55, 40]
+    case 5: return [85, 40]
+  }
+}
+const getHorizontalFlipPlayerPosition = (ind) => {
+  switch (ind) {
+    case 0: return [50, 15]
+    case 1: return [80, 15]
+    case 2: return [110, 15]
+    case 3: return [50, 40]
+    case 4: return [80, 40]
+    case 5: return [110, 40]
+  }
+}
+const getVerticalPlayerPosition = (ind) => {
+  switch (ind) {
+    case 0: return [35, -85]
+    case 1: return [35, -60]
+    case 2: return [35, -35]
+    case 3: return [60, -85]
+    case 4: return [60, -60]
+    case 5: return [60, -35]
+  }
+}
+const getVerticalFlipPlayerPosition = (ind) => {
+  switch (ind) {
+    case 0: return [15, -85]
+    case 1: return [15, -60]
+    case 2: return [15, -35]
+    case 3: return [40, -85]
+    case 4: return [40, -60]
+    case 5: return [40, -35]
+  }
+}
+const getSquarePlayerPosition = (ind) => {
+  switch (ind) {
+    case 0: return [30, 30]
+    case 1: return [60, 30]
+    case 2: return [90, 30]
+    case 3: return [30, 80]
+    case 4: return [60, 80]
+    case 5: return [90, 80]
+  }
+}
+const getPosition = (form, ind) => {
+  switch (form) {
+    case 'square':
+      return getSquarePlayerPosition(ind)
+    case 'horizontal-flip':
+      return getHorizontalFlipPlayerPosition(ind)
+    case 'horizontal':
+      return getHorizontalPlayerPosition(ind)
+    case 'vertical-flip':
+      return getVerticalFlipPlayerPosition(ind)
+    case 'vertical':
+      return getVerticalPlayerPosition(ind)
+  }
+}
+
 export {
   getMobileHeight,
   getMobileWidth,
@@ -98,5 +163,6 @@ export {
   getSpriteWidth,
   getSpriteHeight,
   getTagPoint,
-  getAngle
+  getAngle,
+  getPosition,
 }

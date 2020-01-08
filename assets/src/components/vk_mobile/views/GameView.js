@@ -16,7 +16,7 @@ import { Stage, useApp } from '@inlet/react-pixi'
 import Field from '../../game/monopoly/Field'
 import { set } from 'lodash-es'
 import PlayerSprite from '../../game/monopoly/PlayerSprite'
-import { getMobileHeight, getMobileWidth } from '../../../util'
+import { getPosition } from '../../../util'
 import useChannel from '../../../useChannel'
 import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
@@ -575,33 +575,40 @@ function GameView(props) {
                       })
                     }
                     {
-                      state.game.players.map(p => (
-                        <PlayerSprite
-                          image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png"
-                          key={p.player_id}
-                          squares={(
-                            state.game.cards
-                              .filter(c => {
-                                if (!state.fieldSettings[c.position]) return false
-                                return state.fieldSettings[c.position].form === 'square'
-                              })
-                              .map(c => {
-                                const point = state.fieldSettings[c.position].point
-                                return {
-                                  ...c,
-                                  point
-                                }
-                              })
-                          )}
-                          player_id={p.player_id}
-                          color={p.color}
-                          position={p.position}
-                          old_position={p.old_position}
-                          enabled={enabled}
-                          x={state.fieldSettings[p.position].point.x}
-                          y={state.fieldSettings[p.position].point.y}
-                        />
-                      ))
+                      state.game.players.map((p, index) => {
+                        const fieldPosition = state.fieldSettings[p.position]
+                        const [positionX, positionY] = getPosition(fieldPosition.form, index)
+                        const playerX = fieldPosition.point.x + positionX
+                        const playerY = fieldPosition.point.y + positionY
+                        return (
+                          <PlayerSprite
+                            image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png"
+                            key={p.player_id}
+                            squares={(
+                              state.game.cards
+                                .filter(c => {
+                                  if (!state.fieldSettings[c.position]) return false
+                                  return state.fieldSettings[c.position].form === 'square'
+                                })
+                                .map(c => {
+                                  const point = state.fieldSettings[c.position].point
+                                  return {
+                                    ...c,
+                                    point
+                                  }
+                                })
+                            )}
+                            index={index}
+                            player_id={p.player_id}
+                            color={p.color}
+                            position={p.position}
+                            old_position={p.old_position}
+                            enabled={enabled}
+                            x={playerX}
+                            y={playerY}
+                          />
+                        )
+                      })
                     }
                   </ReactViewport>
                 )
