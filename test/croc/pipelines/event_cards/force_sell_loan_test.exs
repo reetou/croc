@@ -8,6 +8,8 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceSellLoanTest do
     Card,
     EventCard
     }
+  require Logger
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
   alias Croc.Games.Monopoly
   alias Croc.Pipelines.Games.Monopoly.{
     EventCards.ForceSellLoan
@@ -61,7 +63,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceSellLoanTest do
       |> Map.put(:players, players)
       |> Map.put(:cards, cards)
       |> Map.put(:round, 10)
-      |> Map.put(:event_cards, [EventCard.new(@event_card_type)])
+      |> Map.put(:event_cards, RepoEventCard.get_all())
 
     owner = Player.get(game, List.first(random_owners_ids))
     %{ game: game, owner: owner, caller: caller }
@@ -120,12 +122,13 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceSellLoanTest do
         game
         |> Map.put(:cards, cards)
         |> Map.put(:round, 10)
-        |> Map.put(:event_cards, [EventCard.new(@event_card_type)])
+        |> Map.put(:event_cards, RepoEventCard.get_all())
       %{ game: game, owner: owner, caller: caller }
     end
 
     test "should throw error when no cards on loan, although there are cards on loan in monopoly", %{ game: game } do
       %Player{player_id: player_id} = Enum.at(game.players, 0)
+      assert Enum.empty?(game.event_cards) == false
       {:error, pipeline_error} = ForceSellLoan.call(%{
         game: game,
         type: @event_card_type,
@@ -137,6 +140,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceSellLoanTest do
 
     test "should throw error when not enough money", %{ game: game } do
       %Player{player_id: player_id} = Enum.at(game.players, 0)
+      assert Enum.empty?(game.event_cards) == false
       card = Enum.find(game.cards, fn c -> c.owner != nil end)
       cards = game.cards
               |> Enum.map(fn c ->
@@ -167,6 +171,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceSellLoanTest do
 
     test "should successfuly force sell loan", %{ game: game, owner: owner, caller: caller } do
       %Player{player_id: player_id} = caller
+      assert Enum.empty?(game.event_cards) == false
       {:ok, args} = ForceSellLoan.call(%{
         game: game,
         type: @event_card_type,

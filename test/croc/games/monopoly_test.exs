@@ -41,6 +41,8 @@ defmodule Croc.GamesTest.MonopolyTest do
     }
   end
 
+  @max_position 43
+
   test "should throw error if starting game with only 1 player in lobby", %{ lobby: lobby } do
     {:ok, lobby} = Lobby.create(Enum.random(1..5), [])
     {:error, :not_enough_players} = Monopoly.start(lobby)
@@ -409,7 +411,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     end
 
     test "should return position < than maximum position", %{ game: game } do
-      expected_position = 38
+      expected_position = @max_position - 1
       move_value = 5
       max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
       player = List.first(game.players)
@@ -422,7 +424,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     end
 
     test "should return position == maximum position", %{ game: game } do
-      expected_position = 37
+      expected_position = @max_position - 2
       move_value = 2
       max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
       player = List.first(game.players)
@@ -435,7 +437,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     end
 
     test "should return position == start position", %{ game: game } do
-      expected_position = 38
+      expected_position = @max_position - 1
       move_value = 2
       max_position = Enum.max_by(game.cards, fn c -> c.position end) |> Map.fetch!(:position)
       player = List.first(game.players)

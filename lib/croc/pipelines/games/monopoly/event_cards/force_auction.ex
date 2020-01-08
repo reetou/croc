@@ -2,6 +2,8 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceAuction do
   alias Croc.Games.Monopoly.Player
   alias Croc.Games.Monopoly.Event
   alias Croc.Games.Monopoly.EventCard
+
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
   alias Croc.Games.Monopoly.Card
   alias Croc.Games.Monopoly
   alias CrocWeb.MonopolyChannel
@@ -15,7 +17,7 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceAuction do
   check :can_send_action?, with: &Monopoly.can_send_action?/1, error_message: :not_your_turn
   check :can_use?, with: &EventCard.can_use?/1, error_message: :too_early_to_use
   check :check_type?, error_message: :invalid_event_card_type
-  check :has_event_card?, error_message: :no_available_event_card
+  check :has_event_card?, with: &EventCard.has_event_card?/1, error_message: :no_available_event_card
   check :has_position?, error_message: :invalid_auction_position
   step :add_card
   check :has_owner?, error_message: :card_has_no_owner
@@ -87,13 +89,6 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceAuction do
 
   def card_is_on_loan?(%{ card: card }) do
     card.on_loan == true
-  end
-
-  def has_event_card?(args) do
-    case EventCard.get_by_type(args) do
-      %EventCard{} -> true
-      _ -> false
-    end
   end
 
   def add_card(%{game: game, player_id: player_id, position: position} = args) do

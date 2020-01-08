@@ -69,7 +69,7 @@ defmodule CrocWeb.ShopControllerTest do
           secret: Shop.secret(),
           object: %{
             from_id: user.vk_id,
-            amount: Shop.small_pack_amount(),
+            amount: Shop.small_pack_amount() * 1000,
           }
         }
         |> Jason.encode!()

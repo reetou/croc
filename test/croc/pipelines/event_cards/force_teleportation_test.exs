@@ -8,6 +8,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceTeleportationTest do
     Card,
     EventCard
     }
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
   alias Croc.Games.Monopoly
   alias Croc.Pipelines.Games.Monopoly.{
     EventCards.ForceTeleportation
@@ -30,7 +31,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceTeleportationTest do
       game
       |> Map.put(:players, players)
       |> Map.put(:round, 10)
-      |> Map.put(:event_cards, [EventCard.new(@event_card_type)])
+      |> Map.put(:event_cards, RepoEventCard.get_all())
 
     %{ game: game, caller: caller }
   end

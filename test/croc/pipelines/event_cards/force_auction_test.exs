@@ -8,6 +8,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
     Card,
     EventCard
   }
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
   alias Croc.Games.Monopoly
   alias Croc.Pipelines.Games.Monopoly.{
     EventCards.ForceAuction
@@ -59,7 +60,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
       |> Map.put(:players, players)
       |> Map.put(:cards, cards)
       |> Map.put(:round, 10)
-      |> Map.put(:event_cards, [EventCard.new(@event_card_type)])
+      |> Map.put(:event_cards, RepoEventCard.get_all())
 
     owner = Player.get(game, List.first(random_owners_ids))
     %{ game: game, owner: owner, caller: caller }
@@ -71,7 +72,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Croc.Repo, {:shared, self()})
     end
-    players_ids = Enum.take_random(5000..7000, 5)
+    players_ids = Enum.take_random(3000000..3000050, 5)
     {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
     Enum.slice(players_ids, 1, 100)
@@ -149,7 +150,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
         game
         |> Map.put(:cards, cards)
         |> Map.put(:round, 10)
-        |> Map.put(:event_cards, [EventCard.new(@event_card_type)])
+        |> Map.put(:event_cards, RepoEventCard.get_all())
       %{ game: game, owner: owner, caller: caller }
     end
 

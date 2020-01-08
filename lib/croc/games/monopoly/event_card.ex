@@ -3,6 +3,8 @@ defmodule Croc.Games.Monopoly.EventCard do
   alias Croc.Games.Monopoly.{
     Card
   }
+  alias Croc.Repo.Games.Monopoly.EventCard, as: RepoEventCard
+  require Logger
 
   @event_cards_types [:force_auction, :force_sell_loan, :force_teleportation]
 
@@ -67,17 +69,26 @@ defmodule Croc.Games.Monopoly.EventCard do
     end
   end
 
+  def has_event_card?(args) do
+    case get_by_type(args) do
+      %RepoEventCard{} -> true
+      _ -> false
+    end
+  end
+
   def get_by_type(%{ game: %Monopoly{} = game, type: type } = args) when type in @event_cards_types do
-    with %__MODULE__{} = event_card <- Enum.find(game.event_cards, fn c -> c.type == type end) do
+    with %RepoEventCard{} = event_card <- Enum.find(game.event_cards, fn c -> c.type == type end) do
       event_card
     else
-      nil -> {:error, :no_available_event_card}
+      nil ->
+        Logger.error("Cannot find event card by type #{type}")
+        {:error, :no_available_event_card}
     end
   end
 
   def mark_used(%{ game: %Monopoly{} = game, player_id: player_id, type: type } = args) when type in @event_cards_types do
     with index when index != nil <- Enum.find_index(game.event_cards, fn ec -> ec.type == type end),
-         %__MODULE__{} = event_card <- Enum.at(game.event_cards, index) do
+         %RepoEventCard{} = event_card <- Enum.at(game.event_cards, index) do
       game =
         game
         |> Map.put(:event_cards, List.delete_at(game.event_cards, index))

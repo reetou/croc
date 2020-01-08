@@ -33,7 +33,6 @@ defmodule CrocWeb.ShopController do
     type = Shop.product_type(amount)
     %User{} = user = Accounts.get_vk_user(from)
     {:ok, products} = Shop.receive_products(user.id, type)
-    |> IO.inspect(label: "Giving products")
     CrocWeb.Endpoint.broadcast("user:#{from}", "products", %{ products: products, thank_you: true })
     conn
     |> text("ok")

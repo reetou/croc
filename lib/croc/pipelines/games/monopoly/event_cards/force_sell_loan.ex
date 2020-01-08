@@ -15,7 +15,7 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceSellLoan do
   check :can_send_action?, with: &Monopoly.can_send_action?/1, error_message: :not_your_turn
   check :can_use?, with: &EventCard.can_use?/1, error_message: :too_early_to_use
   check :check_type?, error_message: :invalid_event_card_type
-  check :has_event_card?, error_message: :no_available_event_card
+  check :has_event_card?, with: &EventCard.has_event_card?/1, error_message: :no_available_event_card
   check :has_cards_on_loan?, error_message: :no_cards_on_loan
   check :has_enough_money?, error_message: :not_enough_money
   step :mark_used, with: &EventCard.mark_used/1
@@ -76,13 +76,6 @@ defmodule Croc.Pipelines.Games.Monopoly.EventCards.ForceSellLoan do
     args
     |> Map.put(:amount, cost)
     |> Player.take_money()
-  end
-
-  def has_event_card?(args) do
-    case EventCard.get_by_type(args) do
-      %EventCard{} -> true
-      _ -> false
-    end
   end
 
   def check_type?(args) do
