@@ -134,7 +134,7 @@ defmodule Croc.GamesTest.MonopolyTest do
   describe "get cards" do
     test "should get default cards" do
       cards = Monopoly.get_default_cards()
-      assert length(cards) == 40
+      assert length(cards) == 44
       unique_by_position = Enum.uniq_by(cards, fn c -> c.position end)
       assert length(cards) == length(unique_by_position)
 

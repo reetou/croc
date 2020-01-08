@@ -49,7 +49,7 @@ defmodule Croc.Games.Monopoly do
     "brown"
   ]
 
-  @positions Enum.to_list(0..39)
+  @positions Enum.to_list(0..43)
 
   @enforce_keys [
     :game_id,
@@ -337,7 +337,7 @@ defmodule Croc.Games.Monopoly do
   def positions, do: @positions
 
   def start(%Lobby{lobby_id: lobby_id, options: options}) do
-    with {:ok, lobby_players} when length(lobby_players) > 1 <- Lobby.get_players(lobby_id) do
+    with {:ok, lobby_players} when length(lobby_players) > 0 <- Lobby.get_players(lobby_id) do
       {:ok, game} =
         Memento.transaction(fn ->
           started_at = DateTime.utc_now() |> DateTime.truncate(:second)
