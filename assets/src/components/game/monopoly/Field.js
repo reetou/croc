@@ -108,6 +108,29 @@ function Field(props) {
         }
       }
     >
+      <Container>
+        <Graphics
+          alpha={props.color ? 0.3 : 1}
+          draw={g => {
+            g.clear()
+            const color = colorString.to.hex(colorString.get.rgb(props.color || '#EADEC2'))
+            g.beginFill(Number(`0x${color.slice(1)}`))
+            const width = spriteWidth
+            const height = spriteHeight
+            // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
+            g.drawRoundedRect(spriteX, spriteY, width, height, 3)
+            g.endFill()
+          }}
+        />
+      </Container>
+      <Sprite
+        image="https://croc-images.fra1.digitaloceanspaces.com/field-texture.png"
+        x={spriteX}
+        y={spriteY}
+        width={spriteWidth}
+        height={spriteHeight}
+        name={`field_texture`}
+      />
       <Sprite
         x={spriteX}
         y={spriteY}
@@ -124,10 +147,10 @@ function Field(props) {
       >
         <Graphics
           visible={props.form !== 'square'}
-          alpha={props.card.type === 'brand' ? 0.5 : 1}
+          alpha={1}
           draw={g => {
             g.clear()
-            const colorStr = props.card.type === 'brand' ? (props.color || 'red') : '#4F4F4F'
+            const colorStr = props.card.type === 'brand' ? (props.color || '#F2F2F2') : '#4F4F4F'
             const color = colorString.to.hex(colorString.get.rgb(colorStr))
             g.beginFill(Number(`0x${color.slice(1)}`))
             const width = 49
@@ -148,25 +171,6 @@ function Field(props) {
               fill: '#4F4F4F'
             })
           }
-        />
-      </Container>
-      <Container
-        visible={props.card.type === 'brand'}
-        // visible={true}
-        width={width}
-      >
-        <Graphics
-          alpha={0.5}
-          draw={g => {
-            g.clear()
-            const color = colorString.to.hex(colorString.get.rgb(props.color || 'red'))
-            g.beginFill(Number(`0x${color.slice(1)}`))
-            const width = spriteWidth
-            const height = spriteHeight
-            // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
-            g.drawRect(spriteX, spriteY, width, height)
-            g.endFill()
-          }}
         />
       </Container>
       <Text

@@ -26,6 +26,8 @@ const VkActionContainer = lazy(() => import('../VkActionContainer'))
 const Chat = lazy(() => import('../Chat'))
 
 
+PIXI.settings.RESOLUTION = window.devicePixelRatio || 1
+
 if (process.env.NODE_ENV !== 'production') {
   window.__PIXI_INSPECTOR_GLOBAL_HOOK__ &&
   window.__PIXI_INSPECTOR_GLOBAL_HOOK__.register({ PIXI: PIXI });
@@ -387,7 +389,7 @@ const mockFieldSettings = [
 ]
 
 const getStageHeight = () => {
-  return window.innerHeight - 220
+  return (window.innerHeight / PIXI.settings.RESOLUTION) - 120
 }
 
 function GameView(props) {
@@ -400,7 +402,7 @@ function GameView(props) {
     fieldsInteractive: true,
     game: source.game,
     fieldSettings: mockFieldSettings,
-    stageWidth: window.innerWidth,
+    stageWidth: window.innerWidth / PIXI.settings.RESOLUTION,
     app: null,
     stageHeight: getStageHeight(),
     popout: <ScreenSpinner />
