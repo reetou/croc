@@ -194,6 +194,7 @@ defmodule Croc.Repo.Games.Monopoly.Card do
       :rarity,
       :cost,
       :buyout_cost,
+      :upgrade_cost,
       :loan_amount,
       :position,
       :payment_amount,
