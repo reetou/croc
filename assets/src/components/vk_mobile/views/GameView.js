@@ -389,7 +389,7 @@ const mockFieldSettings = [
 ]
 
 const getStageHeight = () => {
-  return (window.innerHeight / PIXI.settings.RESOLUTION) - 120
+  return (window.innerHeight / PIXI.settings.RESOLUTION) * 0.6
 }
 
 function GameView(props) {
