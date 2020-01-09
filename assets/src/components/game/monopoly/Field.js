@@ -124,14 +124,6 @@ function Field(props) {
           }}
         />
       </Container>
-      <Sprite
-        image="https://croc-images.fra1.digitaloceanspaces.com/field-texture.png"
-        x={spriteX}
-        y={spriteY}
-        width={spriteWidth}
-        height={spriteHeight}
-        name={`field_texture`}
-      />
       <Container name="color_covering">
         <Graphics
           name={`covering_${props.color}`}
@@ -147,6 +139,14 @@ function Field(props) {
           }}
         />
       </Container>
+      <Sprite
+        image="https://croc-images.fra1.digitaloceanspaces.com/field-texture.png"
+        x={spriteX}
+        y={spriteY}
+        width={spriteWidth}
+        height={spriteHeight}
+        name={`field_texture`}
+      />
       <Sprite
         x={spriteX}
         y={spriteY}
