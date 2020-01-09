@@ -29,7 +29,7 @@ defmodule Croc.Accounts.MonopolyUser do
     name =
       cond do
         user == nil -> default_name
-        is_binary(user.first_name) and is_binary(user.last_name) -> user.first_name <> " " <> user.last_name
+        is_binary(user.first_name) -> user.first_name
         is_binary(user.username) -> user.username
         true -> default_name
       end
