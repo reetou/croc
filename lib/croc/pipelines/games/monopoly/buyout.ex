@@ -21,7 +21,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Buyout do
   tee :send_buyout_event
 
   def send_buyout_event(%{ game: game, player_id: player_id, card: card }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} выкупает #{card.name} за #{card.buyout_cost}") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} выкупает #{card.name} за #{card.buyout_cost}") })
   end
 
 

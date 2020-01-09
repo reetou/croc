@@ -95,7 +95,8 @@ defmodule Croc.Pipelines.Games.Monopoly.SingleWinnerGameEnd do
   end
 
   def send_win_event(%{ game: game, player_id: player_id }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} побеждает в игре!") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} побеждает в игре!") })
   end
 
   def reset_player_turn(%{ game: game } = args) do

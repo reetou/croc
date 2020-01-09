@@ -21,7 +21,8 @@ defmodule Croc.Pipelines.Games.Monopoly.PutOnLoan do
   tee :send_put_on_loan_event
 
   def send_put_on_loan_event(%{ game: game, player_id: player_id, card: card }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} закладывает #{card.name} и получает #{card.loan_amount}k") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} закладывает #{card.name} и получает #{card.loan_amount}k") })
   end
 
   def set_amount(%{ card: card } = args) do

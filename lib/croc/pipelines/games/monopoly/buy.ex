@@ -32,7 +32,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Buy do
   def set_timeout_callback(args), do: Map.put(args, :on_timeout, :surrender)
 
   def send_buy_event(%{ game: game, player_id: player_id, card: card }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} покупает #{card.name} за #{card.cost}") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} покупает #{card.name} за #{card.cost}") })
   end
 
   def set_event_type(args) do

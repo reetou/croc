@@ -85,11 +85,13 @@ defmodule Croc.Pipelines.Games.Monopoly.Surrender do
       owned_cards
       |> Enum.map(fn c -> c.name end)
       |> Enum.join(", ")
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} сдается и лишается карт #{owned_cards_string}") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} сдается и лишается карт #{owned_cards_string}") })
   end
 
   def send_surrender_event(%{ game: game, player_id: player_id }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{player_id} сдается") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} сдается") })
   end
 
   def set_owned_cards(%{ game: game, player_id: player_id } = args) do

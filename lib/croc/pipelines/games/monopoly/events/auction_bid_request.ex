@@ -24,7 +24,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionBidRequest do
   end
 
   def send_bid_event(%{ game: game, amount: amount, card: card, player: player } = args) do
-    event = Event.ignored("#{player.player_id} поднимает ставку до #{amount}k за #{card.name}")
+    %Player{name: name} = Player.get(game, player.player_id)
+    event = Event.ignored("#{name} поднимает ставку до #{amount}k за #{card.name}")
     MonopolyChannel.send_event(Map.put(args, :event, event))
   end
 

@@ -57,7 +57,8 @@ defmodule Croc.Pipelines.Games.Monopoly.Events.AuctionEnded do
   end
 
   def send_bidder_bought_event(%{ game: game, card: card, player_id: player_id, amount: amount }) do
-    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("Игрок #{player_id} выкупает карточку #{card.name} за #{amount}k") })
+    %Player{name: name} = Player.get(game, player_id)
+    MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} выкупает карточку #{card.name} за #{amount}k") })
   end
 
   def send_nobody_bought_event(%{card: card, game: game} = args) do
