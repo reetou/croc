@@ -40,12 +40,12 @@ defmodule Croc.Games.Monopoly do
   @registry :monopoly_registry
 
   @players_colors [
-    "red",
-    "yellow",
-    "blue",
-    "green",
-    "aquamarine",
-    "grey",
+    "#EB5757",
+    "#F2C94C",
+    "#2D9CDB",
+    "#219653",
+    "#333333",
+    "rgb(35, 31, 32)",
     "brown"
   ]
 

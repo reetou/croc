@@ -108,16 +108,17 @@ function Field(props) {
         }
       }
     >
-      <Container>
+      <Container
+        visible={props.color}
+        name="white_background_for_owner_color"
+      >
         <Graphics
-          alpha={props.color ? 0.3 : 1}
+          preventRedraw
           draw={g => {
             g.clear()
-            const color = colorString.to.hex(colorString.get.rgb(props.color || '#EADEC2'))
-            g.beginFill(Number(`0x${color.slice(1)}`))
+            g.beginFill(0xffffff)
             const width = spriteWidth
             const height = spriteHeight
-            // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
             g.drawRoundedRect(spriteX, spriteY, width, height, 3)
             g.endFill()
           }}
@@ -131,10 +132,25 @@ function Field(props) {
         height={spriteHeight}
         name={`field_texture`}
       />
+      <Container name="color_covering">
+        <Graphics
+          name={`covering_${props.color}`}
+          draw={g => {
+            g.clear()
+            const color = colorString.to.hex(colorString.get.rgb(props.color || '#EADEC2'))
+            g.beginFill(Number(`0x${color.slice(1)}`), props.color ? 0.3 : 1)
+            const width = spriteWidth
+            const height = spriteHeight
+            // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
+            g.drawRoundedRect(spriteX, spriteY, width, height, 3)
+            g.endFill()
+          }}
+        />
+      </Container>
       <Sprite
         x={spriteX}
         y={spriteY}
-        image={process.env.NODE_ENV === 'production' ? props.card.image_url || imagePlaceholder : imagePlaceholder}
+        image={props.card.image_url || imagePlaceholder}
         width={spriteWidth}
         height={spriteHeight}
         name={`sprite_width_${spriteWidth}_height_${spriteHeight}`}
@@ -144,13 +160,13 @@ function Field(props) {
         x={tagPoint.x}
         y={tagPoint.y}
         angle={tagPoint.angle || 0}
+        name="price_tag"
       >
         <Graphics
           visible={props.form !== 'square'}
-          alpha={1}
           draw={g => {
             g.clear()
-            const colorStr = props.card.type === 'brand' ? (props.color || '#F2F2F2') : '#4F4F4F'
+            const colorStr = props.card.type === 'brand' ? ('#FFF') : '#4F4F4F'
             const color = colorString.to.hex(colorString.get.rgb(colorStr))
             g.beginFill(Number(`0x${color.slice(1)}`))
             const width = 49
