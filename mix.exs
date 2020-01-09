@@ -61,7 +61,8 @@ defmodule Croc.MixProject do
       # Change github source when pull-request is merged
       {:ex_admin, github: "reetou/ex_admin", branch: "array-float-support"},
       {:poison, "~> 3.1"},
-      {:timex, "~> 3.0"}
+      {:timex, "~> 3.0"},
+      {:junit_formatter, "~> 3.0", only: [:test]}
     ]
   end
 
