@@ -10,14 +10,13 @@ import {
   Progress,
 } from '@vkontakte/vkui'
 
-function VkActionContainer(props) {
+function VkActionContainer(props, ref) {
   const { gameChannel, setActiveOptionsModal } = props
   const state = useLocalStore((source) => ({
     game: source.game,
     get myTurn() {
       if (!source.user) return false
       const isMyTurn = this.game.player_turn === source.user.id
-      console.log('Player turn is mine???', isMyTurn)
       return isMyTurn
     },
     get me() {
@@ -167,69 +166,71 @@ function VkActionContainer(props) {
     })
   }
   return useObserver(() => (
-    <Group>
-      {
-        state.playerInCharge && !state.myTurn
-          ? (
-            <Div>
-              <InfoRow header={`${state.playerInCharge.name} ${state.firstEventTurn.text}`}>
-                <Progress value={state.timeLeftProgress} />
-              </InfoRow>
-            </Div>
-          )
-          : null
-      }
-      {
-        state.myTurn
-          ? (
-            <Div>
-              <InfoRow header="Вы ходите">
-                <Progress value={state.timeLeftProgress} />
-              </InfoRow>
-            </Div>
-          )
-          : null
-      }
-      <Tabs type="buttons">
+    <div ref={ref}>
+      <Group id="action_container">
         {
-          (state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn
-            ? (
-              <React.Fragment>
-                <Div>
-                  <Button onClick={sendAction}>Send action {state.eventType}</Button>
-                </Div>
-                <Div>
-                  <Button
-                    onClick={openGameDeck}
-                  >
-                    Вытянуть карту из колоды
-                  </Button>
-                </Div>
-              </React.Fragment>
-            )
-            : null
-        }
-        {
-          state.eventType === 'free_card'
+          state.playerInCharge && !state.myTurn
             ? (
               <Div>
-                <Button onClick={requestFreeCardAction}>Можно купить: {state.currentCard.name}</Button>
+                <InfoRow header={`${state.playerInCharge.name} ${state.firstEventTurn.text}`}>
+                  <Progress value={state.timeLeftProgress} />
+                </InfoRow>
               </Div>
             )
             : null
         }
         {
-          state.eventType === 'auction'
+          state.myTurn
             ? (
               <Div>
-                <Button onClick={requestAuctionAction}>Аукцион: {state.eventCard.name}</Button>
+                <InfoRow header="Вы ходите">
+                  <Progress value={state.timeLeftProgress} />
+                </InfoRow>
               </Div>
             )
             : null
         }
-      </Tabs>
-    </Group>
+        <Tabs type="buttons">
+          {
+            (state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn
+              ? (
+                <React.Fragment>
+                  <Div>
+                    <Button onClick={sendAction}>Send action {state.eventType}</Button>
+                  </Div>
+                  <Div>
+                    <Button
+                      onClick={openGameDeck}
+                    >
+                      Вытянуть карту из колоды
+                    </Button>
+                  </Div>
+                </React.Fragment>
+              )
+              : null
+          }
+          {
+            state.eventType === 'free_card'
+              ? (
+                <Div>
+                  <Button onClick={requestFreeCardAction}>Можно купить: {state.currentCard.name}</Button>
+                </Div>
+              )
+              : null
+          }
+          {
+            state.eventType === 'auction'
+              ? (
+                <Div>
+                  <Button onClick={requestAuctionAction}>Аукцион: {state.eventCard.name}</Button>
+                </Div>
+              )
+              : null
+          }
+        </Tabs>
+      </Group>
+    </div>
   ))
 }
 
-export default VkActionContainer
+export default React.forwardRef(VkActionContainer)

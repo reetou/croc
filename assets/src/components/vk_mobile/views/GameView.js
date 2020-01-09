@@ -1,13 +1,16 @@
-import React, { useEffect, useState, lazy, Suspense } from 'react'
+import React, {
+  useEffect,
+  useState,
+  lazy,
+  Suspense,
+} from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import {
   Button,
-  FixedLayout,
   Panel,
   PanelHeader,
   Placeholder,
   ScreenSpinner,
-  Spinner,
   HeaderButton,
   View,
 } from '@vkontakte/vkui'
@@ -21,8 +24,8 @@ import useChannel from '../../../useChannel'
 import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
+import VkActionContainer from '../VkActionContainer'
 
-const VkActionContainer = lazy(() => import('../VkActionContainer'))
 const Chat = lazy(() => import('../Chat'))
 
 
@@ -394,6 +397,7 @@ const getStageHeight = () => {
 
 function GameView(props) {
   // const enabled = process.env.NODE_ENV !== 'production'
+  const actionContainerRef = React.createRef()
   const enabled = false
   const [active, setActive] = useState(null)
   const [old, setOld] = useState(0)
@@ -402,10 +406,12 @@ function GameView(props) {
     fieldsInteractive: true,
     game: source.game,
     fieldSettings: mockFieldSettings,
+    popout: <ScreenSpinner />,
+    actionContainerHeight: 0,
     stageWidth: window.innerWidth / PIXI.settings.RESOLUTION,
     app: null,
-    stageHeight: getStageHeight(),
-    popout: <ScreenSpinner />
+    stageHeight: window.innerHeight / PIXI.settings.RESOLUTION,
+    stageReady: false,
   }), props)
   useEffect(() => {
     if (props.game) {
@@ -430,6 +436,27 @@ function GameView(props) {
     state.game = payload.game
     console.log('On game view join', payload)
   })
+  useEffect(() => {
+    if (!actionContainerRef.current) return
+    state.actionContainerHeight = actionContainerRef.current.offsetHeight
+  }, [actionContainerRef])
+  useEffect(() => {
+    const gamePanel = 'game'
+    if (state.activePanel !== gamePanel) {
+      return
+    }
+    const elem = document.getElementById(gamePanel)
+    const panelHeaderHeight = 52
+    const tabbarHeight = 50
+    const groupVerticalMargins = 12 + 12
+    const height = elem.clientHeight - state.actionContainerHeight - panelHeaderHeight - tabbarHeight - groupVerticalMargins
+    const width = window.innerWidth
+    state.stageWidth = width / PIXI.settings.RESOLUTION
+    state.stageHeight = height / PIXI.settings.RESOLUTION
+  }, [state.actionContainerHeight])
+  useEffect(() => {
+    state.stageReady = true
+  }, [state.stageHeight])
   const [userChannel] = useChannel(userChannelName, onJoin)
   useEffect(() => {
     if (!gameChannel) {
@@ -486,7 +513,6 @@ function GameView(props) {
       userChannel.off(userChannelName, userChannel)
     }
   }, [userChannel])
-  const app = useApp()
   return useObserver(() => (
     <View id={props.id} activePanel={state.activePanel}>
       <Panel id="no_game">
@@ -511,113 +537,120 @@ function GameView(props) {
         >
           Игра
         </PanelHeader>
-        <FixedLayout vertical="top">
-          <Suspense fallback={<Spinner size="large"/>}>
-            <VkActionContainer
-              {...props}
-              game={state.game}
-              gameChannel={gameChannel}
-            />
-          </Suspense>
-        </FixedLayout>
-        <FixedLayout vertical="bottom">
-          <Stage
-            onMount={(a) => {
-              state.app = a
-            }}
-            options={{
-              backgroundColor: 0x4f4f4f,
-              height: state.stageHeight,
-              width: state.stageWidth
-            }}
-          >
-            {
-              state.fieldSettings && state.fieldSettings.length && state.game
-                ? (
-                  <ReactViewport
-                    app={app}
-                    disableFieldInteraction={disableFieldInteraction}
-                    enableFieldInteraction={enableFieldInteraction}
-                  >
-                    {
-                      state.game.cards.map(c => {
-                        const playerOwner = c.owner ? state.game.players.find(p => p.player_id === c.owner) : null
-                        const color = playerOwner ? playerOwner.color : false
-                        return (
-                          <Field
-                            stageWidth={state.stageWidth}
-                            mobile={true}
-                            color={color}
-                            enabled={enabled}
-                            interactive={state.fieldsInteractive}
-                            card={c}
-                            key={c.id}
-                            form={state.fieldSettings && state.fieldSettings[c.position] ? state.fieldSettings[c.position].form : 'horizontal'}
-                            click={() => {
-                              if (!enabled) {
-                                props.setActiveOptionsModal('field_actions', {
-                                  title: `Поле ${c.name}`,
-                                  isOwner: c.owner && props.user.id === c.owner,
-                                  card: c,
-                                })
-                              } else {
-                                setOld(active)
-                                setActive(c.position)
-                              }
-                            }}
-                            x={state.fieldSettings[c.position].point.x}
-                            y={state.fieldSettings[c.position].point.y}
-                            onSubmitPoint={(v) => {
-                              set(state, `fieldSettings.${c.position}.point.x`, v[0])
-                              set(state, `fieldSettings.${c.position}.point.y`, v[1])
-                              window.FIELDS_POSITIONS = toJS(state.fieldSettings)
-                            }}
-                          />
-                        )
-                      })
-                    }
-                    {
-                      state.game.players.map((p, index) => {
-                        const fieldPosition = state.fieldSettings[p.position]
-                        const [positionX, positionY] = getPosition(fieldPosition.form, index)
-                        const playerX = fieldPosition.point.x + positionX
-                        const playerY = fieldPosition.point.y + positionY
-                        return (
-                          <PlayerSprite
-                            image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png"
-                            key={p.player_id}
-                            squares={(
-                              state.game.cards
-                                .filter(c => {
-                                  if (!state.fieldSettings[c.position]) return false
-                                  return state.fieldSettings[c.position].form === 'square'
-                                })
-                                .map(c => {
-                                  const point = state.fieldSettings[c.position].point
-                                  return {
-                                    ...c,
-                                    point
-                                  }
-                                })
-                            )}
-                            index={index}
-                            player_id={p.player_id}
-                            color={p.color}
-                            position={p.position}
-                            old_position={p.old_position}
-                            enabled={enabled}
-                            x={playerX}
-                            y={playerY}
-                          />
-                        )
-                      })
-                    }
-                  </ReactViewport>
-                )
-                : null
-            }
-          </Stage>
-        </FixedLayout>
+        <VkActionContainer
+          {...props}
+          game={state.game}
+          gameChannel={gameChannel}
+          ref={actionContainerRef}
+        />
+        <div id="resizer" style={{ height: state.stageHeight, width: state.stageWidth, backgroundColor: 'red' }}>
+          {
+            state.actionContainerHeight && state.stageReady
+              ? (
+                <Stage
+                  antialias
+                  onMount={(a) => {
+                    const resizer = document.getElementById('resizer')
+                    console.log('Set new stage height', state.stageHeight)
+                    a.resizeTo = resizer
+                    a.resize()
+                    state.app = a
+                    console.log('App', a)
+                  }}
+                  options={{
+                    backgroundColor: 0x4f4f4f,
+                  }}
+                >
+                  {
+                    state.fieldSettings && state.fieldSettings.length && state.game && state.app
+                      ? (
+                        <ReactViewport
+                          app={state.app}
+                          disableFieldInteraction={disableFieldInteraction}
+                          enableFieldInteraction={enableFieldInteraction}
+                        >
+                          {
+                            state.game.cards.map(c => {
+                              const playerOwner = c.owner ? state.game.players.find(p => p.player_id === c.owner) : null
+                              const color = playerOwner ? playerOwner.color : false
+                              return (
+                                <Field
+                                  stageWidth={state.stageWidth}
+                                  mobile={true}
+                                  color={color}
+                                  enabled={enabled}
+                                  interactive={state.fieldsInteractive}
+                                  card={c}
+                                  key={c.id}
+                                  form={state.fieldSettings && state.fieldSettings[c.position] ? state.fieldSettings[c.position].form : 'horizontal'}
+                                  click={() => {
+                                    if (!enabled) {
+                                      props.setActiveOptionsModal('field_actions', {
+                                        title: `Поле ${c.name}`,
+                                        isOwner: c.owner && props.user.id === c.owner,
+                                        card: c,
+                                      })
+                                    } else {
+                                      setOld(active)
+                                      setActive(c.position)
+                                    }
+                                  }}
+                                  x={state.fieldSettings[c.position].point.x}
+                                  y={state.fieldSettings[c.position].point.y}
+                                  onSubmitPoint={(v) => {
+                                    set(state, `fieldSettings.${c.position}.point.x`, v[0])
+                                    set(state, `fieldSettings.${c.position}.point.y`, v[1])
+                                    window.FIELDS_POSITIONS = toJS(state.fieldSettings)
+                                  }}
+                                />
+                              )
+                            })
+                          }
+                          {
+                            state.game.players.map((p, index) => {
+                              const fieldPosition = state.fieldSettings[p.position]
+                              const [positionX, positionY] = getPosition(fieldPosition.form, index)
+                              const playerX = fieldPosition.point.x + positionX
+                              const playerY = fieldPosition.point.y + positionY
+                              return (
+                                <PlayerSprite
+                                  image="https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png"
+                                  key={p.player_id}
+                                  squares={(
+                                    state.game.cards
+                                      .filter(c => {
+                                        if (!state.fieldSettings[c.position]) return false
+                                        return state.fieldSettings[c.position].form === 'square'
+                                      })
+                                      .map(c => {
+                                        const point = state.fieldSettings[c.position].point
+                                        return {
+                                          ...c,
+                                          point
+                                        }
+                                      })
+                                  )}
+                                  index={index}
+                                  player_id={p.player_id}
+                                  color={p.color}
+                                  position={p.position}
+                                  old_position={p.old_position}
+                                  enabled={enabled}
+                                  x={playerX}
+                                  y={playerY}
+                                />
+                              )
+                            })
+                          }
+                        </ReactViewport>
+                      )
+                      : null
+                  }
+                </Stage>
+              )
+              : null
+          }
+        </div>
       </Panel>
       <Panel id={'chat'}>
         <Suspense fallback={<ScreenSpinner size="large" />}>

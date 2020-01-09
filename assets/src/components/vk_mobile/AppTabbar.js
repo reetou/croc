@@ -21,7 +21,7 @@ function AppTabbar(props) {
         onClick={() => onChangeStory('shop')}
         selected={activeStory === 'shop'}
         data-story="shop"
-        text={'Магазин'}
+        text={process.env.NODE_ENV === 'production' ? 'Магазин' : 'Тестовая версия'}
       >
         <Market24Icon />
       </TabbarItem>

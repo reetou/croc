@@ -3,8 +3,6 @@ import { PixiComponent } from "@inlet/react-pixi";
 
 function init(props, instance) {
   const viewport = instance || new Viewport({
-    screenWidth: window.innerWidth,
-    screenHeight: window.innerHeight,
     worldWidth: 1000,
     worldHeight: 770,
     ticker: props.app ? props.app.ticker : false,
