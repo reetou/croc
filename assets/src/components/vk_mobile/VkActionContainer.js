@@ -196,15 +196,21 @@ function VkActionContainer(props, ref) {
               ? (
                 <React.Fragment>
                   <Div>
-                    <Button onClick={sendAction}>Send action {state.eventType}</Button>
+                    <Button onClick={sendAction}>{state.eventType === 'roll' ? 'Бросить кубики' : 'Заплатить'}</Button>
                   </Div>
-                  <Div>
-                    <Button
-                      onClick={openGameDeck}
-                    >
-                      Вытянуть карту из колоды
-                    </Button>
-                  </Div>
+                  {
+                    state.game.event_cards && state.game.event_cards.length
+                      ? (
+                        <Div>
+                          <Button
+                            onClick={openGameDeck}
+                          >
+                            Вытянуть карту из колоды
+                          </Button>
+                        </Div>
+                      )
+                      : null
+                  }
                 </React.Fragment>
               )
               : null
