@@ -16,6 +16,7 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
       :player_id,
       :lobby_id,
       :name,
+      :image_url,
       :event_cards,
     ],
     index: [:player_id, :lobby_id],
@@ -25,12 +26,14 @@ defmodule Croc.Games.Monopoly.Lobby.Player do
   def new(player_id, lobby_id), do: %__MODULE__{player_id: player_id, lobby_id: lobby_id}
 
   def create(player_id, lobby_id) do
+    %MonopolyUser{name: name, image_url: image_url} = MonopolyUser.get_player(player_id)
     {:ok, player} = Memento.transaction(fn ->
       Memento.Query.write(%__MODULE__{
         player_id: player_id,
         lobby_id: lobby_id,
         event_cards: [],
-        name: MonopolyUser.get_name(player_id) |> Map.fetch!(:name)
+        name: name,
+        image_url: image_url
       })
     end)
   end

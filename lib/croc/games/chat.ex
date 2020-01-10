@@ -49,13 +49,14 @@ defmodule Croc.Games.Chat do
   def handle_call({:message, %Message{from: from, type: type} = message}, _from, state) when from != nil or type == :event do
     with :ok <- check_member(state, from),
          :ok <- check_muted(state, from),
-         :ok <- validate_message(state, message) do
+         :ok <- validate_message(state, message),
+         %Message{} = message <- format_message(state, message) do
       state =
         state
         |> Map.put(:messages, state.messages ++ [message])
       Logger.debug("Received chat message for entity_id: #{state.entity_id} for chat_type: #{state.chat_type}")
       update_chat_state(state)
-      {:reply, {:ok, state}, state}
+      {:reply, {:ok, state, message}, state}
     else
       {:error, reason} -> {:reply, {:error, reason}, state}
     end
@@ -91,6 +92,13 @@ defmodule Croc.Games.Chat do
     {:reply, {:ok, state}, state}
   end
 
+  def format_message(%__MODULE__{} = state, %Message{} = message) do
+    member = Enum.find(state.members, fn m -> m.player_id == message.from end)
+    message
+    |> Map.put(:name, member.name)
+    |> Map.put(:image_url, member.image_url)
+  end
+
   def check_muted(%__MODULE__{} = state, user_id) do
     unless Enum.member?(state.muted_members_ids, user_id) != true do
       {:error, :muted}
@@ -108,8 +116,8 @@ defmodule Croc.Games.Chat do
   end
 
   def check_member(%__MODULE__{} = state, user_id) do
-    member = Enum.find(state.members, fn m -> m.id == user_id end)
-    unless member != nil do
+    member = Enum.find(state.members, fn m -> m.player_id == user_id end)
+    unless member == nil do
       :ok
     else
       {:error, :not_member}

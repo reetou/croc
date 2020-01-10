@@ -6,6 +6,7 @@ defmodule Croc.Accounts.MonopolyUser do
 
   defstruct [
     :name,
+    :image_url
   ]
 
   def get_event_cards(player_id) do
@@ -23,9 +24,14 @@ defmodule Croc.Accounts.MonopolyUser do
     |> Repo.update_all([])
   end
 
-  def get_name(player_id) do
+  def get_player(player_id) do
     user = Accounts.get_user(player_id)
     default_name = "Игрок #{player_id}"
+    image_url =
+      case user do
+        nil -> nil
+        user -> user.image_url
+      end
     name =
       cond do
         user == nil -> default_name
@@ -34,7 +40,8 @@ defmodule Croc.Accounts.MonopolyUser do
         true -> default_name
       end
     %__MODULE__{
-      name: name
+      name: name,
+      image_url: image_url
     }
   end
 end

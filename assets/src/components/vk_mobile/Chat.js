@@ -4,11 +4,11 @@ import {
   Avatar,
   Button,
   Cell,
-  FixedLayout,
   FormLayout,
   HeaderButton,
   FormLayoutGroup,
   Input,
+  Group,
   List,
   PanelHeader,
   PanelHeaderContent,
@@ -32,17 +32,24 @@ function Chat(props) {
       <List style={{ minHeight: '65vh' }}>
         {
           state.messages.map(m => (
-            <Cell
-              multiline
-              before={(
-                <Avatar
-                  size={24}
-                  src="https://pp.userapi.com/c841034/v841034569/3b8c1/pt3sOw_qhfg.jpg"
-                />
-              )}
-            >
-              {m.text}
-            </Cell>
+            <Group>
+              <Cell
+                before={(
+                  <Avatar
+                    size={36}
+                    src={m.image_url}
+                  />
+                )}
+                multiline
+              >
+                <div>
+                  {m.name}
+                </div>
+                <div>
+                  {m.text}
+                </div>
+              </Cell>
+            </Group>
           ))
         }
       </List>

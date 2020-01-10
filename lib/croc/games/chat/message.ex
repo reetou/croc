@@ -16,7 +16,9 @@ defmodule Croc.Games.Chat.Message do
     :from,
     :sent_at,
     :to,
-    :type
+    :type,
+    :name,
+    :image_url
   ]
 
   def new(chat_id, text, :event = type) do

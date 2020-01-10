@@ -71,6 +71,7 @@ defmodule Croc.GamesTest.MonopolyTest do
     assert length(game.cards) > 0
 
     assert Enum.all?(game.players, fn p -> is_binary(p.name) end) == true
+    assert Enum.all?(game.players, fn p -> Map.has_key?(p, :image_url) end) == true
 
     {:ok, _result} =
       Memento.transaction(fn ->

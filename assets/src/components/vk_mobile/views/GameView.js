@@ -488,7 +488,7 @@ function GameView(props) {
 
     gameChannel.on('message', payload => {
       console.log('Message happened', payload)
-      props.onShowSnackbar(payload.text)
+      props.onShowSnackbar(payload)
       props.onChatMessage(payload)
     })
 

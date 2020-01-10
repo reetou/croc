@@ -131,7 +131,7 @@ defmodule CrocWeb.MonopolyChannel do
     with true <- String.trim(text) != "",
          {:ok, chat, pid} <- Chat.get(chat_id),
          %Message{} = message <- Message.new(chat_id, text, socket.assigns.user_id, to, :message),
-         {:ok, chat} <- GenServer.call(pid, {:message, message}) do
+         {:ok, chat, message} <- GenServer.call(pid, {:message, message}) do
       unless message.to != nil do
         broadcast!(socket, "message", message)
         Logger.debug("Broadcasting message! #{inspect message}")

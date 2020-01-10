@@ -10,6 +10,7 @@ import {
   PanelSpinner,
   ScreenSpinner,
   Snackbar,
+  Avatar,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import '@vkontakte/vkui/dist/vkui.css';
@@ -1054,9 +1055,10 @@ function VkMiniApp(props) {
     state.modalParams = modalParams
     state.activeModal = modal_id
   }
-  const onShowSnackbar = (text) => {
+  const onShowSnackbar = ({ text, image_url }) => {
     state.snackbar = <Snackbar
       layout="vertical"
+      before={<Avatar src={image_url} />}
       duration={2000}
       onClose={() => { state.snackbar = null }}
     >
@@ -1066,10 +1068,7 @@ function VkMiniApp(props) {
   const onChatMessage = (message) => {
     const sender = state.game && message.from > 0 ? state.game.players.find(p => p.player_id === message.from) : { name: 'Game' }
     console.log('MESSAGE', message)
-    state.messages.push({
-      ...message,
-      name: sender.name
-    })
+    state.messages.push(message)
   }
   useEffect(() => {
     console.log('Token ADDED', state.token)
