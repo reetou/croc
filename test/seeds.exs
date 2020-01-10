@@ -577,25 +577,10 @@ defmodule Croc.Seeds do
       cost: 1500
     },
     %{
-      name: "Debt",
-      type: :payment,
-      position: 36,
-      is_default: true,
-      image_url: "some_image",
-      loan_amount: 1000,
-      buyout_cost: 1200,
-      upgrade_cost: 1200,
-      payment_amount: 1000,
-      rarity: 0,
-      upgrade_level_multipliers: [1.5, 1.2],
-      max_upgrade_level: 2,
-      cost: 1500
-    },
-    %{
       name: "Apple",
       monopoly_type: :phones,
       type: :brand,
-      position: 37,
+      position: 36,
       is_default: true,
       image_url: "some_image",
       loan_amount: 1000,
@@ -656,7 +641,7 @@ defmodule Croc.Seeds do
     }
   ]
 
-  @positions 39..43
+  @positions 40..43
 
   def monopoly_cards() do
     from(c in Card)

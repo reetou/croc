@@ -53,6 +53,13 @@ defmodule Croc.GamesTest.MonopolyTest do
 
     assert Enum.empty?(game.event_cards)
 
+    assert game.cards
+    |> Enum.filter(fn c -> c.type == :brand end)
+    |> Enum.all?(fn c ->
+      all_cards_for_monopoly_type = Enum.filter(game.cards, fn gc -> gc.monopoly_type == c.monopoly_type end)
+      length(all_cards_for_monopoly_type) > 1
+    end), "All monopolies should have at least 2 cards"
+
     assert context.lobby.lobby_id != game.game_id
     assert length(context.players_ids) == length(game.players)
 

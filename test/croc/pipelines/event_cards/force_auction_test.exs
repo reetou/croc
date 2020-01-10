@@ -34,9 +34,11 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
       |> Map.fetch!(:monopoly_type)
     monopoly_cards_ids =
       game.cards
+      |> Enum.filter(fn c -> c.type == :brand end)
       |> Enum.filter(fn c -> c.monopoly_type == monopoly_type end)
       |> Enum.map(fn c -> c.id end)
     players_limit = length(monopoly_cards_ids)
+    assert players_limit >= 2, "Monopoly cannot have only 1 card"
     random_owners_ids =
       players
       |> Enum.filter(fn p -> p.player_id != caller.player_id end)
@@ -46,6 +48,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
       Range.new(0, players_limit - 1)
       |> Enum.map(fn ind -> {Enum.at(monopoly_cards_ids, ind), Enum.at(random_owners_ids, ind)} end)
       |> Map.new()
+    assert length(Map.keys(cards_players)) == players_limit
     cards =
       game.cards
       |> Enum.map(fn c ->
@@ -63,6 +66,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
       |> Map.put(:event_cards, RepoEventCard.get_all())
 
     owner = Player.get(game, List.first(random_owners_ids))
+    assert Enum.find(game.cards, fn c -> c.owner == owner.player_id end) != nil
     %{ game: game, owner: owner, caller: caller }
   end
 
@@ -107,6 +111,9 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
         |> Enum.filter(fn c -> c.type == :brand end)
         |> Enum.filter(fn c -> Card.not_in_monopoly?(%{ game: game, card: c }) end)
         |> Enum.find(fn c -> c.owner == owner.player_id end)
+      assert game.cards
+             |> Enum.filter(fn c -> c.monopoly_type == card.monopoly_type end)
+             |> Enum.all?(fn c -> c.owner != nil end), "All cards for monopoly_type #{card.monopoly_type} should be owned by different players"
       {:error, pipeline_error} = ForceAuction.call(%{
         game: game,
         type: @event_card_type,
@@ -122,7 +129,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
         game: game,
         type: @event_card_type,
         player_id: player_id,
-        position: Enum.find(game.cards, fn c -> c.monopoly_type != nil end) |> Map.fetch!(:position)
+        position: Enum.find(game.cards, fn c -> c.monopoly_type != nil and c.owner == nil and c.type == :brand end) |> Map.fetch!(:position),
       })
       assert pipeline_error.error == :card_has_no_owner
     end
@@ -132,6 +139,9 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
     setup %{ game: game } do
       owner = Enum.at(game.players, 1)
       caller = Enum.at(game.players, 0)
+      assert game.cards
+             |> Enum.filter(fn c -> c.monopoly_type != nil end)
+             |> Enum.all?(fn c -> c.type == :brand end), "All cards with monopoly type should be brands"
       monopoly_type =
         game.cards
         |> Enum.filter(fn c -> c.monopoly_type != nil end)
@@ -167,7 +177,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
 
     test "should throw error when monopoly type has unoccupied cards", %{ game: game } do
       %Player{player_id: player_id} = Enum.at(game.players, 0)
-      card = Enum.find(game.cards, fn c -> c.owner != nil end)
+      %Card{} = card = Enum.find(game.cards, fn c -> c.owner != nil end)
       cards = game.cards
              |> Enum.map(fn c ->
         unless c.id == card.id do
@@ -177,7 +187,7 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
         end
       end)
       game = Map.put(game, :cards, cards)
-      owned_card = Enum.find(game.cards, fn c -> c.owner != nil end)
+      %Card{} = owned_card = Enum.find(game.cards, fn c -> c.owner != nil end)
       {:error, pipeline_error} = ForceAuction.call(%{
         game: game,
         type: @event_card_type,
@@ -200,6 +210,9 @@ defmodule Croc.PipelinesTest.Games.Monopoly.ForceAuctionTest do
         |> Enum.filter(fn c -> c.type == :brand end)
         |> Enum.filter(fn c -> Card.not_in_monopoly?(%{ game: game, card: c }) end)
         |> Enum.find(fn c -> c.owner == owner.player_id end)
+      assert game.cards
+             |> Enum.filter(fn c -> c.monopoly_type == card.monopoly_type end)
+             |> Enum.all?(fn c -> c.owner != nil end), "All cards for monopoly_type #{card.monopoly_type} should be owned by different players"
       {:ok, args} = ForceAuction.call(%{
         game: game,
         type: @event_card_type,
