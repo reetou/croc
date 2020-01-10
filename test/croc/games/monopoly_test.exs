@@ -234,6 +234,36 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert event.amount == card.payment_amount
     end
 
+    test "should process stepping on other player's card which is on loan", %{game: game} do
+      first_player = Enum.at(game.players, 0)
+      index = 2
+      third_player = Enum.at(game.players, index)
+
+      cards =
+        Enum.map(game.cards, fn c ->
+          unless c.type != :brand or c.owner != nil do
+            c
+            |> Map.put(:owner, first_player.player_id)
+            |> Map.put(:on_loan, true)
+          else
+            c
+          end
+        end)
+
+      card = Enum.find(cards, fn c -> c.owner == first_player.player_id end)
+      game = Map.put(game, :cards, cards)
+      {updated_game, event} = Monopoly.process_position_change(game, third_player, card.position)
+      updated_player = Enum.at(updated_game.players, index)
+      assert updated_player.player_id == third_player.player_id
+      assert updated_player.balance == third_player.balance
+      assert updated_player.balance == first_player.balance
+      assert length(updated_player.events) == 0
+      assert event != nil
+      assert event.text =~ "ничего не платит"
+      assert event.text =~ "поле заложено"
+      assert event.text =~ third_player.name
+    end
+
     test "should process stepping on own card", %{game: game} do
       index = 2
       player = Enum.at(game.players, index)
@@ -290,7 +320,7 @@ defmodule Croc.GamesTest.MonopolyTest do
 
   describe "process player turn" do
     setup do
-      players_ids = Enum.take_random(10..999_999, 5)
+      players_ids = Enum.take_random(4_000_000..4_000_100, 5)
       {:ok, lobby} = Lobby.create(Enum.at(players_ids, 0), [])
 
       Enum.slice(players_ids, 1, 100)

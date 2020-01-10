@@ -467,40 +467,44 @@ defmodule Croc.Games.Monopoly do
     end
   end
 
-  def process_position_change(game, %{player_id: player_id} = player, position) do
+  def process_position_change(game, %{player_id: player_id, name: name} = player, position) do
     Logger.debug("Looking for card by position #{position}")
     %Card{} = card = Card.get_by_position(game, position)
 
     cond do
       card.type == :random_event ->
-        Event.generate_random(game, player_id)
+        {%__MODULE__{}, %Event{}} = Event.generate_random(game, player_id)
 
       card.type == :brand and Card.is_owner?(card, player_id) ->
-        {game, Event.ignored("Попадает на свое поле и ничего не платит")}
+        {game, Event.ignored("#{name} попадает на свое поле и ничего не платит")}
 
       card.type == :brand and Card.has_owner?(card, player_id) == false ->
-        event = Event.free_card("Попадает на свободное поле #{card.name}", card.position)
+        event = Event.free_card("#{name} попадает на #{card.name} и задумывается о покупке", card.position)
         {Event.add_player_event(game, player_id, event), event}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
-        event = Event.pay(card.payment_amount, "Попадает на чужое поле и должен заплатить", card.owner)
+        event = Event.pay(card.payment_amount, "#{name} попадает на чужое поле и должен заплатить", card.owner)
         game = Event.add_player_event(game, player_id, event)
         {game, event}
 
       card.type == :payment ->
-        event = Event.pay(card.payment_amount, "Должен выплатить")
+        event = Event.pay(card.payment_amount, "#{name} должен выплатить #{card.payment_amount}")
         game = Event.add_player_event(game, player_id, event)
         {game, event}
 
       card.type == :jail_cell ->
-        {game, Event.ignored("Попал в клеточку")}
+        {game, Event.ignored("#{name} попал в клеточку")}
 
       card.type == :prison ->
-        {game, Event.ignored("Попадает в тюрьмочку")}
+        {game, Event.ignored("#{name} попадает в тюрьмочку")}
 
       card.type == :start ->
-        {Player.give_money(%{ game: game, player_id: player_id, amount: 1000 }) |> Map.fetch!(:game),
-         Event.ignored("Попадает на старт и получает на тыщу больше")}
+        amount = 1000
+        {Player.give_money(%{ game: game, player_id: player_id, amount: amount }) |> Map.fetch!(:game),
+         Event.ignored("#{name} попадает на старт и получает дополнительные #{amount}")}
+
+      card.type == :brand and Card.is_owner?(card, player_id) == false and card.on_loan == true ->
+        {game, Event.ignored("#{name} попадает на #{card.name} и ничего не платит, так как поле заложено")}
 
       true ->
         {game, Event.ignored("Ничего не произошло, type: #{Atom.to_string(card.type)}")}
