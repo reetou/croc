@@ -15,7 +15,7 @@ import {
   View,
 } from '@vkontakte/vkui'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
-import { Stage, useApp } from '@inlet/react-pixi'
+import { Stage } from '@inlet/react-pixi'
 import Field from '../../game/monopoly/Field'
 import { set } from 'lodash-es'
 import PlayerSprite from '../../game/monopoly/PlayerSprite'
@@ -25,6 +25,7 @@ import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
 import VkActionContainer from '../VkActionContainer'
+// import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
 
@@ -391,10 +392,6 @@ const mockFieldSettings = [
   }
 ]
 
-const getStageHeight = () => {
-  return (window.innerHeight / PIXI.settings.RESOLUTION) * 0.6
-}
-
 function GameView(props) {
   // const enabled = process.env.NODE_ENV !== 'production'
   const actionContainerRef = React.createRef()
@@ -412,6 +409,9 @@ function GameView(props) {
     app: null,
     stageHeight: window.innerHeight / PIXI.settings.RESOLUTION,
     stageReady: false,
+    segments: [],
+    painting: false,
+    path: null,
   }), props)
   useEffect(() => {
     if (props.game) {
@@ -513,6 +513,46 @@ function GameView(props) {
       userChannel.off(userChannelName, userChannel)
     }
   }, [userChannel])
+  const paintRef = React.useRef(null)
+  console.log('Paint ref', paintRef)
+  // useEffect(() => {
+  //   const canvas = paintRef.current
+  //   Paper.setup(canvas)
+  //   const onDrawStart = (e) => {
+  //     console.log('Clicked on canvas', e)
+  //     state.painting = true
+  //     state.path = new Paper.Path()
+  //
+  //     state.path.strokeColor = 'black';
+  //     const point = new Paper.Point(e.layerX, e.layerY)
+  //     state.path.moveTo(point)
+  //     Paper.view.draw()
+  //   }
+  //   const onDrawEnd = (e) => {
+  //     state.painting = false
+  //     console.log('End drawing', e)
+  //     state.path.simplify()
+  //     state.segments = state.path.segments
+  //     console.log('Submitting segments', toJS(state.segments))
+  //     state.path = null
+  //   }
+  //   const onDrawMove = (e) => {
+  //     if (!state.painting || !state.path) {
+  //       return
+  //     }
+  //     const point = new Paper.Point(e.layerX, e.layerY)
+  //     state.path.lineTo(point)
+  //     Paper.view.draw()
+  //   }
+  //   canvas.addEventListener('pointerdown', onDrawStart)
+  //   canvas.addEventListener('pointerup', onDrawEnd)
+  //   canvas.addEventListener('pointermove', onDrawMove)
+  //   return () => {
+  //     canvas.removeListener(onDrawStart)
+  //     canvas.removeListener(onDrawEnd)
+  //     canvas.removeListener(onDrawMove)
+  //   }
+  // }, [])
   return useObserver(() => (
     <View id={props.id} activePanel={state.activePanel}>
       <Panel id="no_game">
@@ -543,6 +583,9 @@ function GameView(props) {
           gameChannel={gameChannel}
           ref={actionContainerRef}
         />
+        {/*<canvas id="draw-field" width={state.stageWidth} height={state.stageHeight} ref={paintRef}>*/}
+
+        {/*</canvas>*/}
         <div id="resizer" style={{ height: state.stageHeight, width: state.stageWidth, backgroundColor: 'red' }}>
           {
             state.actionContainerHeight && state.stageReady
