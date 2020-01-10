@@ -1080,15 +1080,21 @@ function VkMiniApp(props) {
         <SnackbarContainer
           snackbar={state.snackbar}
         />
-        <Modals
-          onClose={() => { state.activeModal = null }}
-          onSignIn={signIn}
-          onGetUserData={getUserData}
-          errorMessage={state.errorMessage}
-          activeModal={state.activeModal}
-          setActiveModal={setActiveModal}
-          params={state.modalParams}
-        />
+        {
+          state.activeModal
+            ? (
+              <Modals
+                onClose={() => { state.activeModal = null }}
+                onSignIn={signIn}
+                onGetUserData={getUserData}
+                errorMessage={state.errorMessage}
+                activeModal={state.activeModal}
+                setActiveModal={setActiveModal}
+                params={state.modalParams}
+              />
+            )
+            : null
+        }
         <Epic
           activeStory={state.activeStory}
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
