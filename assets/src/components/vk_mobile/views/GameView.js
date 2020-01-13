@@ -514,7 +514,6 @@ function GameView(props) {
     }
   }, [userChannel])
   const paintRef = React.useRef(null)
-  console.log('Paint ref', paintRef)
   // useEffect(() => {
   //   const canvas = paintRef.current
   //   Paper.setup(canvas)
@@ -588,10 +587,9 @@ function GameView(props) {
         {/*</canvas>*/}
         <div id="resizer" style={{ height: state.stageHeight, width: state.stageWidth, backgroundColor: 'red' }}>
           {
-            state.actionContainerHeight && state.stageReady
+            state.stageReady
               ? (
                 <Stage
-                  antialias
                   onMount={(a) => {
                     const resizer = document.getElementById('resizer')
                     console.log('Set new stage height', state.stageHeight)
@@ -602,6 +600,7 @@ function GameView(props) {
                   }}
                   options={{
                     backgroundColor: 0x4f4f4f,
+                    antialias: true,
                   }}
                 >
                   {
