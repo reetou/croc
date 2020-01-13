@@ -18,11 +18,11 @@ function PlayerSprite(props) {
 
   const goAnim = (i, easeList, ref, squares) => {
     const item = squares[i]
-    const newEase = new Ease({ duration: 1000 })
     if (i >= squares.length) {
       console.log('Last finished for', item)
       return
     }
+    const newEase = new Ease({ duration: 1000 })
     if (i === 0) {
       easeList.add(ref.current, { x: item.point.x, y: item.point.y }, { duration: 500 })
       return goAnim(i + 1, easeList, ref, squares)
@@ -34,10 +34,6 @@ function PlayerSprite(props) {
     }
     return goAnim(i + 1, newEase, ref, squares)
   }
-
-  useEffect(() => {
-    setPos()
-  }, [props.position])
 
   useEffect(() => {
     if (props.position === null) return
