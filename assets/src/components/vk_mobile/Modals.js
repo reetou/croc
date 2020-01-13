@@ -20,6 +20,8 @@ import Payment from './cards_info/Payment'
 import CardInDevelopment from './cards_info/CardInDevelopment'
 import VkEventCardsForm from './VkEventCardsForm'
 import DeckModal from './modals/DeckModal'
+import JailCell from './cards_info/JailCell'
+import Prison from './cards_info/Prison'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -39,9 +41,10 @@ const cardInfo = (card) => {
     case 'brand': return <Brand card={card} />
     case 'start': return <Start card={card} />
     case 'payment': return <Payment card={card} />
-    case 'jail_cell':
+    case 'jail_cell': return <JailCell card={card} />
+    case 'prison': return <Prison card={card} />
     case 'teleport':
-    case 'prison': return <CardInDevelopment card={card} />
+      return <CardInDevelopment card={card} />
     default: return null
   }
 }
