@@ -153,4 +153,15 @@ defmodule Croc.Games.Monopoly.Player do
       _ -> {:error, :no_player}
     end
   end
+
+  def should_skip_round?(%Monopoly{} = game, player_id, round) when is_integer(round) and round > 0 do
+    %__MODULE__{} = get(game, player_id)
+    Enum.member?(game.skippers, {player_id, round})
+  end
+
+  def skip_round(%Monopoly{} = game, player_id, round) when is_integer(round) and round > 0 do
+    %__MODULE__{} = get(game, player_id)
+    game
+    |> Map.put(:skippers, game.skippers ++ [{player_id, round}])
+  end
 end

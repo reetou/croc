@@ -64,7 +64,7 @@ defmodule Croc.Games.Monopoly do
     picked_event_cards: []
   }
 
-  @derive {Jason.Encoder, except: [:round_data, :picked_event_cards]}
+  @derive {Jason.Encoder, except: [:round_data, :picked_event_cards, :skippers]}
   defstruct [
     :game_id,
     :players,
@@ -80,7 +80,8 @@ defmodule Croc.Games.Monopoly do
     round: 1,
     event_cards: [],
     round_data: @default_round_data,
-    picked_event_cards: []
+    picked_event_cards: [],
+    skippers: []
   ]
 
   @game_end_exp_amount 50
@@ -493,10 +494,17 @@ defmodule Croc.Games.Monopoly do
         {game, event}
 
       card.type == :jail_cell ->
-        {game, Event.ignored("#{name} попал в клеточку")}
+        {game, Event.ignored("#{name} посещает экскурсию по тюрьме")}
 
       card.type == :prison ->
-        {game, Event.ignored("#{name} попадает в тюрьмочку")}
+        %Card{type: :jail_cell, position: jail_position} =
+          Card.get_all_by_type(game, player_id, :jail_cell)
+          |> List.first()
+        game =
+          game
+          |> Player.put(player_id, :position, jail_position)
+          |> Player.skip_round(player_id, game.round + 1)
+        {game, Event.ignored("#{name} попадает в полицейский участок и отправляется в тюрьму. Следующий ход он пропустит")}
 
       card.type == :start ->
         amount = 1000
@@ -579,7 +587,9 @@ defmodule Croc.Games.Monopoly do
     player = Player.get(game, player_id)
     Logger.debug("Checking if player #{player_id} not surrendered and 0 events: #{inspect player.events}")
     with true <- length(player.events) == 0 do
-      actual_players = Enum.filter(game.players, fn p -> p.surrender != true end)
+      actual_players = Enum.filter(game.players, fn p ->
+        p.surrender != true and Player.should_skip_round?(game, p.player_id, game.round) == false
+      end)
       current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
       Logger.debug("Current player index #{current_player_index}")
       max_index = length(actual_players) - 1

@@ -193,6 +193,24 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert event.amount == card.payment_amount
     end
 
+    test "should move player to jail cell if he stepped on prison and add him to skippers for next round", %{game: game} do
+      index = 2
+      player = Enum.at(game.players, index)
+      card = Enum.find(game.cards, fn c -> c.type == :prison end)
+      position = card |> Map.fetch!(:position)
+      assert Enum.empty?(game.skippers)
+      {updated_game, event} = Monopoly.process_position_change(game, player, position)
+      updated_player = Enum.at(updated_game.players, index)
+      jail_card = Enum.find(game.cards, fn c -> c.type == :jail_cell end)
+      assert jail_card != nil
+      assert updated_game.round == game.round
+      assert updated_game.skippers == [{player.player_id, updated_game.round + 1}]
+      assert updated_player.position == jail_card.position
+      assert updated_player.player_id == player.player_id
+      assert updated_player.balance == player.balance
+      assert event != nil
+    end
+
     test "should process stepping on free card and receive free_card event", %{game: game} do
       index = 2
       player = Enum.at(game.players, index)
@@ -339,6 +357,20 @@ defmodule Croc.GamesTest.MonopolyTest do
       assert game.player_turn == player_id
       %Monopoly{} = not_updated_game = Monopoly.process_player_turn(game, player_id)
       assert not_updated_game == game
+    end
+
+    test "should not set player turn if he should skip this round", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, 0)
+      %Player{} = next_player = Enum.at(game.players, 1)
+      %Player{} = third_player = Enum.at(game.players, 2)
+      game =
+        game
+        |> Player.put(player_id, :events, [])
+        |> Player.skip_round(next_player.player_id, game.round)
+      assert Player.should_skip_round?(game, next_player.player_id, game.round)
+      assert game.player_turn == player_id
+      %Monopoly{} = game = Monopoly.process_player_turn(game, player_id)
+      assert game.player_turn == third_player.player_id
     end
 
     test "should change player turn because player has no events", %{ game: game } do
