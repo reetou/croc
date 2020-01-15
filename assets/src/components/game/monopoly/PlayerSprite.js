@@ -87,17 +87,13 @@ function PlayerSprite(props) {
       ref={ref}
       name={`player_${props.player_id}`}
     >
-      <Graphics
-        preventRedraw
-        x={0}
-        y={0}
-        draw={g => {
-          g.clear()
-          const color = colorString.to.hex(colorString.get.rgb(props.color || 'red'))
-          g.beginFill(Number(`0x${color.slice(1)}`))
-          g.drawCircle(0, 0, 12)
-          g.endFill()
-        }}
+      <Sprite
+        x={-8}
+        y={-8}
+        image={`https://cdn.discord-underlords.com/players/player${props.index}.png`}
+        width={32}
+        height={32}
+        name={`player_sprite_${props.index}`}
       />
       <Text
         visible={props.enabled}
