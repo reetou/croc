@@ -1,3 +1,5 @@
+import { flatten, groupBy, without } from 'lodash-es'
+import { toJS } from 'mobx'
 
 const getWidth = (form) => {
   switch (form) {
@@ -155,6 +157,39 @@ const getPosition = (form, ind) => {
   }
 }
 
+const getCompletedMonopolies = (cards) => {
+  const brandCards = cards.filter(c => c.type === 'brand')
+  console.log('Groups', groupBy(brandCards, 'monopoly_type'))
+  const groups = Object.values(groupBy(brandCards, 'monopoly_type'))
+    .filter(group => {
+      const card = group.find(c => c.owner)
+      if (!card) return false
+      return without(group.map(c => c.owner), card.owner).length === 0
+    })
+  console.log(`Groups with monopolies`, toJS(groups))
+  return flatten(groups)
+}
+
+const getPositionsForEventCard = (type, cards, completedMonopolies) => {
+  switch (type) {
+    case 'force_auction':
+      const result = cards
+        .filter(c => c.owner)
+        .filter(c => c.type === 'brand')
+        .filter(c =>
+          !completedMonopolies
+            .map(z => z.monopoly_type)
+            .includes(c.monopoly_type)
+        )
+      return result
+    case 'force_sell_loan':
+      return cards.filter(c => c.on_loan && c.owner)
+    case 'force_teleportation':
+      return cards
+    default: return []
+  }
+}
+
 export {
   getMobileHeight,
   getMobileWidth,
@@ -165,4 +200,6 @@ export {
   getTagPoint,
   getAngle,
   getPosition,
+  getPositionsForEventCard,
+  getCompletedMonopolies,
 }

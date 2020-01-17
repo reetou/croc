@@ -25,6 +25,7 @@ import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
 import VkActionContainer from '../VkActionContainer'
+import Deck from '../../game/monopoly/Deck'
 // import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
@@ -684,6 +685,20 @@ function GameView(props) {
                               )
                             })
                           }
+                          <Deck
+                            round={state.game.round}
+                            onSelectCard={(type) => {
+                              props.setActiveOptionsModal('pick_event_card', {
+                                ...state.game,
+                                type,
+                                onSubmit: async (data) => {
+                                  console.log('Data at submit to event card action', data)
+                                  gameChannel.push('action', data)
+                                }
+                              })
+                            }}
+                            event_cards={state.game.event_cards}
+                          />
                         </ReactViewport>
                       )
                       : null

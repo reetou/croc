@@ -24,6 +24,7 @@ function init(props, instance) {
     .pinch()
     .wheel()
     .decelerate()
+    .zoomPercent(-0.8)
     // .bounce({
     //   friction: 0.3
     // })

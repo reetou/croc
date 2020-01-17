@@ -5,9 +5,12 @@ import {
   IOS,
   ModalPage,
   Button,
+  Group,
   ModalPageHeader,
   Div,
-  usePlatform
+  List,
+  usePlatform,
+  Cell
 } from '@vkontakte/vkui'
 import {
   groupBy,
@@ -18,46 +21,22 @@ import VkEventCard from '../VkEventCard'
 import { toJS } from 'mobx'
 import Icon24Cancel from '@vkontakte/icons/dist/24/cancel'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
-import VkEventCardThumb from '../VkEventCardThumb'
+import { getCompletedMonopolies, getPositionsForEventCard } from '../../../util'
 
 function DeckModal(props) {
   const platform = usePlatform()
-  if (!props.params || !props.params.cards) return null
+  if (!props.params || !props.params.cards || !props.params.type) return null
   const { params, onClose } = props
+  const { type } = params
   const state = useLocalStore(() => ({
-    type: null,
     get completedMonopolies() {
-      const brandCards = params.cards.filter(c => c.type === 'brand')
-      console.log('Groups', groupBy(brandCards, 'monopoly_type'))
-      const groups = Object.values(groupBy(brandCards, 'monopoly_type'))
-        .filter(group => {
-          const card = group.find(c => c.owner)
-          if (!card) return false
-          return without(group.map(c => c.owner), card.owner).length === 0
-        })
-      console.log(`Groups with monopolies`, toJS(groups))
-      return flatten(groups)
+      return getCompletedMonopolies(params.cards)
     },
     get positionsForCard() {
-      switch (this.type) {
-        case 'force_auction':
-          const result = params.cards
-            .filter(c => c.owner)
-            .filter(c => c.type === 'brand')
-            .filter(c =>
-              !this.completedMonopolies
-                .map(z => z.monopoly_type)
-                .includes(c.monopoly_type)
-            )
-          return result
-        case 'force_sell_loan':
-          return params.cards.filter(c => c.on_loan && c.owner)
-        case 'force_teleportation':
-          return params.cards
-        default: return []
-      }
+      return getPositionsForEventCard(type, params.cards, this.completedMonopolies)
     }
   }))
+  const noAvailableFields = state.positionsForCard.length === 0
   return useObserver(() => (
     <ModalPage
       id={props.id}
@@ -72,77 +51,63 @@ function DeckModal(props) {
             </HeaderButton>
           )}
         >
-          Выберите карту
+          {noAvailableFields ? 'Нельзя использовать карту' : 'Выберите поле'}
         </ModalPageHeader>
       }
     >
-      {
-        state.type
-          ? (
-            <React.Fragment>
-              <HorizontalScroll>
-                {
-                  state.positionsForCard.length
-                    ? (
-                      <div style={{ display: 'flex' }}>
-                        {
-                          state.positionsForCard.map((c) => (
-                            <VkEventCardThumb
-                              width={120}
-                              onClick={async () => {
-                                console.log(`Chosen card for deck action ${state.type}`, toJS(c))
-                                const data = {
-                                  type: state.type,
-                                  position: c.position,
-                                }
-                                props.setActiveModal(null, '')
-                                try {
-                                  await params.onSubmit(data)
-                                } catch (e) {
-                                  console.log('Error happened', e)
-                                  setTimeout(() => {
-                                    props.setActiveModal('lobby_error', 'Some shit happened')
-                                  }, 0)
-                                }
-                              }}
-                              key={c.id}
-                              src={c.image_url}
-                            />
-                          ))
-                        }
-                      </div>
-                    )
-                    : (
-                      <Div>
-                        Нет доступных карт для выбора
-                        <Button onClick={() => state.type = null}>Назад</Button>
-                      </Div>
-                    )
-                }
-              </HorizontalScroll>
-            </React.Fragment>
-          )
-          : (
-            <React.Fragment>
-              {
-                params.event_cards
-                  .map((c) => (
-                    <VkEventCard
-                      key={c.id}
-                      buttonText="Выбрать"
-                      onClick={() => {
-                        console.log(`Choosing card ${c.id}`, toJS(c))
-                        state.type = c.type
-                      }}
-                      name={c.name}
-                      description={c.description}
-                      src={c.image_url}
-                    />
-                  ))
-              }
-            </React.Fragment>
-          )
-      }
+      <Group>
+        <List style={{ minHeight: 90 }}>
+          {
+            state.positionsForCard.length === 0
+              ? (
+                <Cell
+                  multiline
+                >
+                  Нет доступных полей для выбора. Видимо, время этой карты еще не пришло.
+                </Cell>
+              )
+              : null
+          }
+          {
+            state.positionsForCard.map((c) => (
+              <Cell
+                multiline
+                bottomContent={(
+                  <Button
+                    mode="primary"
+                    onClick={async () => {
+                      console.log(`Chosen card for deck action ${type}`, toJS(c))
+                      const data = {
+                        type,
+                        position: c.position,
+                      }
+                      props.setActiveModal(null, '')
+                      try {
+                        await params.onSubmit(data)
+                      } catch (e) {
+                        console.log('Error happened', e)
+                        setTimeout(() => {
+                          props.setActiveModal('lobby_error', 'Some shit happened')
+                        }, 0)
+                      }
+                    }}
+                  >
+                    Выбрать
+                  </Button>
+                )}
+                before={(
+                  <Div>
+                    <img src={c.image_url} width="90" />
+                  </Div>
+                )}
+                size="l"
+              >
+                {c.name}
+              </Cell>
+            ))
+          }
+        </List>
+      </Group>
     </ModalPage>
   ))
 }

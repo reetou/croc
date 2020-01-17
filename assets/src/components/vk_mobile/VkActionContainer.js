@@ -97,20 +97,6 @@ function VkActionContainer(props, ref) {
       event_id: state.myFirstEventTurn.event_id,
     })
   }
-  const sendMessage = () => {
-    gameChannel.push('chat_message', {
-      text: "Shit",
-      to: null,
-      chat_id: state.game.chat_id
-    })
-  }
-  const sendPrivateMessage = () => {
-    gameChannel.push('chat_message', {
-      text: "Personal message yo",
-      to: 17,
-      chat_id: state.game.chat_id
-    })
-  }
   const sendBuy = () => {
     gameChannel.push('action', {
       type: 'buy',
@@ -149,22 +135,6 @@ function VkActionContainer(props, ref) {
       event_id: state.myFirstEventTurn.event_id
     })
   }
-  const sendCardAction = (type, position) => {
-    gameChannel.push('action', {
-      type,
-      position,
-    })
-  }
-  const openGameDeck = () => {
-    console.log('State game', toJS(state.game))
-    props.setActiveOptionsModal('pick_event_card', {
-      ...state.game,
-      onSubmit: async (data) => {
-        console.log('Data at submit to event card action', data)
-        gameChannel.push('action', data)
-      }
-    })
-  }
   return useObserver(() => (
     <div ref={ref}>
       <Group id="action_container">
@@ -198,19 +168,6 @@ function VkActionContainer(props, ref) {
                   <Div>
                     <Button onClick={sendAction}>{state.eventType === 'roll' ? 'Бросить кубики' : 'Заплатить'}</Button>
                   </Div>
-                  {
-                    state.game.event_cards && state.game.event_cards.length
-                      ? (
-                        <Div>
-                          <Button
-                            onClick={openGameDeck}
-                          >
-                            Вытянуть карту из колоды
-                          </Button>
-                        </Div>
-                      )
-                      : null
-                  }
                 </React.Fragment>
               )
               : null
