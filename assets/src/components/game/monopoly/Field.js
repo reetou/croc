@@ -166,7 +166,10 @@ function Field(props) {
           visible={props.form !== 'square'}
           draw={g => {
             g.clear()
-            const colorStr = props.card.type === 'brand' ? ('#FFF') : '#4F4F4F'
+            let colorStr = props.card.type === 'brand' ? ('#FFF') : '#4F4F4F'
+            if (props.card.type === 'brand' && props.card.on_loan) {
+              colorStr = '#F2C94C'
+            }
             const color = colorString.to.hex(colorString.get.rgb(colorStr))
             g.beginFill(Number(`0x${color.slice(1)}`))
             const width = 49
