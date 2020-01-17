@@ -109,7 +109,7 @@ function Field(props) {
       }
     >
       <Container
-        visible={props.color}
+        visible={Boolean(props.color)}
         name="white_background_for_owner_color"
       >
         <Graphics
@@ -134,13 +134,13 @@ function Field(props) {
             const width = spriteWidth
             const height = spriteHeight
             // g.drawRect(width / 2 * -1, height / 2 * -1, width, height)
-            g.drawRoundedRect(spriteX, spriteY, width, height, 3)
+            g.drawRoundedRect(spriteX, spriteY, width, height, 1)
             g.endFill()
           }}
         />
       </Container>
       <Sprite
-        image="https://croc-images.fra1.digitaloceanspaces.com/field-texture.png"
+        image="https://cdn.discord-underlords.com/field-texture.png"
         x={spriteX}
         y={spriteY}
         width={spriteWidth}
