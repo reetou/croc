@@ -22,6 +22,7 @@ import VkEventCardsForm from './VkEventCardsForm'
 import DeckModal from './modals/DeckModal'
 import JailCell from './cards_info/JailCell'
 import Prison from './cards_info/Prison'
+import FieldPickerModal from './modals/FieldPickerModal'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -234,6 +235,12 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
       </ModalPage>
       <DeckModal
         id={'pick_event_card'}
+        onClose={onClose}
+        setActiveModal={setActiveModal}
+        params={params}
+      />
+      <FieldPickerModal
+        id={'pick_field'}
         onClose={onClose}
         setActiveModal={setActiveModal}
         params={params}

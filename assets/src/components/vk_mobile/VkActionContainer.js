@@ -9,6 +9,7 @@ import {
   InfoRow,
   Progress,
 } from '@vkontakte/vkui'
+import { getCompletedMonopolies } from '../../util'
 
 function VkActionContainer(props, ref) {
   const { gameChannel, setActiveOptionsModal } = props
@@ -72,6 +73,25 @@ function VkActionContainer(props, ref) {
       if (this.timeLeft <= 0) return 0
       const progress = this.timeLeft * 100 / totalTurnTime
       return progress
+    },
+    get ownedCards() {
+      return this.game.cards.filter(c => c.owner === this.me.player_id)
+    },
+    get cardsOnLoan() {
+      return this.ownedCards.filter(c => c.on_loan)
+    },
+    get activeCards() {
+      return this.ownedCards.filter(c => !c.on_loan)
+    },
+    get completedMonopolies() {
+      return getCompletedMonopolies(this.game.cards)
+    },
+    get upgradableCards() {
+      return this.completedMonopolies
+        .filter(c => c.owner === this.me.player_id && !c.on_loan)
+    },
+    get downgradableCards() {
+      return this.activeCards.filter(c => c.upgrade_level > 0)
     }
   }), props)
   useEffect(() => {
@@ -123,6 +143,39 @@ function VkActionContainer(props, ref) {
       onBid: sendAuctionAction,
       onReject: () => sendAuctionAction(false)
     })
+  }
+  const pickField = (type) => {
+    const defaultParams = {
+      type,
+      onSubmit: async ({ type, position }) => {
+        gameChannel.push('action', {
+          type,
+          position,
+        })
+      }
+    }
+    switch (type) {
+      case 'put_on_loan':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.activeCards,
+          ...defaultParams
+        })
+      case 'buyout':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.cardsOnLoan,
+          ...defaultParams
+        })
+      case 'upgrade':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.upgradableCards,
+          ...defaultParams
+        })
+      case 'downgrade':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.downgradableCards,
+          ...defaultParams
+        })
+    }
   }
   const sendSurrender = () => {
     gameChannel.push('action', {
@@ -187,6 +240,50 @@ function VkActionContainer(props, ref) {
                 <Div>
                   <Button onClick={requestAuctionAction}>Аукцион: {state.eventCard.name}</Button>
                 </Div>
+              )
+              : null
+          }
+          {
+            state.myTurn
+              ? (
+                <React.Fragment>
+                  {
+                    state.cardsOnLoan.length
+                      ? (
+                        <Div>
+                          <Button onClick={() => pickField('buyout')}>Выкупить поле</Button>
+                        </Div>
+                      )
+                      : null
+                  }
+                  {
+                    state.activeCards.length
+                      ? (
+                        <Div>
+                          <Button onClick={() => pickField('put_on_loan')}>Заложить поле</Button>
+                        </Div>
+                      )
+                      : null
+                  }
+                  {
+                    state.upgradableCards.length
+                      ? (
+                        <Div>
+                          <Button onClick={() => pickField('upgrade')}>Построить филиал</Button>
+                        </Div>
+                      )
+                      : null
+                  }
+                  {
+                    state.downgradableCards.length
+                      ? (
+                        <Div>
+                          <Button onClick={() => pickField('downgrade')}>Продать филиал</Button>
+                        </Div>
+                      )
+                      : null
+                  }
+                </React.Fragment>
               )
               : null
           }
