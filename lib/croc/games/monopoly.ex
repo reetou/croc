@@ -41,7 +41,7 @@ defmodule Croc.Games.Monopoly do
 
   @players_colors [
     "#EB5757",
-    "#F2C94C",
+    "#BB6BD9",
     "#2D9CDB",
     "#219653",
     "#333333",
