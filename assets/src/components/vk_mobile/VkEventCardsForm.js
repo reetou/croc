@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import {
+  Cell,
   Gallery,
   Group,
   List,
@@ -28,7 +29,10 @@ function VkEventCardsForm(props) {
   }, [])
   return useObserver(() => (
     <React.Fragment>
-      <Group header={state.selectedCardsIds.length ? "Нажмите на карточку, чтобы удалить" : "Выберите карточки"}>
+      <Group
+        header={state.selectedCardsIds.length ? "Нажмите на карту, чтобы удалить" : "Выберите карты"}
+        description="Вы можете купить карты в магазине"
+      >
         {
           state.selectedCardsIds.length
             ? (
@@ -52,25 +56,35 @@ function VkEventCardsForm(props) {
             )
             : null
         }
-      </Group>
-      <List>
-        {
-          state.availableEventCards.map(({ monopoly_event_card: c, id }) => (
-            <VkEventCard
-              key={id}
-              name={c.name}
-              description={c.description}
-              src={c.image_url}
-              buttonText="Добавить"
-              onClick={() => {
-                state.selectedCardsIds.push(id)
-                props.onSelect(state.selectedCardsIds)
-              }}
-            />
-          ))
-        }
-      </List>
-      <Group header="Или купите эти">
+        <List>
+          {
+            state.availableEventCards.length === 0
+              ? (
+                <Cell
+                  multiline
+                  size="l"
+                >
+                  У вас нет карт. Вы можете купить их в магазине.
+                </Cell>
+              )
+              : null
+          }
+          {
+            state.availableEventCards.map(({ monopoly_event_card: c, id }) => (
+              <VkEventCard
+                key={id}
+                name={c.name}
+                description={c.description}
+                src={c.image_url}
+                buttonText="Добавить"
+                onClick={() => {
+                  state.selectedCardsIds.push(id)
+                  props.onSelect(state.selectedCardsIds)
+                }}
+              />
+            ))
+          }
+        </List>
       </Group>
     </React.Fragment>
   ))
