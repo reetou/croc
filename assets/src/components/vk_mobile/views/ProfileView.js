@@ -11,6 +11,7 @@ import {
   View,
   InfoRow,
   List,
+  Div,
 } from '@vkontakte/vkui'
 import User28Icon from '@vkontakte/icons/dist/28/user'
 import User24Icon from '@vkontakte/icons/dist/24/user'
@@ -39,7 +40,9 @@ function ProfileView(props) {
           state.user
             ? (
               <React.Fragment>
-                <Group>
+                <Group
+                  description="Игра еще в процессе разработки и скоро здесь будет много интересного"
+                >
                   <Cell
                     photo={state.user.image_url}
                     description="Игрок"
@@ -49,10 +52,22 @@ function ProfileView(props) {
                     {state.user.first_name} {state.user.last_name}
                   </Cell>
                 </Group>
-                <InfoRow header="Опыт">
-                  {state.user.exp}
-                </InfoRow>
-                <Group header="Колода">
+                <Div>
+                  <InfoRow header="Опыт">
+                    {state.user.exp}
+                  </InfoRow>
+                </Div>
+                <Div>
+                  <InfoRow header="Всего игр">
+                    {state.user.games}
+                  </InfoRow>
+                </Div>
+                <Div>
+                  <InfoRow header="Побед">
+                    {state.user.games_won}
+                  </InfoRow>
+                </Div>
+                <Group header={<Div>Колода</Div>}>
                   <List>
                     {
                       state.user.user_monopoly_event_cards.map(({ id, monopoly_event_card: c }) => (

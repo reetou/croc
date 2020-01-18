@@ -20,7 +20,7 @@ defmodule Croc.Accounts.User do
           updated_at: DateTime.t()
         }
 
-  @derive {Jason.Encoder, only: [:id, :exp, :username, :first_name, :last_name, :vk_id, :image_url, :email, :banned, :monopoly_cards, :user_monopoly_cards, :user_monopoly_event_cards, :monopoly_event_cards, :is_admin]}
+  @derive {Jason.Encoder, only: [:id, :games, :games_won, :exp, :username, :first_name, :last_name, :vk_id, :image_url, :email, :banned, :monopoly_cards, :user_monopoly_cards, :user_monopoly_event_cards, :monopoly_event_cards, :is_admin]}
   schema "users" do
     field :username, :string
     field :first_name, :string
