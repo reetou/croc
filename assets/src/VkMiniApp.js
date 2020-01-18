@@ -11,6 +11,7 @@ import {
   ScreenSpinner,
   Snackbar,
   Avatar,
+  Group,
 } from '@vkontakte/vkui'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import '@vkontakte/vkui/dist/vkui.css';
@@ -965,6 +966,12 @@ function VkMiniApp(props) {
     ban_id: null,
     user: process.env.NODE_ENV === 'production' ? null : mock,
     // user: null,
+    get winner() {
+      if (!state.endedGame) return null
+      const player = state.endedGame.players.find(p => p.player_id === state.endedGame.winners[0])
+      if (!player) return null
+      return player.name
+    }
   }))
   const setActiveModal = (modal_id, errorMessage = null) => {
     state.activeModal = modal_id
@@ -1159,7 +1166,11 @@ function VkMiniApp(props) {
               {
                 state.endedGame
                   ? (
-                    <Div>Победитель: {state.endedGame.winners[0] || 'Unknown error'}</Div>
+                    <Group
+                      description="Скоро здесь будут кейсы, из которых будут выпадать поля"
+                    >
+                      <Div>Победитель: {state.winner || 'Неизвестная ошибка'}</Div>
+                    </Group>
                   )
                   : null
               }
