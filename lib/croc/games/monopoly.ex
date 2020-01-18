@@ -34,6 +34,7 @@ defmodule Croc.Games.Monopoly do
   alias Croc.Pipelines.Games.Monopoly.Events.{
     CreatePlayerTimeout
   }
+  alias CrocWeb.MonopolyChannel
   use GenServer
   require Logger
 
@@ -474,23 +475,29 @@ defmodule Croc.Games.Monopoly do
 
     cond do
       card.type == :random_event ->
-        {%__MODULE__{}, %Event{}} = Event.generate_random(game, player_id)
+        {%__MODULE__{} = game, %Event{} = event} = Event.generate_random(game, player_id)
+        MonopolyChannel.send_event(%{ game: game, event: event })
+        {game, event}
 
       card.type == :brand and Card.is_owner?(card, player_id) ->
+        MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} попадает на свое поле и ничего не платит") })
         {game, Event.ignored("#{name} попадает на свое поле и ничего не платит")}
 
       card.type == :brand and Card.has_owner?(card, player_id) == false ->
         event = Event.free_card("#{name} попадает на #{card.name} и задумывается о покупке", card.position)
+        MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} задумывается о покупке #{card.name}") })
         {Event.add_player_event(game, player_id, event), event}
 
       card.type == :brand and Card.has_to_pay?(card, player_id) ->
-        event = Event.pay(card.payment_amount, "#{name} попадает на чужое поле и должен заплатить", card.owner)
+        event = Event.pay(card.payment_amount, "#{name} попадает на чужое поле #{card.name} и должен заплатить #{card.payment_amount}", card.owner)
         game = Event.add_player_event(game, player_id, event)
+        MonopolyChannel.send_event(%{ game: game, event: event })
         {game, event}
 
       card.type == :payment ->
         event = Event.pay(card.payment_amount, "#{name} должен выплатить #{card.payment_amount}")
         game = Event.add_player_event(game, player_id, event)
+        MonopolyChannel.send_event(%{ game: game, event: Event.ignored("#{name} должен выплатить налог #{card.payment_amount}") })
         {game, event}
 
       card.type == :jail_cell ->

@@ -214,14 +214,25 @@ function VkActionContainer(props, ref) {
             : null
         }
         <Tabs type="buttons">
+          <Div>
+            <Button
+              onClick={sendAction}
+              disabled={Boolean((state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn) === false}
+            >
+              Бросить кубики
+            </Button>
+          </Div>
           {
-            (state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn
+            state.eventType === 'pay' && state.myTurn
               ? (
-                <React.Fragment>
-                  <Div>
-                    <Button onClick={sendAction}>{state.eventType === 'roll' ? 'Бросить кубики' : 'Заплатить'}</Button>
-                  </Div>
-                </React.Fragment>
+                <Div>
+                  <Button
+                    onClick={sendAction}
+                    disabled={Boolean((state.eventType === 'roll' || state.eventType === 'pay') && state.myTurn) === false}
+                  >
+                    {state.eventType === 'roll' ? 'Бросить кубики' : 'Заплатить'}
+                  </Button>
+                </Div>
               )
               : null
           }
