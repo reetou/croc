@@ -692,8 +692,17 @@ function GameView(props) {
                                 ...state.game,
                                 type,
                                 onSubmit: async (data) => {
-                                  console.log('Data at submit to event card action', data)
-                                  gameChannel.push('action', data)
+                                  setTimeout(() => {
+                                    props.setActiveOptionsModal('confirm_event_card', {
+                                      event_card: state.game.event_cards.find(c => c.type === data.type),
+                                      game: state.game,
+                                      type,
+                                      onSubmit: async () => {
+                                        console.log('Data at submit to event card action', data)
+                                        gameChannel.push('action', data)
+                                      }
+                                    })
+                                  }, 0)
                                 }
                               })
                             }}

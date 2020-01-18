@@ -190,6 +190,20 @@ const getPositionsForEventCard = (type, cards, completedMonopolies) => {
   }
 }
 
+const getEventCardCost = (type, game) => {
+  switch (type) {
+    case 'force_auction':
+      return 1000
+    case 'force_sell_loan':
+      const monopolyCards = getCompletedMonopolies(game.cards)
+        .map(c => c.monopoly_type)
+      return game.cards.filter(c => c.on_loan && !monopolyCards.includes(c.monopoly_type)).length * 750
+    case 'force_teleportation':
+      return (game.players.filter(p => !p.surrender).length - 1) * 1000
+    default: return 'Цена не указана'
+  }
+}
+
 export {
   getMobileHeight,
   getMobileWidth,
@@ -202,4 +216,5 @@ export {
   getPosition,
   getPositionsForEventCard,
   getCompletedMonopolies,
+  getEventCardCost,
 }

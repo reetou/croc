@@ -76,16 +76,15 @@ function DeckModal(props) {
                   <Button
                     mode="primary"
                     onClick={async () => {
-                      console.log(`Chosen card for deck action ${type}`, toJS(c))
                       const data = {
                         type,
                         position: c.position,
                       }
-                      props.setActiveModal(null, '')
                       try {
+                        onClose()
                         await params.onSubmit(data)
                       } catch (e) {
-                        console.log('Error happened', e)
+                        console.error('Error happened', e)
                         setTimeout(() => {
                           props.setActiveModal('lobby_error', 'Some shit happened')
                         }, 0)

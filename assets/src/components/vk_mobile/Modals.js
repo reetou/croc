@@ -23,6 +23,7 @@ import DeckModal from './modals/DeckModal'
 import JailCell from './cards_info/JailCell'
 import Prison from './cards_info/Prison'
 import FieldPickerModal from './modals/FieldPickerModal'
+import ConfirmEventCardModal from './modals/ConfirmEventCardModal'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -153,6 +154,12 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
             action: () => executeAndClose(params.onBid)
           }] : [],
         ]}
+      />
+      <ConfirmEventCardModal
+        id={'confirm_event_card'}
+        onClose={onClose}
+        executeAndClose={executeAndClose}
+        params={params}
       />
       <ModalPage
         id={'field_actions'}
