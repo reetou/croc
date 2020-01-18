@@ -15,7 +15,7 @@ import {
   View,
 } from '@vkontakte/vkui'
 import Game28Icon from '@vkontakte/icons/dist/28/game'
-import { Stage } from '@inlet/react-pixi'
+import { Container, Graphics, Sprite, Stage, Text } from '@inlet/react-pixi'
 import Field from '../../game/monopoly/Field'
 import { set } from 'lodash-es'
 import PlayerSprite from '../../game/monopoly/PlayerSprite'
@@ -26,6 +26,7 @@ import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
 import VkActionContainer from '../VkActionContainer'
 import Deck from '../../game/monopoly/Deck'
+import colorString from 'color-string'
 // import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
@@ -708,6 +709,74 @@ function GameView(props) {
                             }}
                             event_cards={state.game.event_cards}
                           />
+                          <Container
+                            x={230}
+                            y={800}
+                          >
+                            {
+                              state.game.players.map((p, i) => (
+                                <Container
+                                  key={p.player_id}
+                                  x={i > 0 ? i * (60 * 2) : 0}
+                                >
+                                  <Container>
+                                    <Graphics
+                                      preventRedraw
+                                      draw={g => {
+                                        g.clear()
+                                        g.beginFill(0xffffff)
+                                        g.drawRoundedRect(5, 4, 50, 52, 3)
+                                        g.endFill()
+                                      }}
+                                    />
+                                    <Graphics
+                                      preventRedraw
+                                      draw={g => {
+                                        const color = colorString.to.hex(colorString.get.rgb(p.color || '#FFF'))
+                                        g.clear()
+                                        g.beginFill(Number(`0x${color.slice(1)}`), 0.3)
+                                        g.drawRoundedRect(5, 4, 50, 52, 3)
+                                        g.endFill()
+                                      }}
+                                    />
+                                    <Sprite
+                                      width={60}
+                                      height={60}
+                                      image={p.image_url || 'https://cdn.discord-underlords.com/eventcards/event-card-empty.png'}
+                                    />
+                                  </Container>
+                                  <Container
+                                    y={70}
+                                  >
+                                    <Text
+                                      x={0}
+                                      y={0}
+                                      visible={!p.surrender}
+                                      text={p.name || `Игрок ${p.player_id}`}
+                                      style={
+                                        new PIXI.TextStyle({
+                                          fontSize: 16,
+                                          fill: '#FFF'
+                                        })
+                                      }
+                                    />
+                                    <Text
+                                      x={0}
+                                      y={24}
+                                      visible={!p.surrender}
+                                      text={`$ ${p.balance}`}
+                                      style={
+                                        new PIXI.TextStyle({
+                                          fontSize: 16,
+                                          fill: '#FFF'
+                                        })
+                                      }
+                                    />
+                                  </Container>
+                                </Container>
+                              ))
+                            }
+                          </Container>
                         </ReactViewport>
                       )
                       : null
