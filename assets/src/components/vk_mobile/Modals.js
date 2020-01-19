@@ -34,6 +34,7 @@ function getErrorMessage(errorMessage) {
     case 'not_enough_players': return 'Недостаточно игроков для старта игры'
     case 'maximum_players': return 'Достигнуто максимальное количество игроков в лобби'
     case 'too_early_to_use': return 'Это действие нельзя совершить в текущем раунде'
+    case 'no_lobby': return 'Лобби было закрыто или существовало не в нашей реальности. Создайте свое!'
     default: return `Неизвестная ошибка. Код: ${errorMessage}`
   }
 }

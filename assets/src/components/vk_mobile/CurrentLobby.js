@@ -18,6 +18,7 @@ import Icon24Back from '@vkontakte/icons/dist/24/back';
 import { toJS } from 'mobx'
 import axios from '../../axios'
 import { flatten } from 'lodash-es'
+import connect from '@vkontakte/vk-connect'
 import VkEventCardThumb from './VkEventCardThumb'
 
 function CurrentLobby(props) {
@@ -31,6 +32,10 @@ function CurrentLobby(props) {
     },
     get allEventCards() {
       return flatten(this.lobby.players.map(p => p.event_cards || []))
+    },
+    get lobbyUrl() {
+      if (!state.lobby) return 'https://vk.com/app7262387'
+      return `https://vk.com/app7262387#lobby_${state.lobby.lobby_id}`
     }
   }), props)
   useEffect(() => {
@@ -38,6 +43,25 @@ function CurrentLobby(props) {
   }, [props.lobby])
   const firstPlayer = state.lobby.players.find((p, i) => p.player_id && i === 0)
   const isOwner = firstPlayer.player_id === props.user.id
+  const shareLobby = async () => {
+    try {
+      await connect.sendPromise("VKWebAppShare", {
+        link: state.lobbyUrl
+      })
+    } catch (e) {
+      console.error('Cannot share lobby', e)
+    }
+  }
+  const createWallPost = async () => {
+    try {
+      await connect.send("VKWebAppShowWallPostBox", {
+        message: 'Го в монополию\n' + state.lobbyUrl,
+        attachments: `${state.lobbyUrl}`
+      });
+    } catch (e) {
+      console.error('Cannot create wall post', e)
+    }
+  }
   const changeEventCards = () => {
     props.setActiveOptionsModal('edit_event_cards', {
       ...props.user,
@@ -73,6 +97,31 @@ function CurrentLobby(props) {
       >
         Ваше лобби
       </PanelHeader>
+      <Group description="Дайте своим друзьям отсканировать этот QR код или поделитесь ссылкой, чтобы друзья зашли к вам">
+        <Div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div dangerouslySetInnerHTML={{ __html: props.qr }} />
+        </Div>
+        <Div>
+          <Button
+            size="l"
+            stretched
+            mode="primary"
+            onClick={shareLobby}
+          >
+            Поделиться ссылкой
+          </Button>
+        </Div>
+        <Div>
+          <Button
+            size="l"
+            stretched
+            mode="outline"
+            onClick={createWallPost}
+          >
+            Написать на стене
+          </Button>
+        </Div>
+      </Group>
       <Group>
         <List>
           {

@@ -7,6 +7,7 @@ import {
   ScreenSpinner,
   View,
   Button,
+  Group,
 } from '@vkontakte/vkui'
 import axios from '../../../axios'
 import VkEventCard from '../VkEventCard'
@@ -69,6 +70,16 @@ function ShopView(props) {
     }
     getProducts()
   }, [])
+  const createShopWallPost = async () => {
+    try {
+      await connect.send("VKWebAppShowWallPostBox", {
+        message: 'Подкиньте мне денег, чтобы я купил себе эти красивые карты в монополии',
+        attachments: `photo536736851_457239040,photo536736851_457239039,photo536736851_457239038,https://vk.com/app7262387`
+      });
+    } catch (e) {
+      console.error('Cannot create shop wall post', e)
+    }
+  }
   return useObserver(() => (
     <View
       id={props.id}
@@ -80,6 +91,13 @@ function ShopView(props) {
         <Div>
           При пожертвовании {state.small_pack_amount} рублей и более вы получаете все эти карточки:
         </Div>
+        <Group
+          description="Дайте друзьям знать, чего вам не хватает. Вдруг кто-то поможет?"
+        >
+          <Div>
+            <Button onClick={createShopWallPost}>Попросить у друзей</Button>
+          </Div>
+        </Group>
         {
           state.event_cards.map(c => (
             <VkEventCard
