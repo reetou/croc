@@ -97,31 +97,6 @@ function CurrentLobby(props) {
       >
         Ваше лобби
       </PanelHeader>
-      <Group description="Дайте своим друзьям отсканировать этот QR код или поделитесь ссылкой, чтобы друзья зашли к вам">
-        <Div style={{ display: 'flex', justifyContent: 'center' }}>
-          <div dangerouslySetInnerHTML={{ __html: props.qr }} />
-        </Div>
-        <Div>
-          <Button
-            size="l"
-            stretched
-            mode="primary"
-            onClick={shareLobby}
-          >
-            Поделиться ссылкой
-          </Button>
-        </Div>
-        <Div>
-          <Button
-            size="l"
-            stretched
-            mode="outline"
-            onClick={createWallPost}
-          >
-            Написать на стене
-          </Button>
-        </Div>
-      </Group>
       <Group>
         <List>
           {
@@ -214,6 +189,31 @@ function CurrentLobby(props) {
           )
           : null
       }
+      <Group description="Дайте своим друзьям отсканировать этот QR код или поделитесь ссылкой, чтобы друзья зашли к вам">
+        <Div>
+          <Button
+            size="l"
+            stretched
+            mode="primary"
+            onClick={shareLobby}
+          >
+            Поделиться ссылкой
+          </Button>
+        </Div>
+        <Div>
+          <Button
+            size="l"
+            stretched
+            mode="outline"
+            onClick={createWallPost}
+          >
+            Написать на стене
+          </Button>
+        </Div>
+        <Div style={{ display: 'flex', justifyContent: 'center' }}>
+          <div dangerouslySetInnerHTML={{ __html: props.qr }} />
+        </Div>
+      </Group>
       <Footer>Игра начнется, когда создатель нажмет на кнопку "Начать игру"</Footer>
     </Panel>
   ))
