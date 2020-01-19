@@ -15,6 +15,9 @@ import "phoenix_html"
 // Local files can be imported directly using relative paths, for example:
 import "react-phoenix"
 import VkMiniApp from '../src/VkMiniApp'
+import connect from '@vkontakte/vk-connect'
+
+connect.send('VKWebAppInit', {})
 
 window.Components = {
   VkMiniApp,

@@ -22,7 +22,7 @@ defmodule Croc.Accounts.VkUser do
   end
 
   def game_sign(%{ "api_id" => app_id, "viewer_id" => vk_id }) do
-    :crypto.hash(:md5, app_id <> "_" <> vk_id <> "_" <> "8hGYUdgW6MzaAJA5zpve")
+    :crypto.hash(:md5, app_id <> "_" <> vk_id <> "_" <> @vk_game_secret_key)
     |> Base.encode16()
     |> String.downcase()
   end

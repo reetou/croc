@@ -92,6 +92,70 @@ const getTagPoint = (form) => {
   }
 }
 
+const getUpgradeTagPoint = (form) => {
+  switch (form) {
+    case 'vertical-flip':
+      return {
+        x: 15,
+        y: 18,
+        angle: 90,
+      }
+    case 'vertical':
+      return {
+        x: getSpriteWidth(form) + 5,
+        y: 38,
+        angle: 90
+      }
+    case 'horizontal-flip':
+      return {
+        x: 15,
+        y: 38,
+        angle: 270,
+      }
+    default:
+      return {
+        x: getSpriteWidth(form) + 5,
+        y: 17,
+        angle: 90
+      }
+  }
+}
+
+const getUpgradeLevelText = (upgrade_level) => {
+  switch (upgrade_level) {
+    case 2: return 'II'
+    case 3: return 'III'
+    case 4: return 'IV'
+    case 5: return 'V'
+    default: return 'I'
+  }
+}
+
+const getUpgradeLevelTextPosition = (upgrade_level) => {
+  switch (upgrade_level) {
+    case 2: return {
+      x: 7,
+      y: 4
+    }
+    case 3: return {
+      x: 5.5,
+      y: 4
+    }
+    case 4: return {
+      x: 5,
+      y: 4
+    }
+    case 5: return {
+      x: 7,
+      y: 4,
+    }
+    default: return {
+      x: 8.5,
+      y: 4
+    }
+  }
+}
+
 const getHorizontalPlayerPosition = (ind) => {
   switch (ind) {
     case 0: return [25, 15]
@@ -208,11 +272,14 @@ export {
   getMobileHeight,
   getMobileWidth,
   getHeight,
+  getUpgradeTagPoint,
   getWidth,
   getSpriteWidth,
+  getUpgradeLevelTextPosition,
   getSpriteHeight,
   getTagPoint,
   getAngle,
+  getUpgradeLevelText,
   getPosition,
   getPositionsForEventCard,
   getCompletedMonopolies,

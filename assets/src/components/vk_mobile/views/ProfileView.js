@@ -11,6 +11,7 @@ import {
   View,
   InfoRow,
   List,
+  Switch,
   Div,
 } from '@vkontakte/vkui'
 import User28Icon from '@vkontakte/icons/dist/28/user'
@@ -70,17 +71,31 @@ function ProfileView(props) {
                 <Group header={<Div>Колода</Div>}>
                   <List>
                     {
-                      state.user.user_monopoly_event_cards.map(({ id, monopoly_event_card: c }) => (
+                      state.user && state.user.user_monopoly_event_cards && state.user.user_monopoly_event_cards.map(({ id, monopoly_event_card: c }) => (
                         <Cell
                           key={id}
                           description={c.description}
-                          before={<Avatar src={state.user.image_url} size={36}/>}
+                          before={<Avatar src={c.image_url} size={36}/>}
                           size="l"
                         >
                           {c.name}
                         </Cell>
                       ))
                     }
+                  </List>
+                </Group>
+                <Group header={<Div>Настройки</Div>}>
+                  <List>
+                    <Cell
+                      asideContent={(
+                        <Switch
+                          defaultChecked={state.darkTheme}
+                          onClick={state.toggleTheme}
+                        />
+                      )}
+                    >
+                      Темная тема
+                    </Cell>
                   </List>
                 </Group>
               </React.Fragment>

@@ -171,7 +171,7 @@ function Field(props) {
           visible={props.form !== 'square'}
           draw={g => {
             g.clear()
-            let colorStr = props.card.type === 'brand' ? ('#FFF') : '#4F4F4F'
+            let colorStr = props.card.type === 'brand' ? ('#FFF') : '#333'
             if (props.card.type === 'brand' && props.card.on_loan) {
               colorStr = '#F2C94C'
             }

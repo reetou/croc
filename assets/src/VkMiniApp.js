@@ -961,6 +961,7 @@ function VkMiniApp(props) {
     token: null,
     snackbar: null,
     modalParams: {},
+    darkTheme: true,
     loading: false,
     banned: false,
     ban_id: null,
@@ -977,13 +978,41 @@ function VkMiniApp(props) {
     state.activeModal = modal_id
     state.errorMessage = errorMessage
   }
+  const setBodyScheme = (theme) => {
+    document.getElementsByTagName('body')[0].setAttribute('scheme', `client_${theme}`)
+  }
+  const initApp = async () => {
+    try {
+      console.log('Init sent')
+      const [data] = await Promise.all([
+        connect.sendPromise('VKWebAppStorageGet', {
+          keys: ['theme']
+        }),
+        getUserData()
+      ])
+      console.log('Data at theme')
+      const val = data.keys.find(k => k.key === 'theme').value || 'dark'
+      setBodyScheme(val)
+      state.darkTheme = val === 'dark'
+    } catch (e) {
+      console.error('Cannot init app', e)
+    }
+  }
+  const toggleTheme = () => {
+    const theme = state.darkTheme ? 'light' : 'dark'
+    state.darkTheme = theme === 'dark'
+    setBodyScheme(theme)
+    connect.send('VKWebAppStorageSet', {
+      key: 'theme',
+      value: theme,
+    })
+  }
   useEffect(() => {
     const handler = (e) => {
       console.log('Received VK event', e)
     }
     connect.subscribe(handler)
-    connect.send('VKWebAppInit')
-    getUserData()
+    initApp()
     return () => {
       console.log('Unsubscribing')
       connect.unsubscribe(handler)
@@ -1107,6 +1136,8 @@ function VkMiniApp(props) {
           tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
         >
           <ProfileView
+            toggleTheme={toggleTheme}
+            darkTheme={state.darkTheme}
             getUserData={getUserData}
             id={'profile'}
             ban_id={state.ban_id}
@@ -1151,6 +1182,7 @@ function VkMiniApp(props) {
             setActiveOptionsModal={setActiveOptionsModal}
             setActiveModal={setActiveModal}
             messages={state.messages}
+            activeModal={state.activeModal}
             onChatMessage={onChatMessage}
           />
           <View

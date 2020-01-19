@@ -7,7 +7,7 @@
     <title>Croc Vk Mobile</title>
     <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/vk_mobile_app.css") %>"/>
   </head>
-  <body>
+  <body scheme="client_dark">
     <%= render @view_module, @view_template, assigns %>
     <script>window.userToken = "<%= assigns[:user_token] %>";</script>
     <script type="text/javascript" src="<%= Routes.static_path(@conn, "/js/vk_mobile_app.js") %>"></script>

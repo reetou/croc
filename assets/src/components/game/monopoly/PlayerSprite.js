@@ -84,11 +84,14 @@ function PlayerSprite(props) {
       x={x}
       y={y}
       anchor={0.5}
+      width={32}
+      height={32}
       ref={ref}
       name={`player_${props.player_id}`}
     >
       <Sprite
         x={-8}
+        anchor={0.5}
         y={-8}
         image={`https://cdn.discord-underlords.com/players/player${props.index}.png`}
         width={32}
