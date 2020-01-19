@@ -25,7 +25,7 @@ defmodule CrocWeb.VkController do
   def index(conn, %{ "sign" => sign } = params) when is_binary(sign) and sign != "" do
     user_sign = VkUser.sign(params)
     with true <- user_sign == sign do
-      render(conn, "index.html", lobbies: Lobby.get_all())
+      render(conn, "index.html", lobbies: Lobby.get_all(), platform: params["vk_platform"])
     else
       _ ->
         conn

@@ -1,1 +1,1 @@
-<%= react_component("Components.VkMiniApp", %{ lobbies: @conn.assigns.lobbies }, style: "height:100%;") %>
+<%= react_component("Components.VkMiniApp", %{ lobbies: @conn.assigns.lobbies, platform: @conn.assigns.platform }, style: "height:100%;") %>
