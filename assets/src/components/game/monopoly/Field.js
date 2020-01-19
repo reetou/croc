@@ -10,6 +10,9 @@ import {
   getSpriteHeight,
   getTagPoint,
   getAngle,
+  getUpgradeTagPoint,
+  getUpgradeLevelText,
+  getUpgradeLevelTextPosition,
 } from '../../../util'
 
 
@@ -81,6 +84,8 @@ function Field(props) {
   // console.log(`Sprite width for form ${props.form} ${getSpriteWidth(props.form)} while container width ${getMobileWidth(props.form)}`)
   const imagePlaceholder = 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/693612/coin.png'
   const tagPoint = getTagPoint(props.form)
+  const upgradeTagPoint = getUpgradeTagPoint(props.form)
+  const upgradeTagTextPoint = getUpgradeLevelTextPosition(props.card.upgrade_level || 1)
   return useObserver(() => (
     <Container
       x={x}
@@ -188,6 +193,30 @@ function Field(props) {
             new PIXI.TextStyle({
               fontSize: 12,
               fill: '#4F4F4F'
+            })
+          }
+        />
+      </Container>
+      <Container
+        visible={props.card.type === 'brand' && props.card.upgrade_level}
+        x={upgradeTagPoint.x}
+        y={upgradeTagPoint.y}
+        angle={upgradeTagPoint.angle || 0}
+        name="upgrade_level_tag"
+      >
+        <Sprite
+          width={21}
+          height={21}
+          image="https://cdn.discord-underlords.com/upgrade-level-bg.png"
+        />
+        <Text
+          x={upgradeTagTextPoint.x}
+          y={upgradeTagTextPoint.y}
+          text={getUpgradeLevelText(props.card.upgrade_level || 1)}
+          style={
+            new PIXI.TextStyle({
+              fill: 'white',
+              fontSize: 11,
             })
           }
         />
