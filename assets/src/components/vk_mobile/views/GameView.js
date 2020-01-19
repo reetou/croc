@@ -418,6 +418,7 @@ function GameView(props) {
       return Date.now()
     },
     get timeLeft() {
+      if (!this.game) return -1
       if (!this.game.turn_timeout_at) return -1
       const timeoutTime = new Date(this.game.turn_timeout_at).getTime()
       if (this.now > timeoutTime) return 0
@@ -465,7 +466,9 @@ function GameView(props) {
   }, [])
   useEffect(() => {
     state.stageReady = true
-    state.app.resize()
+    if (state.app) {
+      state.app.resize()
+    }
   }, [state.stageHeight])
   const [userChannel] = useChannel(userChannelName, onJoin)
   useEffect(() => {
