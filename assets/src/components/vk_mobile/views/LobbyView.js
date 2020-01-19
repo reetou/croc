@@ -71,8 +71,9 @@ function LobbyView(props) {
     console.log('Topic')
     const chan = socket.channel(topic, { token })
     state.joined_lobby_id = lobby_id
+    const maxQrSize = 300
     const qrSvg = vkQr.createQR(`https://vk.com/app7262387#lobby_${lobby_id}`, {
-      qrSize: window.innerWidth - 80,
+      qrSize: window.innerWidth - 80 > maxQrSize ? maxQrSize : window.innerWidth - 80,
       isShowLogo: true,
       foregroundColor: props.darkTheme ? '#F5F5F5' : '#000000'
     })
@@ -197,14 +198,18 @@ function LobbyView(props) {
     <View activePanel={state.activePanel} popout={state.popout}>
       <Panel id="main">
         <PanelHeader
-          left={(
-            <HeaderButton
-              disabled={state.loading}
-              onClick={scanLobbyCode}
-            >
-              <Icon24Qr />
-            </HeaderButton>
-          )}
+          left={
+            props.platform !== 'desktop_web'
+              ? (
+                <HeaderButton
+                  disabled={state.loading}
+                  onClick={scanLobbyCode}
+                >
+                  <Icon24Qr />
+                </HeaderButton>
+              )
+              : null
+          }
         >
           Найти игру
         </PanelHeader>
