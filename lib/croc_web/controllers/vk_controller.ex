@@ -13,7 +13,7 @@ defmodule CrocWeb.VkController do
     user_sign = VkUser.game_sign(params)
     Logger.debug("Checking #{user_sign} vs #{auth_key}")
     with true <- user_sign == auth_key do
-      render(conn, "index.html", lobbies: Lobby.get_all())
+      render(conn, "index.html", lobbies: Lobby.get_all(), platform: Map.get(params, "platform", "web"))
     else
       _ ->
         conn
