@@ -72,8 +72,9 @@ function LobbyView(props) {
     const chan = socket.channel(topic, { token })
     state.joined_lobby_id = lobby_id
     const qrSvg = vkQr.createQR(`https://vk.com/app7262387#lobby_${lobby_id}`, {
-      qrSize: 128,
-      isShowLogo: true
+      qrSize: window.innerWidth - 80,
+      isShowLogo: true,
+      foregroundColor: props.darkTheme ? '#F5F5F5' : '#000000'
     })
     state.lobby_qr = qrSvg
     chan.on('game_start', (payload) => {

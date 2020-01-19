@@ -1159,6 +1159,7 @@ function VkMiniApp(props) {
                   signIn={signIn}
                   user={state.user}
                   id={'find_game'}
+                  darkTheme={state.darkTheme}
                   onGameStart={onGameStart}
                   setActiveModal={setActiveModal}
                   setActiveOptionsModal={setActiveOptionsModal}
