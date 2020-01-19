@@ -9,6 +9,19 @@ defmodule CrocWeb.VkController do
   alias Croc.Games.Monopoly.Lobby
   use CrocWeb, :controller
 
+  def index(conn, %{ "auth_key" => auth_key } = params) when is_binary(auth_key) and auth_key != "" do
+    user_sign = VkUser.game_sign(params)
+    Logger.debug("Checking #{user_sign} vs #{auth_key}")
+    with true <- user_sign == auth_key do
+      render(conn, "index.html", lobbies: Lobby.get_all())
+    else
+      _ ->
+        conn
+        |> put_status(:unauthorized)
+        |> text("Invalid game sign")
+    end
+  end
+
   def index(conn, %{ "sign" => sign } = params) when is_binary(sign) and sign != "" do
     user_sign = VkUser.sign(params)
     with true <- user_sign == sign do
