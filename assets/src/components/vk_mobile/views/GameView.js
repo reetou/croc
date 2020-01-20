@@ -416,11 +416,14 @@ function GameView(props) {
     painting: false,
     path: null,
     get myTurn() {
-      if (!source.user) return false
+      if (!source.user || !this.game) return false
       const isMyTurn = this.game.player_turn === source.user.id
       return isMyTurn
     },
     get me() {
+      if (!this.game) {
+        return null
+      }
       const player = this.game.players.find(p => p.player_id === source.user.id)
       if (!player) {
         return null
@@ -431,6 +434,7 @@ function GameView(props) {
       return this.me && !this.me.surrender
     },
     get playerInCharge() {
+      if (!this.game) return null
       return this.game.players.find(p => this.game.player_turn === p.player_id)
     },
     get firstEventTurn() {
