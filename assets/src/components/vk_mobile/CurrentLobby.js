@@ -45,7 +45,7 @@ function CurrentLobby(props) {
   const isOwner = firstPlayer.player_id === props.user.id
   const shareLobby = async () => {
     try {
-      await connect.sendPromise("VKWebAppShare", {
+      await connect.send("VKWebAppShare", {
         link: state.lobbyUrl
       })
     } catch (e) {

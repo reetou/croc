@@ -17,7 +17,14 @@ import "react-phoenix"
 import VkMiniApp from '../src/VkMiniApp'
 import connect from '@vkontakte/vk-connect'
 
+console.log('Sending init yo')
 connect.send('VKWebAppInit', {})
+  .then((r) => {
+    console.log('Init result', r)
+  })
+  .catch(e => {
+    console.error('Cannot init', e)
+  })
 
 window.Components = {
   VkMiniApp,

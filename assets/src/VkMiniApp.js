@@ -985,7 +985,7 @@ function VkMiniApp(props) {
     try {
       console.log('Init sent')
       const [data] = await Promise.all([
-        connect.sendPromise('VKWebAppStorageGet', {
+        connect.send('VKWebAppStorageGet', {
           keys: ['theme']
         }),
         getUserData()
@@ -1034,7 +1034,8 @@ function VkMiniApp(props) {
       if (process.env.NODE_ENV !== 'production') {
         state.token = 'SFMyNTY.g3QAAAACZAAEZGF0YWEUZAAGc2lnbmVkbgYAwavJSW8B.35xr0ff0rqzV5gNKuFZ8MEv70WLYH5SnyGXb2gXdkp0'
       }
-      const userData = await connect.sendPromise('VKWebAppGetUserInfo')
+      console.log('Getting user data...')
+      const userData = await connect.send('VKWebAppGetUserInfo')
       console.log('User data', userData)
       const res = await axios.post('/auth/vk', userData)
       state.user = res.data.user
@@ -1058,7 +1059,7 @@ function VkMiniApp(props) {
   }, [state.banned, state.activeStory, state.profilePanel])
   const getEmail = async () => {
     try {
-      const data = await connect.sendPromise('VKWebAppGetEmail')
+      const data = await connect.send('VKWebAppGetEmail')
       // Handling received data
       console.log('received email data', data)
       if (!data.email) {

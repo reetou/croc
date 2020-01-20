@@ -57,7 +57,7 @@ function ShopView(props) {
         }
       })
       console.log('Data for signing is', res.data)
-      const result = await connect.sendPromise('VKWebAppOpenPayForm', res.data)
+      const result = await connect.send('VKWebAppOpenPayForm', res.data)
       console.log('Result', result)
     } catch (e) {
       console.log('Error at buy', e)

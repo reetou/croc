@@ -127,7 +127,7 @@ function LobbyView(props) {
   }
   const scanLobbyCode = async () => {
     try {
-      const data = await connect.sendPromise("VKWebAppOpenCodeReader", {})
+      const data = await connect.send("VKWebAppOpenCodeReader", {})
       if (data.code_data && data.code_data.includes('lobby_')) {
         const lobby_id = data.code_data.split('lobby_')[1]
         if (lobby_id === state.joined_lobby_id) {
