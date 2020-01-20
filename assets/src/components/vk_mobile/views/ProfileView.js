@@ -41,9 +41,7 @@ function ProfileView(props) {
           state.user
             ? (
               <React.Fragment>
-                <Group
-                  description="Игра еще в процессе разработки и скоро здесь будет много интересного"
-                >
+                <Group>
                   <Cell
                     photo={state.user.image_url}
                     description="Игрок"
