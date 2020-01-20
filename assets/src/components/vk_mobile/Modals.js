@@ -157,6 +157,25 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
           }] : [],
         ]}
       />
+      <ModalCard
+        id={'confirm_surrender'}
+        onClose={onClose}
+        icon={<DenyOutline56Icon />}
+        title={'Сдаться'}
+        caption={'Вы уверены, что хотите сдаться?'}
+        actions={[
+          {
+            title: 'Сдаться',
+            type: 'primary',
+            action: () => executeAndClose(params.onSubmit)
+          },
+          {
+            title: `Отмена`,
+            type: 'primary',
+            action: onClose
+          }
+        ]}
+      />
       <ConfirmEventCardModal
         id={'confirm_event_card'}
         onClose={onClose}

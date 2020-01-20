@@ -137,6 +137,16 @@ function ActionContainer(props) {
         height={chatSize}
         image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/chat-active.png'}
       />
+      <Sprite
+        interactive
+        x={state.stageWidth - 32}
+        click={state.onSurrender}
+        tap={state.onSurrender}
+        name="surrender_button"
+        width={24}
+        height={24}
+        image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/surrender.png'}
+      />
     </Container>
   )
 }

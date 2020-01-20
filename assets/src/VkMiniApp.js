@@ -1110,6 +1110,12 @@ function VkMiniApp(props) {
   useEffect(() => {
     console.log('Token ADDED', state.token)
   }, [state.token])
+  const onSurrender = () => {
+    state.game = null
+    state.gamePanel = 'no_game'
+    state.activeModal = null
+    state.messages = []
+  }
   const wsUrl = process.env.NODE_ENV !== 'production' ? 'ws://localhost:4000/socket' : 'wss://crocapp.gigalixirapp.com/socket'
   return useObserver(() => (
     <PhoenixSocketProvider wsUrl={wsUrl} userToken={state.token}>
@@ -1179,6 +1185,7 @@ function VkMiniApp(props) {
             // game={mock_game}
             activePanel={state.gamePanel}
             user={state.user}
+            onSurrender={onSurrender}
             onShowSnackbar={onShowSnackbar}
             onGameEnd={(game) => {
               state.endedGame = game

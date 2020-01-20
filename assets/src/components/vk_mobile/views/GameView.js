@@ -559,6 +559,23 @@ function GameView(props) {
       event_id: state.myFirstEventTurn.event_id,
     })
   }
+  const sendSurrender = () => {
+    gameChannel.push('action', {
+      type: 'surrender',
+    })
+  }
+  const surrender = () => {
+    props.setActiveOptionsModal('confirm_surrender', {
+      onSubmit: sendSurrender
+    })
+  }
+  useEffect(() => {
+    if (!state.playing) {
+      state.activePanel = 'no_game'
+      state.game = null
+      props.onSurrender()
+    }
+  }, [state.playing])
   const pickField = (type) => {
     const defaultParams = {
       type,
@@ -1078,6 +1095,7 @@ function GameView(props) {
               stageHeight={state.stageHeight}
               stageWidth={state.stageWidth}
               sendAction={sendAction}
+              onSurrender={surrender}
               myTurn={state.myTurn}
               eventType={state.eventType}
               onOpenChat={() => state.activePanel = 'chat'}
