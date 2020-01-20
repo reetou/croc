@@ -575,7 +575,7 @@ defmodule Croc.Games.Monopoly do
 
   def process_buy_turn(%{ game: game, player_id: player_id, card: card, amount: amount } = args) do
     player = Enum.find(game.players, fn p -> p.player_id == player_id end)
-    actual_players = Enum.filter(game.players, fn p -> p.surrender != true and p.balance >= amount end)
+    actual_players = Enum.filter(game.players, fn p -> (p.surrender != true and p.balance >= amount) or p.player_id == player_id end)
     current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
     max_index = length(actual_players) - 1
     next_player_index = if current_player_index + 1 > max_index, do: 0, else: current_player_index + 1

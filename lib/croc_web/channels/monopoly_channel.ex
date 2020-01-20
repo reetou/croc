@@ -66,9 +66,9 @@ defmodule CrocWeb.MonopolyChannel do
   end
 
   @decorate channel_action()
-  def handle_in("action", %{ "type" => type, "event_id" => event_id }, socket) when type in ["buy", "reject_buy", "auction_bid", "auction_reject"] do
+  def handle_in("action", %{ "type" => type, "event_id" => event_id } = params, socket) when type in ["buy", "reject_buy", "auction_bid", "auction_reject"] do
     @prefix <> game_id = socket.topic
-    Logger.debug("Received action type #{type} in game id: #{game_id}")
+    Logger.debug("Received action type #{type} in game id: #{game_id}, params #{inspect params}")
     action_type = String.to_atom(type)
     Logger.debug("Gonna send action_type #{action_type}")
     with {:ok, %Monopoly{}, pid} <- Monopoly.get(game_id),
