@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
 import useChannel from '../../../useChannel'
 import { PhoenixSocketProvider } from '../../../SocketContext'
-import ActionContainer from './ActionContainer'
+import DesktopActionContainer from './DesktopActionContainer'
 import styled from 'styled-components'
 import GameTable from './GameTable'
 
@@ -149,7 +149,7 @@ function Game(props) {
           )
           : (
             <React.Fragment>
-              <ActionContainer card={state.card} game={state.game} user={props.user} channel={gameChannel} />
+              <DesktopActionContainer card={state.card} game={state.game} user={props.user} channel={gameChannel} />
               <GameTable game={state.game} />
             </React.Fragment>
           )

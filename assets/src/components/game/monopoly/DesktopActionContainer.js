@@ -4,7 +4,7 @@ import { toJS } from 'mobx'
 import { at } from 'lodash-es'
 import CardPicker from './CardPicker'
 
-function ActionContainer(props) {
+function DesktopActionContainer(props) {
   const state = useLocalStore(() => ({
     game: props.game,
     channel: props.channel,
@@ -171,4 +171,4 @@ function ActionContainer(props) {
   ))
 }
 
-export default ActionContainer
+export default DesktopActionContainer
