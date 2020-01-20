@@ -199,7 +199,7 @@ function LobbyView(props) {
       <Panel id="main">
         <PanelHeader
           left={
-            props.platform !== 'desktop_web'
+            !['desktop_web', 'web'].includes(props.platform)
               ? (
                 <HeaderButton
                   disabled={state.loading}
