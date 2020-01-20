@@ -526,7 +526,7 @@ function GameView(props) {
       return
     }
     const elem = document.getElementById(gamePanel)
-    const tabbarHeight = 50
+    const tabbarHeight = 3
     const height = ch ? ch - tabbarHeight : window.innerHeight - tabbarHeight
     const width = cw || window.innerWidth
     state.stageWidth = width / PIXI.settings.RESOLUTION
@@ -543,6 +543,131 @@ function GameView(props) {
     }
   }, [state.stageHeight])
   const [userChannel] = useChannel(userChannelName, onJoin)
+  const sendAction = () => {
+    if (!gameChannel) {
+      throw new Error('No channel passed to action container')
+    }
+    if (!state.myFirstEventTurn) {
+      throw new Error('No events at player')
+    }
+    console.log(`Gonna send action`, {
+      type: state.myFirstEventTurn.type,
+      event_id: state.myFirstEventTurn.event_id,
+    })
+    gameChannel.push('action', {
+      type: state.myFirstEventTurn.type,
+      event_id: state.myFirstEventTurn.event_id,
+    })
+  }
+  const pickField = (type) => {
+    const defaultParams = {
+      type,
+      onSubmit: async ({ type, position }) => {
+        gameChannel.push('action', {
+          type,
+          position,
+        })
+      }
+    }
+    switch (type) {
+      case 'put_on_loan':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.activeCards,
+          ...defaultParams
+        })
+      case 'buyout':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.cardsOnLoan,
+          ...defaultParams
+        })
+      case 'upgrade':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.upgradableCards,
+          ...defaultParams
+        })
+      case 'downgrade':
+        return setActiveOptionsModal('pick_field', {
+          cards: state.downgradableCards,
+          ...defaultParams
+        })
+    }
+  }
+  const sendBuy = () => {
+    gameChannel.push('action', {
+      type: 'buy',
+      event_id: state.myFirstEventTurn.event_id,
+    })
+  }
+  const sendRejectBuy = () => {
+    gameChannel.push('action', {
+      type: 'reject_buy',
+      event_id: state.myFirstEventTurn.event_id,
+    })
+  }
+  const sendAuctionAction = (bid = true) => {
+    state.channel.push('action', {
+      type: bid ? 'auction_bid' : 'auction_reject',
+      event_id: state.firstEventTurn.event_id
+    })
+  }
+  const chooseAction = () => {
+    const loanAction = {
+      onClick: () => pickField('put_on_loan'),
+      text: 'Заложить поле'
+    }
+    const downgradeAction = {
+      onClick: () => pickField('downgrade'),
+      text: 'Продать филиал'
+    }
+    switch (state.eventType) {
+      case 'free_card':
+        return props.setActiveOptionsModal('choose_action', {
+          title: 'Вы попали на свободное поле',
+          actions: [
+            {
+              text: `Купить за ${state.game.cards.find(c => c.position === state.firstEventTurn.position).cost}`,
+              onClick: sendBuy
+            },
+            {
+              text: 'Выставить на аукцион',
+              onClick: sendRejectBuy
+            },
+            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.downgradableCards.length ? [downgradeAction] : [],
+          ]
+        })
+        return
+      case 'auction':
+        return props.setActiveOptionsModal('choose_action', {
+          title: 'Аукцион',
+          actions: [
+            {
+              text: `Поднять ставку до $ ${state.firstEventTurn.amount}`,
+              onClick: () => sendAuctionAction(true)
+            },
+            {
+              text: `Отказаться от аукциона`,
+              onClick: () => sendAuctionAction(false)
+            },
+            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.downgradableCards.length ? [downgradeAction] : [],
+          ]
+        })
+      case 'pay':
+        return props.setActiveOptionsModal('choose_action', {
+          title: 'Нужно заплатить',
+          actions: [
+            {
+              text: `Заплатить ${state.firstEventTurn.amount}`,
+              onClick: sendAction
+            },
+            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.downgradableCards.length ? [downgradeAction] : [],
+          ]
+        })
+      default: return null
+    }
+  }
   useEffect(() => {
     if (!gameChannel) {
       console.log('No game channel, returning')
@@ -552,6 +677,10 @@ function GameView(props) {
     gameChannel.on('game_update', payload => {
       console.log('Payload at game update', payload)
       state.game = payload.game
+      if (state.game.player_turn === props.user.id) {
+        props.setActiveModal('', null)
+        chooseAction()
+      }
     })
 
     gameChannel.on('game_end', payload => {
@@ -679,18 +808,6 @@ function GameView(props) {
     const resizer = document.getElementById('resizer')
     state.app.resizeTo = resizer
     state.app.resize()
-  }
-  const sendAction = () => {
-    if (!gameChannel) {
-      throw new Error('No channel passed to action container')
-    }
-    if (!state.myFirstEventTurn) {
-      throw new Error('No events at player')
-    }
-    gameChannel.push('action', {
-      type: state.myFirstEventTurn.type,
-      event_id: state.myFirstEventTurn.event_id,
-    })
   }
   return useObserver(() => (
     <View id={props.id} header={state.activePanel === 'chat'} activePanel={state.activePanel}>
@@ -918,8 +1035,8 @@ function GameView(props) {
             }
             <Container
               name="user_info"
-              x={isLandscape ? state.stageWidth - 32 : 0}
-              y={isLandscape ? state.stageHeight - 32 - 16 : state.stageHeight - 32 - 40}
+              x={isLandscape ? 0 : 0}
+              y={isLandscape ? 8 : 8}
             >
               <Sprite
                 visible={isLandscape}
@@ -934,7 +1051,7 @@ function GameView(props) {
                     <Text
                       resolution={ 6 }
                       visible={ props.enabled }
-                      y={ isLandscape ? 35 : 45 }
+                      y={ isLandscape ? 35 : 0 }
                       text={`$ ${state.me.balance}`}
                       style={
                         new PIXI.TextStyle({
@@ -947,6 +1064,15 @@ function GameView(props) {
                   : null
               }
             </Container>
+            <MapButtonsContainer
+              isLandscape={isLandscape}
+              stageHeight={state.stageHeight}
+              stageWidth={state.stageWidth}
+              zoomIn={zoomIn}
+              zoomOut={zoomOut}
+              follow={follow}
+              following={state.following}
+            />
             <ActionContainer
               isLandscape={isLandscape}
               stageHeight={state.stageHeight}
@@ -957,15 +1083,6 @@ function GameView(props) {
               onOpenChat={() => state.activePanel = 'chat'}
               chatActive={state.activePanel === 'chat'}
               timeLeft={state.timeLeft}
-            />
-            <MapButtonsContainer
-              isLandscape={isLandscape}
-              stageHeight={state.stageHeight}
-              stageWidth={state.stageWidth}
-              zoomIn={zoomIn}
-              zoomOut={zoomOut}
-              follow={follow}
-              following={state.following}
             />
           </Stage>
         </div>

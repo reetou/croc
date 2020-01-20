@@ -13,7 +13,7 @@ function MapButtonsContainer(props) {
   return (
     <Container
       name="map_buttons"
-      y={isLandscape ? 0 : state.stageHeight - 32 - 16 * 3 - 2 * 3}
+      y={isLandscape ? 48 : state.stageHeight - 32 - 16 * 3 - 2 * 3}
     >
       <Sprite
         x={state.stageWidth - 16}

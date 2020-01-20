@@ -24,6 +24,7 @@ import JailCell from './cards_info/JailCell'
 import Prison from './cards_info/Prison'
 import FieldPickerModal from './modals/FieldPickerModal'
 import ConfirmEventCardModal from './modals/ConfirmEventCardModal'
+import ActionModal from './modals/ActionModal'
 
 function getErrorMessage(errorMessage) {
   switch (errorMessage) {
@@ -243,6 +244,12 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
       </ModalPage>
       <DeckModal
         id={'pick_event_card'}
+        onClose={onClose}
+        setActiveModal={setActiveModal}
+        params={params}
+      />
+      <ActionModal
+        id={'choose_action'}
         onClose={onClose}
         setActiveModal={setActiveModal}
         params={params}

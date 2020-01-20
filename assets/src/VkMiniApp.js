@@ -1134,7 +1134,13 @@ function VkMiniApp(props) {
         }
         <Epic
           activeStory={state.activeStory}
-          tabbar={<AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />}
+          tabbar={
+            !state.game
+              ? (
+                <AppTabbar user={state.user} activeStory={state.activeStory} onChangeStory={onChangeStory} />
+              )
+              : null
+          }
         >
           <ProfileView
             toggleTheme={toggleTheme}
