@@ -1076,7 +1076,7 @@ function GameView(props) {
                 width={32}
                 height={32}
                 interactive
-                image={props.user.image_url}
+                image={props.user.image_url || 'https://cdn.discord-underlords.com/eventcards/event-card-empty.png'}
               />
               {
                 state.me
