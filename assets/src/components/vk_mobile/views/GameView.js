@@ -19,14 +19,15 @@ import { Container, Graphics, Sprite, Stage, Text } from '@inlet/react-pixi'
 import Field from '../../game/monopoly/Field'
 import { set } from 'lodash-es'
 import PlayerSprite from '../../game/monopoly/PlayerSprite'
-import { getPosition } from '../../../util'
+import { getCompletedMonopolies, getPosition } from '../../../util'
 import useChannel from '../../../useChannel'
 import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
 import * as PIXI from 'pixi.js'
-import VkActionContainer from '../VkActionContainer'
 import Deck from '../../game/monopoly/Deck'
 import colorString from 'color-string'
+import ActionContainer from '../../game/monopoly/ActionContainer'
+import MapButtonsContainer from '../../game/monopoly/MapButtonsContainer'
 // import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
@@ -414,6 +415,54 @@ function GameView(props) {
     segments: [],
     painting: false,
     path: null,
+    get myTurn() {
+      if (!source.user) return false
+      const isMyTurn = this.game.player_turn === source.user.id
+      return isMyTurn
+    },
+    get me() {
+      const player = this.game.players.find(p => p.player_id === source.user.id)
+      if (!player) {
+        return null
+      }
+      return player
+    },
+    get playing() {
+      return this.me && !this.me.surrender
+    },
+    get playerInCharge() {
+      return this.game.players.find(p => this.game.player_turn === p.player_id)
+    },
+    get firstEventTurn() {
+      if (!this.playerInCharge || !this.playerInCharge.events.length) return null
+      const events = this.playerInCharge.events
+        .slice()
+        .sort((a, b) => a.priority - b.priority)
+      console.log('Events', events.map(e => toJS(e)))
+      return events[0]
+    },
+    get myFirstEventTurn() {
+      if (!this.playerInCharge || !this.playerInCharge.events.length) return null
+      const events = this.playerInCharge.events
+        .slice()
+        .sort((a, b) => a.priority - b.priority)
+      console.log('Events', events.map(e => toJS(e)))
+      if (!this.myTurn) return null
+      return events[0]
+    },
+    get eventType() {
+      if (!this.myFirstEventTurn) return false
+      return this.myFirstEventTurn.type
+    },
+    get eventCard() {
+      if (!this.myFirstEventTurn || !this.myFirstEventTurn.position) {
+        return false
+      }
+      return this.game.cards.find(c => c.position === this.myFirstEventTurn.position)
+    },
+    get currentCard() {
+      return this.game.cards.find(c => c.position === this.playerInCharge.position)
+    },
     get now() {
       return Date.now()
     },
@@ -424,6 +473,25 @@ function GameView(props) {
       if (this.now > timeoutTime) return 0
       return parseInt((timeoutTime - this.now) / 1000, 10)
     },
+    get ownedCards() {
+      return this.game.cards.filter(c => c.owner === this.me.player_id)
+    },
+    get cardsOnLoan() {
+      return this.ownedCards.filter(c => c.on_loan)
+    },
+    get activeCards() {
+      return this.ownedCards.filter(c => !c.on_loan)
+    },
+    get completedMonopolies() {
+      return getCompletedMonopolies(this.game.cards)
+    },
+    get upgradableCards() {
+      return this.completedMonopolies
+        .filter(c => c.owner === this.me.player_id && !c.on_loan)
+    },
+    get downgradableCards() {
+      return this.activeCards.filter(c => c.upgrade_level > 0)
+    }
   }), props)
   useEffect(() => {
     if (props.game) {
@@ -608,6 +676,18 @@ function GameView(props) {
     state.app.resizeTo = resizer
     state.app.resize()
   }
+  const sendAction = () => {
+    if (!gameChannel) {
+      throw new Error('No channel passed to action container')
+    }
+    if (!state.myFirstEventTurn) {
+      throw new Error('No events at player')
+    }
+    gameChannel.push('action', {
+      type: state.myFirstEventTurn.type,
+      event_id: state.myFirstEventTurn.event_id,
+    })
+  }
   return useObserver(() => (
     <View id={props.id} header={state.activePanel === 'chat'} activePanel={state.activePanel}>
       <Panel id="no_game">
@@ -654,7 +734,7 @@ function GameView(props) {
                   <ReactViewport
                     app={state.app}
                     ref={viewportRef}
-                    pause={props.activeModal}
+                    pause={props.activeModal || state.activePanel !== 'game'}
                     screenWidth={state.stageWidth}
                     screenHeight={state.stageHeight}
                     disableFieldInteraction={disableFieldInteraction}
@@ -844,123 +924,45 @@ function GameView(props) {
                 interactive
                 image={props.user.image_url}
               />
-              <Text
-                resolution={6}
-                visible={props.enabled}
-                y={isLandscape ? 35 : 45}
-                text={`$ 1000`}
-                style={
-                  new PIXI.TextStyle({
-                    fill: 'white',
-                    fontSize: 8,
-                  })
-                }
-              />
+              {
+                state.me
+                  ? (
+                    <Text
+                      resolution={ 6 }
+                      visible={ props.enabled }
+                      y={ isLandscape ? 35 : 45 }
+                      text={`$ ${state.me.balance}`}
+                      style={
+                        new PIXI.TextStyle({
+                          fill: 'white',
+                          fontSize: 8,
+                        })
+                      }
+                    />
+                  )
+                  : null
+              }
             </Container>
-            <Container
-              name="action"
-              y={isLandscape ? state.stageHeight - 32 : state.stageHeight - 32}
-            >
-              <Sprite
-                x={(state.stageWidth - 32) / 2}
-                y={0}
-                width={32}
-                height={32}
-                interactive
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/dice1.png'}
-              />
-              <Sprite
-                x={(state.stageWidth - 32) / 2}
-                y={0}
-                width={32}
-                height={32}
-                interactive
-                image={'https://cdn.discord-underlords.com/icons/pay1.png'}
-              />
-              <Container>
-                <Text
-                  resolution={6}
-                  visible={props.enabled}
-                  x={3}
-                  y={isLandscape ? state.stageHeight * -1 + 40 : 19}
-                  text={`${state.timeLeft} сек`}
-                  style={
-                    new PIXI.TextStyle({
-                      fill: 'white',
-                      fontSize: 8,
-                    })
-                  }
-                />
-              </Container>
-              <Sprite
-                name="chat_button"
-                visible={state.activePanel !== 'chat'}
-                x={isLandscape ? 0 : state.stageWidth - 32}
-                y={isLandscape ? 0 : 0}
-                width={32}
-                height={32}
-                interactive={state.activePanel !== 'chat'}
-                click={() => state.activePanel = 'chat'}
-                tap={() => state.activePanel = 'chat'}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/chat.png'}
-              />
-              <Sprite
-                visible={state.activePanel === 'chat'}
-                name="chat_button_active"
-                x={isLandscape ? 0 : state.stageWidth - 32}
-                y={isLandscape ? state.stageHeight - 32 : 0}
-                width={32}
-                height={32}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/chat-active.png'}
-              />
-            </Container>
-            <Container
-              name="map_buttons"
-              y={isLandscape ? 0 : state.stageHeight - 32 - 16 * 3 - 2 * 3}
-            >
-              <Sprite
-                x={state.stageWidth - 16}
-                y={0}
-                width={16}
-                height={16}
-                interactive
-                click={zoomIn}
-                tap={zoomIn}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/zoom-in.png'}
-              />
-              <Sprite
-                x={state.stageWidth - 16}
-                y={18}
-                width={16}
-                height={16}
-                interactive
-                click={zoomOut}
-                tap={zoomOut}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/zoom-out.png'}
-              />
-              <Sprite
-                visible={!state.following}
-                x={state.stageWidth - 16}
-                y={36}
-                width={16}
-                height={16}
-                interactive
-                click={follow}
-                tap={follow}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/follow.png'}
-              />
-              <Sprite
-                visible={state.following}
-                x={state.stageWidth - 16}
-                y={36}
-                width={16}
-                height={16}
-                interactive
-                click={follow}
-                tap={follow}
-                image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/follow-active.png'}
-              />
-            </Container>
+            <ActionContainer
+              isLandscape={isLandscape}
+              stageHeight={state.stageHeight}
+              stageWidth={state.stageWidth}
+              sendAction={sendAction}
+              myTurn={state.myTurn}
+              eventType={state.eventType}
+              onOpenChat={() => state.activePanel = 'chat'}
+              chatActive={state.activePanel === 'chat'}
+              timeLeft={state.timeLeft}
+            />
+            <MapButtonsContainer
+              isLandscape={isLandscape}
+              stageHeight={state.stageHeight}
+              stageWidth={state.stageWidth}
+              zoomIn={zoomIn}
+              zoomOut={zoomOut}
+              follow={follow}
+              following={state.following}
+            />
           </Stage>
         </div>
       </Panel>
