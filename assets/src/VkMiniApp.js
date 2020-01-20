@@ -1098,6 +1098,7 @@ function VkMiniApp(props) {
       before={<Avatar src={image_url} />}
       duration={2000}
       onClose={() => { state.snackbar = null }}
+      onActionClick={() => { state.snackbar = null }}
     >
       {text}
     </Snackbar>

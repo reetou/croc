@@ -39,6 +39,18 @@ function ActionModal(props) {
     >
       <Group header={<Div>Выберите действие</Div>}>
         {
+          params.card
+            ? (
+              <Cell
+                before={<img src={params.card.image_url} width={100} />}
+                description={params.card.name}
+              >
+                Цена: $ {params.cost}
+              </Cell>
+            )
+            : null
+        }
+        {
           params.actions.map(a => (
             <Cell>
               <Button

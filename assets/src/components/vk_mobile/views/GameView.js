@@ -588,22 +588,22 @@ function GameView(props) {
     }
     switch (type) {
       case 'put_on_loan':
-        return setActiveOptionsModal('pick_field', {
+        return props.setActiveOptionsModal('pick_field', {
           cards: state.activeCards,
           ...defaultParams
         })
       case 'buyout':
-        return setActiveOptionsModal('pick_field', {
+        return props.setActiveOptionsModal('pick_field', {
           cards: state.cardsOnLoan,
           ...defaultParams
         })
       case 'upgrade':
-        return setActiveOptionsModal('pick_field', {
+        return props.setActiveOptionsModal('pick_field', {
           cards: state.upgradableCards,
           ...defaultParams
         })
       case 'downgrade':
-        return setActiveOptionsModal('pick_field', {
+        return props.setActiveOptionsModal('pick_field', {
           cards: state.downgradableCards,
           ...defaultParams
         })
@@ -622,24 +622,37 @@ function GameView(props) {
     })
   }
   const sendAuctionAction = (bid = true) => {
-    state.channel.push('action', {
+    gameChannel.push('action', {
       type: bid ? 'auction_bid' : 'auction_reject',
       event_id: state.firstEventTurn.event_id
     })
   }
   const chooseAction = () => {
     const loanAction = {
-      onClick: () => pickField('put_on_loan'),
+      onClick: () => {
+        props.setActiveModal('', null)
+        setTimeout(() => {
+          pickField('put_on_loan')
+        }, 150)
+      },
       text: 'Заложить поле'
     }
     const downgradeAction = {
-      onClick: () => pickField('downgrade'),
+      onClick: () => {
+        props.setActiveModal('', null)
+        setTimeout(() => {
+          pickField('downgrade')
+        }, 150)
+      },
       text: 'Продать филиал'
     }
     switch (state.eventType) {
       case 'free_card':
+        const freeCard = state.game.cards.find(c => c.position === state.firstEventTurn.position)
         return props.setActiveOptionsModal('choose_action', {
           title: 'Вы попали на свободное поле',
+          card: freeCard,
+          cost: freeCard ? freeCard.cost : null,
           actions: [
             {
               text: `Купить за ${state.game.cards.find(c => c.position === state.firstEventTurn.position).cost}`,
@@ -649,14 +662,17 @@ function GameView(props) {
               text: 'Выставить на аукцион',
               onClick: sendRejectBuy
             },
-            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.activeCards.length ? [loanAction] : [],
             ...state.downgradableCards.length ? [downgradeAction] : [],
           ]
         })
         return
       case 'auction':
+        const auctionCard = state.game.cards.find(c => c.position === state.firstEventTurn.position)
         return props.setActiveOptionsModal('choose_action', {
           title: 'Аукцион',
+          card: auctionCard,
+          cost: auctionCard ? state.firstEventTurn.amount : null,
           actions: [
             {
               text: `Поднять ставку до $ ${state.firstEventTurn.amount}`,
@@ -666,7 +682,7 @@ function GameView(props) {
               text: `Отказаться от аукциона`,
               onClick: () => sendAuctionAction(false)
             },
-            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.activeCards.length ? [loanAction] : [],
             ...state.downgradableCards.length ? [downgradeAction] : [],
           ]
         })
@@ -678,7 +694,7 @@ function GameView(props) {
               text: `Заплатить ${state.firstEventTurn.amount}`,
               onClick: sendAction
             },
-            ...state.cardsOnLoan.length ? [loanAction] : [],
+            ...state.activeCards.length ? [loanAction] : [],
             ...state.downgradableCards.length ? [downgradeAction] : [],
           ]
         })
@@ -1091,6 +1107,7 @@ function GameView(props) {
               following={state.following}
             />
             <ActionContainer
+              chooseAction={chooseAction}
               isLandscape={isLandscape}
               stageHeight={state.stageHeight}
               stageWidth={state.stageWidth}

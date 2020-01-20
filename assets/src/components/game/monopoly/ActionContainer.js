@@ -38,6 +38,17 @@ function ActionContainer(props) {
         tap={sendAction}
         image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/dice1.png'}
       />
+      <Sprite
+        visible={state.myTurn && ['free_card', 'auction', 'pay'].includes(state.eventType)}
+        x={(state.stageWidth - 32) / 2}
+        y={0}
+        width={32}
+        height={32}
+        interactive
+        click={state.chooseAction}
+        tap={state.chooseAction}
+        image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/reject.png'}
+      />
       {/*<Sprite*/}
       {/*  visible={state.myTurn && state.eventType === 'pay'}*/}
       {/*  x={(state.stageWidth - 32) / 2}*/}
