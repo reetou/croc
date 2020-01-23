@@ -979,6 +979,9 @@ function VkMiniApp(props) {
     state.errorMessage = errorMessage
   }
   const setBodyScheme = (theme) => {
+    connect.send("VKWebAppSetViewSettings", {
+      status_bar_style: theme === 'dark' ? 'light' : 'dark',
+    })
     document.getElementsByTagName('body')[0].setAttribute('scheme', `client_${theme}`)
   }
   const initApp = async () => {
