@@ -28,6 +28,7 @@ import Deck from '../../game/monopoly/Deck'
 import colorString from 'color-string'
 import ActionContainer from '../../game/monopoly/ActionContainer'
 import MapButtonsContainer from '../../game/monopoly/MapButtonsContainer'
+import RulesPanel from '../panels/RulesPanel'
 // import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
@@ -842,8 +843,9 @@ function GameView(props) {
     state.app.resizeTo = resizer
     state.app.resize()
   }
+  const showHeader = ['chat', 'rules'].includes(state.activePanel)
   return useObserver(() => (
-    <View id={props.id} header={state.activePanel === 'chat'} activePanel={state.activePanel}>
+    <View id={props.id} header={showHeader} activePanel={state.activePanel}>
       <Panel id="no_game">
         <Placeholder
           icon={<Game28Icon />}
@@ -1116,6 +1118,7 @@ function GameView(props) {
               myTurn={state.myTurn}
               eventType={state.eventType}
               onOpenChat={() => state.activePanel = 'chat'}
+              onOpenRules={() => state.activePanel = 'rules'}
               chatActive={state.activePanel === 'chat'}
               timeLeft={state.timeLeft}
             />
@@ -1135,6 +1138,15 @@ function GameView(props) {
                 to,
                 chat_id: state.game.chat_id
               })
+            }}
+          />
+        </Suspense>
+      </Panel>
+      <Panel id={'rules'}>
+        <Suspense fallback={<ScreenSpinner size="large" />}>
+          <RulesPanel
+            onGoBack={() => {
+              state.activePanel = 'game'
             }}
           />
         </Suspense>

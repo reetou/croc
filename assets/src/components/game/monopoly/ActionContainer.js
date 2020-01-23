@@ -22,6 +22,10 @@ function ActionContainer(props) {
     x: isLandscape ? (state.stageWidth - chatSize) / 2 : state.stageWidth - chatSize,
     y: isLandscape ? (state.stageHeight - chatSize - 14) * -1 : (state.stageHeight - chatSize) / 2 * -1,
   }
+  const rulesButtonPosition = {
+    x: isLandscape ? (state.stageWidth - chatSize) - 8 : 8,
+    y: isLandscape ? (state.stageHeight - chatSize - 14) * -1 : 0,
+  }
   return (
     <Container
       name="action"
@@ -147,6 +151,17 @@ function ActionContainer(props) {
         width={chatSize}
         height={chatSize}
         image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/chat-active.png'}
+      />
+      <Sprite
+        name="rules_button"
+        x={rulesButtonPosition.x}
+        y={rulesButtonPosition.y}
+        interactive
+        click={state.onOpenRules}
+        tap={state.onOpenRules}
+        width={chatSize}
+        height={chatSize}
+        image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/help.png'}
       />
       <Sprite
         interactive
