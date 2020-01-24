@@ -199,12 +199,17 @@ function LobbyView(props) {
       <Panel id="main">
         <PanelHeader
           left={
-            <PanelHeaderButton
-              disabled={state.loading}
-              onClick={scanLobbyCode}
-            >
-              <Icon24Qr />
-            </PanelHeaderButton>}
+            !['desktop_web', 'web'].includes(props.platform)
+              ? (
+                <PanelHeaderButton
+                  disabled={state.loading}
+                  onClick={scanLobbyCode}
+                >
+                  <Icon24Qr />
+                </PanelHeaderButton>
+              )
+              : null
+          }
         >
           Найти игру
         </PanelHeader>
