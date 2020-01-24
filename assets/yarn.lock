@@ -1240,10 +1240,10 @@
   resolved "https://registry.yarnpkg.com/@vkontakte/vk-qr/-/vk-qr-2.0.9.tgz#22598fb29e10e8fa5db74eb50c682a4b89ccdd1e"
   integrity sha512-lvtrK70SkYT/TOUo0f2oZI56v2jU6I0MCYJTEctTmX8VOE/TZC5n7oyLSuj+k8aDp8vFM10Y8XEXnxaDYY862g==
 
-"@vkontakte/vkui@^3.0.0-alpha.3":
-  version "3.0.0-alpha.3"
-  resolved "https://registry.yarnpkg.com/@vkontakte/vkui/-/vkui-3.0.0-alpha.3.tgz#472ce9d45935cabc7ea708741d3e7127710ad906"
-  integrity sha512-wJSASqye51Wh5Iw/HcOWWA3NCaLhIt7x6aPY1oHwDtOlfHCFi0xhJ5tqX5d0NBNCO3X7RGFCaaRzohHou1F5Rw==
+"@vkontakte/vkui@^3.0.0-beta":
+  version "3.0.0-beta"
+  resolved "https://registry.yarnpkg.com/@vkontakte/vkui/-/vkui-3.0.0-beta.tgz#ccafaaba8d3cfaea57b6a477126df493599877ba"
+  integrity sha512-OdN7KHHfvc8Ue/wfiauDDmrb6A9rOIOONC+cVSorOJN/LtAb8F70VtlF9PuEpR8DejELP2MxpDtLZZuqFjDz1g==
 
 "@xobotyi/scrollbar-width@1.5.0":
   version "1.5.0"
