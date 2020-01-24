@@ -10,7 +10,7 @@
     "@inlet/react-pixi": "^1.1.11",
     "@sentry/browser": "^5.11.1",
     "@vkontakte/icons": "^1.13.0",
-    "@vkontakte/vk-connect": "^1.8.3",
+    "@vkontakte/vk-connect": "^1.8.5",
     "@vkontakte/vk-qr": "^2.0.9",
     "@vkontakte/vkui": "^3.0.0-beta",
     "axios": "^0.19.0",

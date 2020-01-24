@@ -1230,10 +1230,10 @@
     es6-object-assign "^1.1.0"
     svg-baker-runtime "^1.4.2"
 
-"@vkontakte/vk-connect@^1.8.3":
-  version "1.8.3"
-  resolved "https://registry.yarnpkg.com/@vkontakte/vk-connect/-/vk-connect-1.8.3.tgz#643c80da05a0a2681b719c5c37c69311975b29e9"
-  integrity sha512-1wWioM5UKTFxl5V+idoPkUX76zvYB4j4NKSOdd3hhlxWC4Pg7uaHeYohSmYEs6YCkNjZtR3h5d69UaCi7FhaBw==
+"@vkontakte/vk-connect@^1.8.5":
+  version "1.8.5"
+  resolved "https://registry.yarnpkg.com/@vkontakte/vk-connect/-/vk-connect-1.8.5.tgz#1aa3b68839cafa3ae596e6a102ebccd46f66e1f7"
+  integrity sha512-yoyT6GGZ74oB1MSLB+vpwO298ayDxj6Yt5llWCld+MkchxYxhphykTx3CxsmDIh9OBWLoJy1d13aM6+YEg01Vw==
 
 "@vkontakte/vk-qr@^2.0.9":
   version "2.0.9"
