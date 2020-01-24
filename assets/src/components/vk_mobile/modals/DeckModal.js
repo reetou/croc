@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  HeaderButton,
+  PanelHeaderButton,
   HorizontalScroll,
   IOS,
   ModalPage,
@@ -44,11 +44,11 @@ function DeckModal(props) {
       header={
         <ModalPageHeader
           right={(
-            <HeaderButton
+            <PanelHeaderButton
               onClick={onClose}
             >
               {platform === IOS ? 'Закрыть' : <Icon24Cancel />}
-            </HeaderButton>
+            </PanelHeaderButton>
           )}
         >
           {noAvailableFields ? 'Нельзя использовать карту' : 'Выберите поле'}

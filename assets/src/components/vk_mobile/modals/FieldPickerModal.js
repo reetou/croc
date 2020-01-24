@@ -1,6 +1,6 @@
 import React from 'react'
 import {
-  HeaderButton,
+  PanelHeaderButton,
   IOS,
   ModalPage,
   Button,
@@ -26,11 +26,11 @@ function FieldPickerModal(props) {
       header={
         <ModalPageHeader
           right={(
-            <HeaderButton
+            <PanelHeaderButton
               onClick={onClose}
             >
               {platform === IOS ? 'Закрыть' : <Icon24Cancel />}
-            </HeaderButton>
+            </PanelHeaderButton>
           )}
         >
           Выберите поле

@@ -5,7 +5,7 @@ import {
   Button,
   Cell,
   FormLayout,
-  HeaderButton,
+  PanelHeaderButton,
   FormLayoutGroup,
   Input,
   Group,
@@ -23,7 +23,7 @@ function Chat(props) {
   return useObserver(() => (
     <React.Fragment>
       <PanelHeader
-        left={<HeaderButton onClick={props.onGoBack}>Назад</HeaderButton>}
+        left={<PanelHeaderButton onClick={props.onGoBack}>Назад</PanelHeaderButton>}
       >
         <PanelHeaderContent>
           Чат

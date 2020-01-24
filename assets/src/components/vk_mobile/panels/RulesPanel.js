@@ -1,7 +1,7 @@
 import React from 'react'
 import { useObserver } from 'mobx-react-lite'
 import {
-  HeaderButton,
+  PanelHeaderButton,
   PanelHeader,
   PanelHeaderContent,
   Div, Group, Gallery,
@@ -11,7 +11,7 @@ function RulesPanel(props) {
   return useObserver(() => (
     <React.Fragment>
       <PanelHeader
-        left={<HeaderButton onClick={props.onGoBack}>Назад</HeaderButton>}
+        left={<PanelHeaderButton onClick={props.onGoBack}>Назад</PanelHeaderButton>}
       >
         <PanelHeaderContent>
           Правила

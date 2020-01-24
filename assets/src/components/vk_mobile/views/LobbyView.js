@@ -1,6 +1,6 @@
 import React, { useEffect, useContext } from 'react'
 import { useLocalStore, useObserver } from 'mobx-react-lite'
-import { HeaderButton, Panel, PanelHeader, ScreenSpinner, View } from '@vkontakte/vkui'
+import { PanelHeaderButton, Panel, PanelHeader, ScreenSpinner, View } from '@vkontakte/vkui'
 import VkLobbyContainer from '../VkLobbyContainer'
 import Icon24Qr from '@vkontakte/icons/dist/24/qr'
 import useChannel from '../../../useChannel'
@@ -199,17 +199,12 @@ function LobbyView(props) {
       <Panel id="main">
         <PanelHeader
           left={
-            !['desktop_web', 'web'].includes(props.platform)
-              ? (
-                <HeaderButton
-                  disabled={state.loading}
-                  onClick={scanLobbyCode}
-                >
-                  <Icon24Qr />
-                </HeaderButton>
-              )
-              : null
-          }
+            <PanelHeaderButton
+              disabled={state.loading}
+              onClick={scanLobbyCode}
+            >
+              <Icon24Qr />
+            </PanelHeaderButton>}
         >
           Найти игру
         </PanelHeader>

@@ -5,7 +5,7 @@ import {
   Cell,
   Div,
   Group,
-  HeaderButton,
+  PanelHeaderButton,
   IOS,
   List,
   ModalPage,
@@ -26,11 +26,11 @@ function ActionModal(props) {
       header={
         <ModalPageHeader
           right={(
-            <HeaderButton
+            <PanelHeaderButton
               onClick={onClose}
             >
               {platform === IOS ? 'Закрыть' : <Icon24Cancel />}
-            </HeaderButton>
+            </PanelHeaderButton>
           )}
         >
           {params.title}

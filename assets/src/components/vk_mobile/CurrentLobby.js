@@ -3,7 +3,7 @@ import { useLocalStore, useObserver } from 'mobx-react-lite'
 import {
   Panel,
   PanelHeader,
-  HeaderButton,
+  PanelHeaderButton,
   Group,
   List,
   Cell,
@@ -93,7 +93,7 @@ function CurrentLobby(props) {
   return useObserver(() => (
     <Panel id={props.id}>
       <PanelHeader
-        left={<HeaderButton disabled={props.loading} onClick={props.onGoBack}><Icon24Back/></HeaderButton>}
+        left={<PanelHeaderButton disabled={props.loading} onClick={props.onGoBack}><Icon24Back/></PanelHeaderButton>}
       >
         Ваше лобби
       </PanelHeader>

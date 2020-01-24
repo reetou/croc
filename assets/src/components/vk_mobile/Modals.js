@@ -4,7 +4,7 @@ import {
   ModalCard,
   ModalPage,
   ModalPageHeader,
-  HeaderButton,
+  PanelHeaderButton,
   ModalRoot,
   Div,
 } from '@vkontakte/vkui'
@@ -189,13 +189,13 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
         header={
           <ModalPageHeader
             right={(
-              <HeaderButton
+              <PanelHeaderButton
                 onClick={() => {
                   onClose()
                 }}
               >
                 {platform === IOS ? 'Готово' : <Icon24Done />}
-              </HeaderButton>
+              </PanelHeaderButton>
             )}
           >
             {params.title || 'Поле'}
@@ -236,11 +236,11 @@ function Modals({ setActiveModal, activeModal, onClose, onSignIn, onGetUserData,
         header={
           <ModalPageHeader
             right={(
-              <HeaderButton
+              <PanelHeaderButton
                 onClick={() => executeAndClose(async () => params.onSubmit(state.selectedCardsIds))}
               >
                 {platform === IOS ? 'Сохранить' : <Icon24Done />}
-              </HeaderButton>
+              </PanelHeaderButton>
             )}
           >
             Колода
