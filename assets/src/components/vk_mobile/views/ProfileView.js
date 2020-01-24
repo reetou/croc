@@ -82,20 +82,6 @@ function ProfileView(props) {
                     }
                   </List>
                 </Group>
-                <Group header={<Div>Настройки</Div>}>
-                  <List>
-                    <Cell
-                      asideContent={(
-                        <Switch
-                          defaultChecked={state.darkTheme}
-                          onClick={state.toggleTheme}
-                        />
-                      )}
-                    >
-                      Темная тема
-                    </Cell>
-                  </List>
-                </Group>
               </React.Fragment>
             )
             : (

@@ -961,7 +961,7 @@ function VkMiniApp(props) {
     token: null,
     snackbar: null,
     modalParams: {},
-    darkTheme: true,
+    darkTheme: false,
     loading: false,
     banned: false,
     ban_id: null,
@@ -987,16 +987,8 @@ function VkMiniApp(props) {
   const initApp = async () => {
     try {
       console.log('Init sent')
-      const [data] = await Promise.all([
-        connect.send('VKWebAppStorageGet', {
-          keys: ['theme']
-        }),
-        getUserData()
-      ])
-      console.log('Data at theme')
-      const val = data.keys.find(k => k.key === 'theme').value || 'dark'
-      setBodyScheme(val)
-      state.darkTheme = val === 'dark'
+      await connect.send('VKWebAppInit', {})
+      await getUserData()
     } catch (e) {
       console.error('Cannot init app', e)
     }
@@ -1011,8 +1003,18 @@ function VkMiniApp(props) {
     })
   }
   useEffect(() => {
-    const handler = (e) => {
-      console.log('Received VK event', e)
+    const handler = ({ detail: { type, data }}) => {
+      console.log(`Received event ${type}`, data)
+      if (type === 'VKWebAppUpdateConfig') {
+        const schemeAttribute = document.createAttribute('scheme');
+        schemeAttribute.value = data.scheme ? data.scheme : 'client_light';
+        document.body.attributes.setNamedItem(schemeAttribute);
+        if (!data.scheme) {
+          state.darkTheme = false
+        } else {
+          state.darkTheme = data.scheme.includes('dark')
+        }
+      }
     }
     connect.subscribe(handler)
     initApp()
@@ -1153,7 +1155,6 @@ function VkMiniApp(props) {
           }
         >
           <ProfileView
-            toggleTheme={toggleTheme}
             darkTheme={state.darkTheme}
             getUserData={getUserData}
             id={'profile'}
