@@ -987,7 +987,7 @@ function VkMiniApp(props) {
   const initApp = async () => {
     try {
       console.log('Init sent')
-      await connect.send('VKWebAppInit', {})
+      connect.send('VKWebAppInit', {})
       await getUserData()
     } catch (e) {
       console.error('Cannot init app', e)

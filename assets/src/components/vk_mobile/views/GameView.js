@@ -516,7 +516,7 @@ function GameView(props) {
     // console.log('Successfully joined game channel', payload)
   }
   const channelName = `game:monopoly:${props.game ? props.game.game_id : 'noop'}`
-  const userChannelName = `user:${props.user.id}`
+  const userChannelName = `user:${props.user ? props.user.id : 'noop'}`
   const [gameChannel] = useChannel(channelName, (payload) => {
     state.game = payload.game
     console.log('On game view join', payload)
@@ -1078,7 +1078,7 @@ function GameView(props) {
                 width={32}
                 height={32}
                 interactive
-                image={props.user.image_url || 'https://cdn.discord-underlords.com/eventcards/event-card-empty.png'}
+                image={props.user && props.user.image_url ? props.user.image_url : 'https://cdn.discord-underlords.com/eventcards/event-card-empty.png'}
               />
               {
                 state.me
