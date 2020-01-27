@@ -158,42 +158,42 @@ const getUpgradeLevelTextPosition = (upgrade_level) => {
 
 const getHorizontalPlayerPosition = (ind) => {
   switch (ind) {
-    case 0: return [25, 15]
-    case 1: return [55, 15]
-    case 2: return [85, 15]
-    case 3: return [25, 40]
-    case 4: return [55, 40]
-    case 5: return [85, 40]
+    case 0: return [30, 20]
+    case 1: return [60, 20]
+    case 2: return [90, 20]
+    case 3: return [30, 50]
+    case 4: return [60, 50]
+    case 5: return [90, 50]
   }
 }
 const getHorizontalFlipPlayerPosition = (ind) => {
   switch (ind) {
-    case 0: return [50, 15]
-    case 1: return [80, 15]
-    case 2: return [110, 15]
-    case 3: return [50, 40]
-    case 4: return [80, 40]
-    case 5: return [110, 40]
+    case 0: return [50, 23]
+    case 1: return [80, 23]
+    case 2: return [110, 23]
+    case 3: return [50, 52]
+    case 4: return [80, 52]
+    case 5: return [110, 52]
   }
 }
 const getVerticalPlayerPosition = (ind) => {
   switch (ind) {
-    case 0: return [35, -85]
-    case 1: return [35, -60]
-    case 2: return [35, -35]
-    case 3: return [60, -85]
-    case 4: return [60, -60]
-    case 5: return [60, -35]
+    case 0: return [42, -85]
+    case 1: return [42, -55]
+    case 2: return [42, -25]
+    case 3: return [72, -85]
+    case 4: return [72, -55]
+    case 5: return [72, -25]
   }
 }
 const getVerticalFlipPlayerPosition = (ind) => {
   switch (ind) {
-    case 0: return [15, -85]
-    case 1: return [15, -60]
-    case 2: return [15, -35]
-    case 3: return [40, -85]
-    case 4: return [40, -60]
-    case 5: return [40, -35]
+    case 0: return [20, -85]
+    case 1: return [20, -55]
+    case 2: return [20, -25]
+    case 3: return [50, -85]
+    case 4: return [50, -55]
+    case 5: return [50, -25]
   }
 }
 const getSquarePlayerPosition = (ind) => {
