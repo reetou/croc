@@ -445,6 +445,34 @@ defmodule Croc.GamesTest.MonopolyTest do
       event = List.first(player.events)
       assert event.type == :roll
     end
+
+    test "should change player turn because player has no events and is skipping current round", %{ game: game } do
+      %Player{player_id: player_id} = Enum.at(game.players, 0)
+      %Player{} = next_player = Enum.at(game.players, 1)
+      assert game.player_turn == player_id
+      %Monopoly{} = game = Map.put(game, :players, Enum.map(game.players, fn p ->
+        case p.player_id do
+          x when x == player_id -> Map.put(p, :events, [])
+          _ -> p
+        end
+      end))
+      game =
+        game
+        |> Map.put(:round_data, %{ upgrades: [{1, :cars}], picked_event_cards: [] })
+        |> Player.skip_round(game.player_turn, game.round)
+      assert game.round == 1
+      updated_game = Monopoly.process_player_turn(game, player_id)
+      assert updated_game.player_turn == next_player.player_id
+      player = Enum.find(updated_game.players, fn p -> p.player_id == updated_game.player_turn end)
+      assert player != nil
+      assert player.surrender == false
+      assert length(player.events) == 1
+      event = List.first(player.events)
+      # Не должен чистить round_data если раунд не поменялся
+      assert updated_game.round_data.upgrades == [{1, :cars}]
+      assert event.type == :roll
+      assert updated_game.round == 1
+    end
   end
 
   describe "get new position" do

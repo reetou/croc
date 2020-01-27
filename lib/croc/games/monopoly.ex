@@ -595,7 +595,7 @@ defmodule Croc.Games.Monopoly do
     Logger.debug("Checking if player #{player_id} not surrendered and 0 events: #{inspect player.events}")
     with true <- length(player.events) == 0 do
       actual_players = Enum.filter(game.players, fn p ->
-        p.surrender != true and Player.should_skip_round?(game, p.player_id, game.round) == false
+        (p.player_id == player_id) or (p.surrender != true and Player.should_skip_round?(game, p.player_id, game.round) == false)
       end)
       current_player_index = Enum.find_index(actual_players, fn p -> p.player_id == player_id end)
       Logger.debug("Current player index #{current_player_index}")
