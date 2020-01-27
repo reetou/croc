@@ -468,9 +468,7 @@ function GameView(props) {
     get currentCard() {
       return this.game.cards.find(c => c.position === this.playerInCharge.position)
     },
-    get now() {
-      return Date.now()
-    },
+    now: Date.now(),
     get timeLeft() {
       if (!this.game) return -1
       if (!this.game.turn_timeout_at) return -1
@@ -498,6 +496,14 @@ function GameView(props) {
       return this.activeCards.filter(c => c.upgrade_level > 0)
     }
   }), props)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      state.now = Date.now()
+    }, 1000)
+    return () => {
+      clearInterval(interval)
+    }
+  }, [])
   useEffect(() => {
     if (props.game) {
       state.game = props.game
