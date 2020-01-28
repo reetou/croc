@@ -40,7 +40,7 @@ function ActionContainer(props) {
         interactive
         click={sendAction}
         tap={sendAction}
-        image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/dice1.png'}
+        image={'https://croc-images.fra1.cdn.digitaloceanspaces.com/icons/dice.png'}
       />
       <Sprite
         visible={state.myTurn && ['free_card', 'auction', 'pay'].includes(state.eventType)}
