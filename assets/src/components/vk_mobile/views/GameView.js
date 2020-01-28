@@ -23,12 +23,14 @@ import { getCompletedMonopolies, getPosition } from '../../../util'
 import useChannel from '../../../useChannel'
 import { toJS } from 'mobx'
 import ReactViewport from '../../ReactViewport'
-import * as PIXI from 'pixi.js'
 import Deck from '../../game/monopoly/Deck'
 import colorString from 'color-string'
 import ActionContainer from '../../game/monopoly/ActionContainer'
 import MapButtonsContainer from '../../game/monopoly/MapButtonsContainer'
 import RulesPanel from '../panels/RulesPanel'
+import * as PIXI from 'pixi.js'
+window.PIXI = PIXI;
+require("pixi-compressed-textures")
 // import Paper from 'paper'
 
 const Chat = lazy(() => import('../Chat'))
@@ -886,8 +888,9 @@ function GameView(props) {
               window.removeEventListener('orientationchange', onOrientationChange)
             }}
             options={{
+              resolution: window.devicePixelRatio || 1,
               backgroundColor: 0x333333,
-              antialias: true,
+              antialias: false,
             }}
           >
             {

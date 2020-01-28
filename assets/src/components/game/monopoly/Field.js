@@ -18,6 +18,45 @@ import {
 
 function Field(props) {
   const app = useApp()
+  const spriteWidth = getSpriteWidth(props.form)
+  const spriteHeight = getSpriteHeight(props.form)
+  const loadTextureOptions = {
+    metadata: {
+      choice: ['@1x.png', '@2x.png', '@3x.png']
+    },
+    scale: 0.5,
+  }
+  const textureOptions = {
+    mipmap: PIXI.MIPMAP_MODES.OFF,
+    resolution: PIXI.settings.RESOLUTION,
+    width: spriteWidth,
+    height: spriteHeight,
+    scaleMode: PIXI.SCALE_MODES.LINEAR,
+  }
+  const [logoTexture, setLogoTexture] = useState(null)
+  const fieldTextureImageUrl = 'https://cdn.discord-underlords.com/field-texture.png'
+  const [backgroundTexture, setBackgroundTexture] = useState(PIXI.Texture.from(fieldTextureImageUrl, textureOptions))
+  const createLoader = () => {
+    const l = new PIXI.Loader()
+    const extensions = PIXI.compressedTextures.detectExtensions(app.renderer)
+    l.pre(PIXI.compressedTextures.extensionChooser(extensions))
+    return l
+  }
+  const [loader, setLoader] = useState(createLoader())
+  useEffect(() => {
+    loader
+      .add(props.card.name, props.card.image_url, loadTextureOptions)
+      .add('field_texture', fieldTextureImageUrl, loadTextureOptions)
+      .load((loader, resources) => {
+        const resource = resources[props.card.name]
+        resource.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR
+        console.log(`Resource for ${props.card.name}`, resource)
+        setLogoTexture(resource.texture)
+        const backgroundResource = resources['field_texture']
+        console.log(`Texture background for resource ${props.card.name}`, backgroundResource)
+        setBackgroundTexture(backgroundResource.texture)
+      })
+  }, [])
   const [moving, setMoving] = useState(false)
   const [x, setX] = useState(props.x || 0)
   const [y, setY] = useState(props.y || 0)
@@ -61,8 +100,6 @@ function Field(props) {
     setX(e.data.global.x)
     setY(e.data.global.y)
   }
-  const spriteWidth = getSpriteWidth(props.form)
-  const spriteHeight = getSpriteHeight(props.form)
   const getSpriteY = () => {
     switch (props.form) {
       case 'vertical': return 21
@@ -145,22 +182,29 @@ function Field(props) {
         />
       </Container>
       <Sprite
-        image="https://cdn.discord-underlords.com/field-texture.png"
+        texture={backgroundTexture}
         x={spriteX}
         y={spriteY}
         width={spriteWidth}
         height={spriteHeight}
         name={`field_texture`}
       />
-      <Sprite
-        x={spriteX}
-        y={spriteY}
-        image={props.card.image_url || imagePlaceholder}
-        width={spriteWidth}
-        height={spriteHeight}
-        name={`sprite_width_${spriteWidth}_height_${spriteHeight}`}
-        alpha={moving ? 0.6 : 1}
-      />
+      {
+        logoTexture
+          ? (
+            <Sprite
+              x={spriteX}
+              y={spriteY}
+              texture={logoTexture}
+              width={spriteWidth}
+              height={spriteHeight}
+              name={`sprite_width_${spriteWidth}_height_${spriteHeight}`}
+              alpha={moving ? 0.6 : 1}
+              scaleMode={PIXI.SCALE_MODES.LINEAR}
+            />
+          )
+          : null
+      }
       <Container
         x={tagPoint.x}
         y={tagPoint.y}
