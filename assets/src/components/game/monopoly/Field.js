@@ -186,6 +186,7 @@ function Field(props) {
         <Text
           x={5}
           y={4}
+          resolution={PIXI.settings.RESOLUTION}
           visible={props.card.type === 'brand'}
           // visible={false}
           text={`$ ${props.card.payment_amount}`}
@@ -210,6 +211,7 @@ function Field(props) {
           image="https://cdn.discord-underlords.com/upgrade-level-bg.png"
         />
         <Text
+          resolution={PIXI.settings.RESOLUTION}
           x={upgradeTagTextPoint.x}
           y={upgradeTagTextPoint.y}
           text={getUpgradeLevelText(props.card.upgrade_level || 1)}
@@ -222,6 +224,7 @@ function Field(props) {
         />
       </Container>
       <Text
+        resolution={PIXI.settings.RESOLUTION}
         visible={props.enabled}
         // visible={true}
         x={0}
