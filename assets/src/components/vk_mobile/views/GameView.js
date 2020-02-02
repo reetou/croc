@@ -892,7 +892,7 @@ function GameView(props) {
             options={{
               resolution: window.devicePixelRatio || 1,
               backgroundColor: 0x333333,
-              antialias: false,
+              antialias: true,
             }}
           >
             {

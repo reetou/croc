@@ -24,12 +24,11 @@ function init(props, instance) {
   viewport
     .drag()
     .pinch()
-    .wheel()
     .decelerate()
     .fit(false)
     .clampZoom({
       minHeight: 200,
-      maxHeight: 1200,
+      maxHeight: 350,
     })
     .clamp({
       direction: 'all',

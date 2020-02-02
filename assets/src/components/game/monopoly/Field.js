@@ -15,6 +15,7 @@ import {
   getUpgradeLevelTextPosition,
 } from '../../../util'
 
+PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.LINEAR
 
 function Field(props) {
   const app = useApp()
@@ -50,6 +51,7 @@ function Field(props) {
       .load((loader, resources) => {
         const resource = resources[props.card.name]
         resource.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR
+        resource.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF
         console.log(`Resource for ${props.card.name}`, resource)
         setLogoTexture(resource.texture)
         const backgroundResource = resources['field_texture']
