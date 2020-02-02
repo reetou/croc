@@ -7,7 +7,9 @@ import {
   ScreenSpinner,
   View,
   Button,
-  Group,
+  Group, Placeholder,
+  usePlatform,
+  IOS
 } from '@vkontakte/vkui'
 import axios from '../../../axios'
 import VkEventCard from '../VkEventCard'
@@ -63,9 +65,15 @@ function ShopView(props) {
       console.log('Error at buy', e)
     }
   }
+  const platform = usePlatform()
   useEffect(() => {
     if (!props.user) {
       state.activePanel = 'loading_error'
+      return
+    }
+    if (platform === IOS) {
+      state.activePanel = 'unavailable'
+      state.popout = null
       return
     }
     getProducts()
@@ -86,6 +94,14 @@ function ShopView(props) {
       activePanel={state.activePanel}
       popout={state.popout}
     >
+      <Panel id={'unavailable'}>
+        <PanelHeader>Ошибка</PanelHeader>
+        <Placeholder
+          header={`Раздел недоступен`}
+        >
+          К сожалению, раздел недоступен на вашем устройстве.
+        </Placeholder>
+      </Panel>
       <Panel id={'main'}>
         <PanelHeader>Купить</PanelHeader>
         <Div>
