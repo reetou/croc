@@ -29,6 +29,7 @@ import ActionContainer from '../../game/monopoly/ActionContainer'
 import MapButtonsContainer from '../../game/monopoly/MapButtonsContainer'
 import RulesPanel from '../panels/RulesPanel'
 import * as PIXI from 'pixi.js'
+import connect from '@vkontakte/vk-connect'
 window.PIXI = PIXI;
 require("pixi-compressed-textures")
 // import Paper from 'paper'
@@ -572,6 +573,7 @@ function GameView(props) {
     gameChannel.push('action', {
       type: 'surrender',
     })
+    connect.send('VKWebAppTapticImpactOccurred', {style: 'heavy'})
   }
   const surrender = () => {
     props.setActiveOptionsModal('confirm_surrender', {

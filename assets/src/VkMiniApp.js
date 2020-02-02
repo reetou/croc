@@ -975,6 +975,9 @@ function VkMiniApp(props) {
     }
   }))
   const setActiveModal = (modal_id, errorMessage = null) => {
+    if (modal_id === 'lobby_error') {
+      connect.send('VKWebAppTapticNotificationOccurred', {type: 'error'})
+    }
     state.activeModal = modal_id
     state.errorMessage = errorMessage
   }

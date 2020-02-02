@@ -70,6 +70,7 @@ function LobbyView(props) {
     const topic = `lobby:${lobby_id}`
     console.log('Topic')
     const chan = socket.channel(topic, { token })
+    connect.send('VKWebAppTapticNotificationOccurred', {type: 'success'})
     state.joined_lobby_id = lobby_id
     const maxQrSize = 300
     const qrSvg = vkQr.createQR(`https://vk.com/app7262387#lobby_${lobby_id}`, {
@@ -83,6 +84,7 @@ function LobbyView(props) {
       state.game_id = payload.game.game_id
       props.onGameStart(payload.game)
       state.loading = false
+      connect.send('VKWebAppTapticImpactOccurred', {style: 'heavy'})
     })
     chan.on('left', (payload) => {
       if (payload.force) {
@@ -118,6 +120,7 @@ function LobbyView(props) {
     if (state.joinedLobbyChannel) {
       state.joinedLobbyChannel.leave()
     }
+    connect.send('VKWebAppTapticNotificationOccurred', {type: 'success'})
     state.loading = false
   }
   const joinLobby = (lobby_id) => {

@@ -79,6 +79,7 @@ function CurrentLobby(props) {
               event_cards_ids: selectedCardsIds,
             }
           })
+          connect.send('VKWebAppTapticImpactOccurred', {style: 'medium'})
         } catch (e) {
           console.log('Error at update deck', e)
           // Модалки не умеют открываться пока закрываются другие,
