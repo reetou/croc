@@ -1021,9 +1021,14 @@ function VkMiniApp(props) {
     }
     connect.subscribe(handler)
     initApp()
+    const onFocus = () => {
+      state.snackbar = null
+    }
+    window.addEventListener('focus', onFocus)
     return () => {
       console.log('Unsubscribing')
       connect.unsubscribe(handler)
+      window.removeEventListener('focus', onFocus)
     }
   }, [])
   const onBan = (ban_id) => {
@@ -1222,7 +1227,7 @@ function VkMiniApp(props) {
                 state.endedGame
                   ? (
                     <Group
-                      description="Скоро здесь будут кейсы, из которых будут выпадать поля"
+                      description="Скоро здесь будут кейсы, из которых будут выпадать скины для полей-фирм"
                     >
                       <Div>Победитель: {state.winner || 'Неизвестная ошибка'}</Div>
                     </Group>

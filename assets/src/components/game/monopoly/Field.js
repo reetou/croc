@@ -39,6 +39,9 @@ function Field(props) {
   const [backgroundTexture, setBackgroundTexture] = useState(PIXI.Texture.from(fieldTextureImageUrl, textureOptions))
   const createLoader = () => {
     const l = new PIXI.Loader()
+    if (!PIXI.compressedTextures) {
+      return l
+    }
     const extensions = PIXI.compressedTextures.detectExtensions(app.renderer)
     l.pre(PIXI.compressedTextures.extensionChooser(extensions))
     return l
@@ -52,10 +55,8 @@ function Field(props) {
         const resource = resources[props.card.name]
         resource.texture.baseTexture.scaleMode = PIXI.SCALE_MODES.LINEAR
         resource.texture.baseTexture.mipmap = PIXI.MIPMAP_MODES.OFF
-        console.log(`Resource for ${props.card.name}`, resource)
         setLogoTexture(resource.texture)
         const backgroundResource = resources['field_texture']
-        console.log(`Texture background for resource ${props.card.name}`, backgroundResource)
         setBackgroundTexture(backgroundResource.texture)
       })
   }, [])

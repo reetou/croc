@@ -32,7 +32,7 @@ function ProfileView(props) {
           icon={<User28Icon />}
           header={`Номер бана: ${state.ban_id}`}
         >
-          Вы были заблокированы. Для разбана напишите номер бана и ваше сообщение сюда: vk.com/zaeeee (ЧЕТЫРЕ буквы е)
+          Вы были заблокированы. Для разбана напишите номер бана и ваше сообщение сюда: vk.com/vova_zae
         </Placeholder>
       </Panel>
       <Panel id={'main'}>

@@ -722,8 +722,9 @@ function GameView(props) {
       console.log('Payload at game update', payload)
       state.game = payload.game
       if (state.game.player_turn === props.user.id) {
+        connect.send('VKWebAppTapticImpactOccurred', {style: 'heavy'})
         props.setActiveModal('', null)
-        chooseAction()
+        setTimeout(chooseAction, 1000)
       }
     })
 
