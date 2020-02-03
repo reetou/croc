@@ -74,6 +74,7 @@ function ProfileView(props) {
                           key={id}
                           description={c.description}
                           before={<Avatar src={c.image_url} size={36}/>}
+                          multiline
                           size="l"
                         >
                           {c.name}

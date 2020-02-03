@@ -661,7 +661,7 @@ function GameView(props) {
       case 'free_card':
         const freeCard = state.game.cards.find(c => c.position === state.firstEventTurn.position)
         return props.setActiveOptionsModal('choose_action', {
-          title: 'Вы попали на свободное поле',
+          title: 'Свободное поле',
           card: freeCard,
           cost: freeCard ? freeCard.cost : null,
           actions: [
