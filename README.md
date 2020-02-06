@@ -24,3 +24,5 @@ To start your Phoenix server:
   React is used for frontend.
   
   All secrets are now not valid
+
+  Tests are in `test` directory, there are currently 151 tests for backend logic.
