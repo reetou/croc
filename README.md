@@ -1,5 +1,9 @@
 # Croc [![CircleCI](https://circleci.com/gh/reetou/croc/tree/master.svg?style=svg&circle-token=b1764001723e2679daea66cbc5f5eb549b418122)](https://circleci.com/gh/reetou/croc/tree/master)
 
+## UI alpha version
+![pic](https://i.imgur.com/WdaCBhI.png)
+![pic](https://i.imgur.com/ZTz8jVx.png)
+
 To start your Phoenix server:
 
   * Install dependencies with `mix deps.get`
