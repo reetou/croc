@@ -15,7 +15,7 @@
     "@vkontakte/vkui": "^3.0.0-beta",
     "axios": "^0.19.0",
     "color-string": "^1.5.3",
-    "lodash-es": "^4.17.15",
+    "lodash-es": "^4.17.21",
     "mobx": "^5.15.0",
     "mobx-react": "^6.1.4",
     "mobx-react-lite": "^1.5.1",
